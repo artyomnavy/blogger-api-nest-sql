@@ -1,7 +1,10 @@
 import { Module } from '@nestjs/common';
 import { UsersRepository } from '../features/superadmin/users/infrastructure/users.repository';
 import { MongooseModule } from '@nestjs/mongoose';
-import { User, UserEntity } from '../features/superadmin/users/domain/user.entity';
+import {
+  User,
+  UserEntity,
+} from '../features/superadmin/users/domain/user.entity';
 import { UsersQueryRepository } from '../features/superadmin/users/infrastructure/users.query-repository';
 import { CqrsModule } from '@nestjs/cqrs';
 

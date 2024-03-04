@@ -14,7 +14,10 @@ import {
   Comment,
   CommentEntity,
 } from './features/comments/domain/comment.entity';
-import { User, UserEntity } from './features/superadmin/users/domain/user.entity';
+import {
+  User,
+  UserEntity,
+} from './features/superadmin/users/domain/user.entity';
 import { BlogsController } from './features/blogs/api/blogs.controller';
 import { PostsController } from './features/posts/api/posts.controller';
 import { CommentsController } from './features/comments/api/comments.controller';

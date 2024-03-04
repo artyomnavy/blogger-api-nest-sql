@@ -17,7 +17,10 @@ import {
   basicPassword,
 } from '../src/features/public/auth/api/auth.constants';
 import { Model } from 'mongoose';
-import { User, UserDocument } from '../src/features/superadmin/users/domain/user.entity';
+import {
+  User,
+  UserDocument,
+} from '../src/features/superadmin/users/domain/user.entity';
 import { getModelToken } from '@nestjs/mongoose';
 import { EmailsAdapter } from '../src/adapters/emails-adapter';
 import { EmailsAdapterMock } from './mock/emails-adapter.mock';

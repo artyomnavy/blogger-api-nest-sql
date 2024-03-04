@@ -1,5 +1,5 @@
-import { CommentDocument } from '../../domain/comment.entity';
 import { ObjectId } from 'mongodb';
+
 export class CommentModel {
   _id: ObjectId;
   content: string;
