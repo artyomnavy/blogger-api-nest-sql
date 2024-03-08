@@ -20,7 +20,7 @@ export class ResendingEmailUseCase
     const newCode = uuidv4();
     const newExpirationDate = add(new Date(), {
       minutes: 10,
-    });
+    }).toISOString();
 
     const isUpdated = await this.usersRepository.updateConfirmationCode(
       command.email,

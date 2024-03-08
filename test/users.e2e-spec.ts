@@ -5,12 +5,13 @@ import request from 'supertest';
 import { HTTP_STATUSES } from '../src/utils';
 import { UserOutputModel } from '../src/features/superadmin/users/api/models/user.output.model';
 import { appSettings } from '../src/app.settings';
-import { badId, Paths, responseNullData } from './utils/test-constants';
+import { badUuid, Paths, responseNullData } from './utils/test-constants';
 import { CreateEntitiesTestManager } from './utils/test-manager';
 import {
   basicLogin,
   basicPassword,
 } from '../src/features/public/auth/api/auth.constants';
+
 describe('Users testing (e2e)', () => {
   let app: INestApplication;
   let server;
@@ -139,7 +140,7 @@ describe('Users testing (e2e)', () => {
 
   it('- DELETE user by ID with incorrect id', async () => {
     await request(server)
-      .delete(`${Paths.users}/${badId}`)
+      .delete(`${Paths.users}/${badUuid}`)
       .auth(basicLogin, basicPassword)
       .expect(HTTP_STATUSES.NOT_FOUND_404);
 

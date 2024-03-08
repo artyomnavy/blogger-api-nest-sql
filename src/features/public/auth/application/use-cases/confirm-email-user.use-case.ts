@@ -19,6 +19,6 @@ export class ConfirmEmailUseCase
       command.code,
     );
 
-    return await this.usersRepository.updateConfirmStatus(user!._id);
+    return await this.usersRepository.updateConfirmStatus(user!.id);
   }
 }

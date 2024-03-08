@@ -25,13 +25,13 @@ export class CheckCredentialsUseCase
       return null;
     }
 
-    if (!user.emailConfirmation.isConfirmed) {
+    if (!user.isConfirmed) {
       return null;
     }
 
     const checkPassword = await bcrypt.compare(
       command.inputData.password,
-      user.accountData.password,
+      user.password,
     );
 
     if (!checkPassword) {

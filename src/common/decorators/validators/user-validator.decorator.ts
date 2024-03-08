@@ -77,8 +77,8 @@ export class RecoveryCodeConstraint implements ValidatorConstraintInterface {
     }
 
     if (
-      user.emailConfirmation.expirationDate !== null &&
-      user.emailConfirmation.expirationDate < new Date()
+      user.expirationDate !== null &&
+      new Date(user.expirationDate) < new Date()
     ) {
       return false;
     }
@@ -116,13 +116,13 @@ export class CodeConfirmationConstraint
       return false;
     }
 
-    if (user.emailConfirmation.isConfirmed) {
+    if (user.isConfirmed) {
       return false;
     }
 
     if (
-      user.emailConfirmation.expirationDate !== null &&
-      user.emailConfirmation.expirationDate < new Date()
+      user.expirationDate !== null &&
+      new Date(user.expirationDate) < new Date()
     ) {
       return false;
     }
@@ -157,7 +157,7 @@ export class EmailExistAndConfirmedConstraint
       return false;
     }
 
-    if (user!.emailConfirmation.isConfirmed) {
+    if (user!.isConfirmed) {
       return false;
     }
 

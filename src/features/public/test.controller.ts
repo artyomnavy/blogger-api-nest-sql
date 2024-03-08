@@ -11,6 +11,8 @@ import {
   DeviceSessionDocument,
 } from './devices/domain/device.entity';
 import { Like, LikeDocument } from '../likes/domain/like.entity';
+import { InjectDataSource } from '@nestjs/typeorm';
+import { DataSource } from 'typeorm';
 
 @Controller('testing')
 export class TestController {
@@ -22,6 +24,7 @@ export class TestController {
     @InjectModel(DeviceSession.name)
     private deviceSessionModel: Model<DeviceSessionDocument>,
     @InjectModel(Like.name) private likeModel: Model<LikeDocument>,
+    @InjectDataSource() protected dataSource: DataSource,
   ) {}
 
   @Delete('all-data')
@@ -30,9 +33,9 @@ export class TestController {
     await this.blogModel.deleteMany({});
     await this.postModel.deleteMany({});
     await this.commentModel.deleteMany({});
-    await this.userModel.deleteMany({});
     await this.deviceSessionModel.deleteMany({});
     await this.likeModel.deleteMany({});
+    await this.dataSource.query(`DELETE FROM public."Users"`);
     return;
   }
 }

@@ -6,7 +6,7 @@ import {
 } from '@nestjs/common';
 import { AppController } from './app.controller';
 import { AppService } from './app.service';
-import dotenv from 'dotenv';
+import { config } from 'dotenv';
 import { MongooseModule } from '@nestjs/mongoose';
 import { Blog, BlogEntity } from './features/blogs/domain/blog.entity';
 import { Post, PostEntity } from './features/posts/domain/post.entity';
@@ -48,12 +48,11 @@ import { DevicesRepository } from './features/public/devices/infrastrucure/devic
 import { JwtService } from './application/jwt.service';
 import { EmailsAdapter } from './adapters/emails-adapter';
 import { EmailsManager } from './managers/emails-manager';
+import { JwtModule } from '@nestjs/jwt';
 import { CommentsRepository } from './features/comments/infrastructure/comments.repository';
 import { LikesRepository } from './features/likes/infrastructure/likes.repository';
 import { LikesQueryRepository } from './features/likes/infrastructure/likes.query-repository';
 import { Like, LikeEntity } from './features/likes/domain/like.entity';
-import { AuthModule } from './modules/auth.module';
-import { UsersModule } from './modules/users.module';
 import { DevicesController } from './features/public/devices/api/security.controller';
 import { CqrsModule } from '@nestjs/cqrs';
 import { UpdateBlogUseCase } from './features/blogs/application/use-cases/update-blog.use-case';
@@ -74,8 +73,22 @@ import { ChangeLikeStatusForPostUseCase } from './features/posts/application/use
 import { DeleteUserUseCase } from './features/superadmin/users/application/use-cases/delete-user.use-case';
 import { CreateUserByAdminUseCase } from './features/superadmin/users/application/use-cases/create-user-by-admin.use-case';
 import { AccessTokenVerificationMiddleware } from './common/middlewares/access-token-verification.middleware';
+import { TypeOrmModule } from '@nestjs/typeorm';
+import { UpdatePasswordForRecoveryUseCase } from './features/public/auth/application/use-cases/update-password-for-recovery-user.use-case';
+import { SendEmailForPasswordRecoveryUseCase } from './features/public/auth/application/use-cases/send-email-for-password-recovery-user.use-case';
+import { ResendingEmailUseCase } from './features/public/auth/application/use-cases/re-sending-email-user.use-case';
+import { CreateUserByRegistrationUseCase } from './features/public/auth/application/use-cases/create-user-by-registration.use-case';
+import { ConfirmEmailUseCase } from './features/public/auth/application/use-cases/confirm-email-user.use-case';
+import { CheckCredentialsUseCase } from './features/public/auth/application/use-cases/check-credentials-user.use-case';
+import { LocalStrategy } from './features/public/auth/api/strategies/local.strategy';
+import { JwtStrategy } from './features/public/auth/api/strategies/jwt.strategy';
+import { BasicStrategy } from './features/public/auth/api/strategies/basic.strategy';
+import { PassportModule } from '@nestjs/passport';
+import { jwtSecret } from './features/public/auth/api/auth.constants';
+import { ThrottlerModule } from '@nestjs/throttler';
+import { AuthController } from './features/public/auth/api/auth.controller';
 
-dotenv.config();
+config();
 
 const mongoURI = process.env.MONGO_URL || 'mongodb://0.0.0.0:27017';
 
@@ -106,6 +119,15 @@ const postsUseCases = [
   ChangeLikeStatusForPostUseCase,
 ];
 
+const authUseCases = [
+  UpdatePasswordForRecoveryUseCase,
+  SendEmailForPasswordRecoveryUseCase,
+  ResendingEmailUseCase,
+  CreateUserByRegistrationUseCase,
+  ConfirmEmailUseCase,
+  CheckCredentialsUseCase,
+];
+
 const usersUseCases = [DeleteUserUseCase, CreateUserByAdminUseCase];
 
 const servicesProviders = [AppService, PostsService, JwtService];
@@ -130,6 +152,8 @@ const queryRepositoriesProviders = [
 
 const emailsProviders = [EmailsManager, EmailsAdapter];
 
+const strategiesProviders = [LocalStrategy, JwtStrategy, BasicStrategy];
+
 const constraintsProviders = [
   BlogExistConstraint,
   LoginExistConstraint,
@@ -142,8 +166,7 @@ const constraintsProviders = [
 @Module({
   imports: [
     CqrsModule,
-    AuthModule,
-    UsersModule,
+    PassportModule,
     MongooseModule.forRoot(mongoURI, {
       dbName: 'BloggerPlatform',
     }),
@@ -155,9 +178,30 @@ const constraintsProviders = [
       { name: DeviceSession.name, schema: DeviceSessionEntity },
       { name: Like.name, schema: LikeEntity },
     ]),
+    TypeOrmModule.forRoot({
+      type: 'postgres',
+      host: process.env.DB_HOST || '127.0.0.1',
+      port: 5432,
+      username: process.env.DB_USER,
+      password: process.env.DB_PASSWORD,
+      database: 'BloggerPlatform',
+      autoLoadEntities: false,
+      synchronize: false,
+    }),
+    JwtModule.register({
+      secret: jwtSecret,
+      signOptions: { expiresIn: '10s' },
+    }),
+    // ThrottlerModule.forRoot([
+    //   {
+    //     ttl: 10000,
+    //     limit: 5,
+    //   },
+    // ]),
   ],
   controllers: [
     AppController,
+    AuthController,
     DevicesController,
     BlogsController,
     PostsController,
@@ -166,6 +210,7 @@ const constraintsProviders = [
     TestController,
   ],
   providers: [
+    ...authUseCases,
     ...blogsUseCases,
     ...commentsUseCases,
     ...postsUseCases,
@@ -176,6 +221,7 @@ const constraintsProviders = [
     ...queryRepositoriesProviders,
     ...emailsProviders,
     ...constraintsProviders,
+    ...strategiesProviders,
   ],
 })
 export class AppModule implements NestModule {

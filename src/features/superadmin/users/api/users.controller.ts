@@ -21,6 +21,7 @@ import { BasicAuthGuard } from '../../../../common/guards/basic-auth.guard';
 import { DeleteUserCommand } from '../application/use-cases/delete-user.use-case';
 import { CommandBus } from '@nestjs/cqrs';
 import { CreateUserByAdminCommand } from '../application/use-cases/create-user-by-admin.use-case';
+import {UuidPipe} from "../../../../common/pipes/uuid.pipe";
 
 @Controller('sa/users')
 export class UsersController {
@@ -52,7 +53,7 @@ export class UsersController {
   @Delete(':id')
   @UseGuards(BasicAuthGuard)
   @HttpCode(HTTP_STATUSES.NO_CONTENT_204)
-  async deleteUser(@Param('id', ObjectIdPipe) userId: string) {
+  async deleteUser(@Param('id', UuidPipe) userId: string) {
     const isDeleted = await this.commandBus.execute(
       new DeleteUserCommand(userId),
     );

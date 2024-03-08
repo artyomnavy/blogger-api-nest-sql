@@ -4,24 +4,20 @@ import {
   userMapper,
   UserOutputModel,
 } from '../api/models/user.output.model';
-import { InjectModel } from '@nestjs/mongoose';
-import { User, UserDocument } from '../domain/user.entity';
-import { Model } from 'mongoose';
 import { PaginatorModel } from '../../../../common/models/paginator.input.model';
 import { PaginatorOutputModel } from '../../../../common/models/paginator.output.model';
 import bcrypt from 'bcrypt';
-import { ObjectId } from 'mongodb';
 import { AuthMeOutputModel } from '../../../public/auth/api/models/auth.output.model';
+import { InjectDataSource } from '@nestjs/typeorm';
+import { DataSource } from 'typeorm';
 
 @Injectable()
 export class UsersQueryRepository {
-  constructor(@InjectModel(User.name) private userModel: Model<UserDocument>) {}
+  constructor(@InjectDataSource() protected dataSource: DataSource) {}
   async getAllUsers(
     queryData: PaginatorModel,
   ): Promise<PaginatorOutputModel<UserOutputModel>> {
-    const sortBy = queryData.sortBy
-      ? `accountData.${queryData.sortBy}`
-      : 'accountData.createdAt';
+    const sortBy = queryData.sortBy ? queryData.sortBy : 'createdAt';
     const sortDirection = queryData.sortDirection
       ? queryData.sortDirection
       : 'desc';
@@ -29,138 +25,149 @@ export class UsersQueryRepository {
     const pageSize = queryData.pageSize ? queryData.pageSize : 10;
     const searchLoginTerm = queryData.searchLoginTerm
       ? queryData.searchLoginTerm
-      : null;
+      : '';
     const searchEmailTerm = queryData.searchEmailTerm
       ? queryData.searchEmailTerm
-      : null;
+      : '';
 
-    let filterLogin = {};
-    let filterEmail = {};
+    const query = `SELECT
+                "id", "login", "email", "password", "createdAt", "confirmationCode", "expirationDate", "isConfirmed"
+                FROM public."Users"
+                WHERE "login" ILIKE $1 OR "email" ILIKE $2
+                ORDER BY $3
+                LIMIT $4 OFFSET $5`;
 
-    if (searchLoginTerm) {
-      filterLogin = {
-        'accountData.login': {
-          $regex: searchLoginTerm,
-          $options: 'i',
-        },
-      };
-    }
+    const users = await this.dataSource.query(query, [
+      `%${searchLoginTerm}%`,
+      `%${searchEmailTerm}%`,
+      `${sortBy} ${sortDirection}`,
+      +pageSize,
+      (+pageNumber - 1) * +pageSize,
+    ]);
 
-    if (searchEmailTerm) {
-      filterEmail = {
-        'accountData.email': {
-          $regex: searchEmailTerm,
-          $options: 'i',
-        },
-      };
-    }
+    const totalCount = await this.dataSource.query(
+      `SELECT
+                COUNT(*) FROM public."Users"
+                WHERE "login" ILIKE $1 OR "email" ILIKE $2`,
+      [`%${searchLoginTerm}%`, `%${searchEmailTerm}%`],
+    );
 
-    const filter = {
-      $or: [filterLogin, filterEmail],
-    };
-
-    const users = await this.userModel
-      .find(filter)
-      .sort({
-        [sortBy]: sortDirection === 'desc' ? -1 : 1,
-      })
-      .skip((+pageNumber - 1) * +pageSize)
-      .limit(+pageSize);
-
-    const totalCount = await this.userModel.countDocuments(filter);
-
-    const pagesCount = Math.ceil(+totalCount / +pageSize);
+    const pagesCount = Math.ceil(+totalCount[0].count / +pageSize);
 
     return {
       pagesCount: pagesCount,
       page: +pageNumber,
       pageSize: +pageSize,
-      totalCount: +totalCount,
+      totalCount: +totalCount[0].count,
       items: users.map(userMapper),
     };
   }
   async getUserByLogin(login: string): Promise<UserOutputModel | null> {
-    const user = await this.userModel.findOne({ 'accountData.login': login });
+    const query = `SELECT
+                "id", "login", "password", "email", "createdAt", "confirmationCode", "expirationDate", "isConfirmed"
+                FROM public."Users"
+                WHERE "login" = $1`;
 
-    if (!user) {
+    const user = await this.dataSource.query(query, [login]);
+
+    if (!user.length) {
       return null;
     } else {
-      return userMapper(user);
+      return userMapper(user[0]);
     }
   }
   async getUserByEmail(email: string): Promise<UserAccountModel | null> {
-    const user = await this.userModel.findOne({ 'accountData.email': email });
+    const query = `SELECT
+                "id", "login", "password", "email", "createdAt", "confirmationCode", "expirationDate", "isConfirmed"
+                FROM public."Users"
+                WHERE "email" = $1`;
 
-    if (!user) {
+    const user = await this.dataSource.query(query, [email]);
+
+    if (!user.length) {
       return null;
     } else {
-      return user;
+      return user[0];
     }
   }
   async getUserByLoginOrEmail(
     loginOrEmail: string,
   ): Promise<UserAccountModel | null> {
-    const filter = {
-      $or: [
-        { 'accountData.login': loginOrEmail },
-        { 'accountData.email': loginOrEmail },
-      ],
-    };
+    const query = `SELECT
+                "id", "login", "password", "email", "createdAt", "confirmationCode", "expirationDate", "isConfirmed"
+                FROM public."Users"
+                WHERE "login" = $1 OR "email" = $1`;
 
-    const user = await this.userModel.findOne(filter);
+    const user = await this.dataSource.query(query, [loginOrEmail]);
 
-    if (!user) {
+    if (!user.length) {
       return null;
     } else {
-      return user;
+      return user[0];
     }
   }
   async getUserByConfirmationCode(
     code: string,
   ): Promise<UserAccountModel | null> {
-    const user = await this.userModel.findOne({
-      'emailConfirmation.confirmationCode': code,
-    });
+    const query = `SELECT
+                "id", "login", "password", "email", "createdAt", "confirmationCode", "expirationDate", "isConfirmed"
+                FROM public."Users"
+                WHERE "confirmationCode" = $1`;
 
-    if (!user) {
+    const user = await this.dataSource.query(query, [code]);
+
+    if (!user.length) {
       return null;
     } else {
-      return user;
+      return user[0];
     }
   }
   async checkUserPasswordForRecovery(
     recoveryCode: string,
     newPassword: string,
   ): Promise<boolean> {
-    const user = await this.userModel.findOne({
-      'emailConfirmation.confirmationCode': recoveryCode,
-    });
+    const query = `SELECT
+                "id", "login", "password", "email", "createdAt", "confirmationCode", "expirationDate", "isConfirmed"
+                FROM public."Users"
+                WHERE "confirmationCode" = $1`;
 
-    if (!user) {
+    const user = await this.dataSource.query(query, [recoveryCode]);
+
+    if (!user.length) {
       return false;
     } else {
-      return await bcrypt.compare(newPassword, user.accountData.password);
+      return await bcrypt.compare(newPassword, user[0].password);
     }
   }
   async getUserById(id: string): Promise<UserOutputModel | null> {
-    const user = await this.userModel.findOne({ _id: new ObjectId(id) });
+    const query = `SELECT
+                "id", "login", "password", "email", "createdAt", "confirmationCode", "expirationDate", "isConfirmed"
+                FROM public."Users"
+                WHERE "id" = $1`;
 
-    if (!user) {
+    const user = await this.dataSource.query(query, [id]);
+
+    if (!user.length) {
       return null;
     } else {
-      return userMapper(user);
+      return userMapper(user[0]);
     }
   }
   async getUserByIdForAuthMe(id: string): Promise<AuthMeOutputModel | null> {
-    const user = await this.userModel.findOne({ _id: new ObjectId(id) });
+    const query = `SELECT
+                "id", "login", "password", "email", "createdAt", "confirmationCode", "expirationDate", "isConfirmed"
+                FROM public."Users"
+                WHERE "id" = $1`;
 
-    if (!user) {
+    const user = await this.dataSource.query(query, [id]);
+
+    if (!user.length) {
       return null;
     } else {
       return {
-        email: user.accountData.email,
-        login: user.accountData.login,
-        userId: user._id.toString(),
+        email: user[0].email,
+        login: user[0].login,
+        userId: user[0].id,
       };
     }
   }

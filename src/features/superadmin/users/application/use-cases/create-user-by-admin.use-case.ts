@@ -3,7 +3,7 @@ import { UsersRepository } from '../../infrastructure/users.repository';
 import { CreateUserModel } from '../../api/models/user.input.model';
 import bcrypt from 'bcrypt';
 import { User, UserOutputModel } from '../../api/models/user.output.model';
-import { ObjectId } from 'mongodb';
+import { v4 as uuidv4 } from 'uuid';
 
 export class CreateUserByAdminCommand {
   constructor(public readonly createData: CreateUserModel) {}
@@ -18,18 +18,14 @@ export class CreateUserByAdminUseCase
     const passwordHash = await bcrypt.hash(command.createData.password, 10);
 
     const newUser = new User(
-      new ObjectId(),
-      {
-        login: command.createData.login,
-        password: passwordHash,
-        email: command.createData.email,
-        createdAt: new Date(),
-      },
-      {
-        confirmationCode: null,
-        expirationDate: null,
-        isConfirmed: true,
-      },
+      uuidv4(),
+      command.createData.login,
+      passwordHash,
+      command.createData.email,
+      new Date().toISOString(),
+      null,
+      null,
+      true,
     );
 
     const createdUser = await this.usersRepository.createUser(newUser);

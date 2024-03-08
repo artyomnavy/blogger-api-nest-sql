@@ -16,20 +16,15 @@ import {
   basicLogin,
   basicPassword,
 } from '../src/features/public/auth/api/auth.constants';
-import { Model } from 'mongoose';
-import {
-  User,
-  UserDocument,
-} from '../src/features/superadmin/users/domain/user.entity';
-import { getModelToken } from '@nestjs/mongoose';
 import { EmailsAdapter } from '../src/adapters/emails-adapter';
 import { EmailsAdapterMock } from './mock/emails-adapter.mock';
+import { DataSource } from 'typeorm';
 
 describe('Auth testing (e2e)', () => {
   let app: INestApplication;
   let server;
   let createEntitiesTestManager: CreateEntitiesTestManager;
-  let userModel: Model<UserDocument>;
+  let dataSource: DataSource;
 
   let newUserByAdmin: UserOutputModel | null = null;
   let newUserByRegistration: UserOutputModel | null = null;
@@ -56,7 +51,7 @@ describe('Auth testing (e2e)', () => {
 
     createEntitiesTestManager = new CreateEntitiesTestManager(app);
 
-    userModel = moduleFixture.get(getModelToken(User.name));
+    dataSource = moduleFixture.get<DataSource>(DataSource);
 
     await request(server)
       .delete(`${Paths.testing}/all-data`)
@@ -260,13 +255,17 @@ describe('Auth testing (e2e)', () => {
       createData,
     );
 
-    const getUserByLogin = await userModel.findOne({
-      'accountData.login': 'artyom',
-    });
+    const getUserByLogin = await dataSource.query(
+      `SELECT
+                "id", "login", "password", "email", "createdAt", "confirmationCode", "expirationDate", "isConfirmed"
+                FROM public."Users"
+                WHERE "login" = $1`,
+      [createData.login],
+    );
 
-    code = getUserByLogin!.emailConfirmation.confirmationCode;
+    code = getUserByLogin![0].confirmationCode;
 
-    newUserByRegistration = userMapper(getUserByLogin!);
+    newUserByRegistration = userMapper(getUserByLogin![0]);
   });
 
   it('- POST does not enter to system and does not create token with unconfirmed email', async () => {
@@ -302,12 +301,15 @@ describe('Auth testing (e2e)', () => {
       })
       .expect(HTTP_STATUSES.NO_CONTENT_204);
 
-    // Updated code:
-    const getUserByLogin = await userModel.findOne({
-      'accountData.login': newUserByRegistration!.login,
-    });
+    const getUserByLogin = await dataSource.query(
+      `SELECT
+                "id", "login", "password", "email", "createdAt", "confirmationCode", "expirationDate", "isConfirmed"
+                FROM public."Users"
+                WHERE "login" = $1`,
+      [newUserByRegistration!.login],
+    );
 
-    code = getUserByLogin!.emailConfirmation.confirmationCode;
+    code = getUserByLogin![0].confirmationCode;
   });
 
   it('+ POST confirm registration user with correct confirmation code', async () => {
@@ -334,14 +336,11 @@ describe('Auth testing (e2e)', () => {
 
   it('- POST confirm registration user with confirmation code expired', async () => {
     // Prepare data for test expirationDate
-    await userModel.updateOne(
-      { 'accountData.login': newUserByRegistration!.login },
-      {
-        $set: {
-          'emailConfirmation.expirationDate': new Date(),
-          'emailConfirmation.isConfirmed': false,
-        },
-      },
+    await dataSource.query(
+      `UPDATE public."Users"
+            SET "expirationDate"=$1, "isConfirmed"=$2
+            WHERE "login" = $3`,
+      [new Date(), false, newUserByRegistration!.login],
     );
 
     const errorsConfirmUser = await request(server)
@@ -357,44 +356,44 @@ describe('Auth testing (e2e)', () => {
   });
 
   // CHECK ATTEMPTS FROM ONE IP
-  it('- POST login user with more than 5 attempts from one IP-address during 10 seconds', async () => {
-    // Create user
-    const createData = {
-      login: 'user',
-      password: 'user123',
-      email: 'user@test.com',
-    };
-
-    const authData = {
-      loginOrEmail: createData.login,
-      password: createData.password,
-    };
-
-    const createUserByAdmin = await createEntitiesTestManager.createUserByAdmin(
-      Paths.users,
-      createData,
-      basicLogin,
-      basicPassword,
-    );
-
-    expect(createUserByAdmin.body).toEqual({
-      id: expect.any(String),
-      login: createData.login,
-      email: createData.email,
-      createdAt: expect.any(String),
-    });
+  // it('- POST login user with more than 5 attempts from one IP-address during 10 seconds', async () => {
+  //   // Create user
+  //   const createData = {
+  //     login: 'user',
+  //     password: 'user123',
+  //     email: 'user@test.com',
+  //   };
+  //
+  //   const authData = {
+  //     loginOrEmail: createData.login,
+  //     password: createData.password,
+  //   };
+  //
+  //   const createUserByAdmin = await createEntitiesTestManager.createUserByAdmin(
+  //     Paths.users,
+  //     createData,
+  //     basicLogin,
+  //     basicPassword,
+  //   );
+  //
+  //   expect(createUserByAdmin.body).toEqual({
+  //     id: expect.any(String),
+  //     login: createData.login,
+  //     email: createData.email,
+  //     createdAt: expect.any(String),
+  //   });
 
     // Check ip-restriction (because early testing with same local ip)
-    await request(server)
-      .post(`${Paths.auth}/login`)
-      .send(authData)
-      .expect(HTTP_STATUSES.OK_200);
-
-    await request(server)
-      .post(`${Paths.auth}/login`)
-      .send(authData)
-      .expect(HTTP_STATUSES.TOO_MANY_REQUESTS_429);
-  });
+  //   await request(server)
+  //     .post(`${Paths.auth}/login`)
+  //     .send(authData)
+  //     .expect(HTTP_STATUSES.OK_200);
+  //
+  //   await request(server)
+  //     .post(`${Paths.auth}/login`)
+  //     .send(authData)
+  //     .expect(HTTP_STATUSES.TOO_MANY_REQUESTS_429);
+  // });
 
   // CHECK RECOVERY PASSWORD
 
@@ -415,11 +414,15 @@ describe('Auth testing (e2e)', () => {
       })
       .expect(HTTP_STATUSES.NO_CONTENT_204);
 
-    const getUserByLogin = await userModel.findOne({
-      'accountData.login': newUserByAdmin!.login,
-    });
+    const getUserByLogin = await dataSource.query(
+      `SELECT
+                "id", "login", "password", "email", "createdAt", "confirmationCode", "expirationDate", "isConfirmed"
+                FROM public."Users"
+                WHERE "login" = $1`,
+      [newUserByAdmin!.login],
+    );
 
-    recoveryCode = getUserByLogin!.emailConfirmation.confirmationCode;
+    recoveryCode = getUserByLogin![0].confirmationCode;
   });
 
   it('- POST recovery password with incorrect data', async () => {

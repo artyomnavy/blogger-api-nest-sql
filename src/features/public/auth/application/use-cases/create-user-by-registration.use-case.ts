@@ -1,6 +1,5 @@
 import { CommandHandler, ICommandHandler } from '@nestjs/cqrs';
 import bcrypt from 'bcrypt';
-import { ObjectId } from 'mongodb';
 import { v4 as uuidv4 } from 'uuid';
 import { add } from 'date-fns';
 import { EmailsManager } from '../../../../../managers/emails-manager';
@@ -29,28 +28,24 @@ export class CreateUserByRegistrationUseCase
     const passwordHash = await bcrypt.hash(command.createData.password, 10);
 
     const newUser = new User(
-      new ObjectId(),
-      {
-        login: command.createData.login,
-        password: passwordHash,
-        email: command.createData.email,
-        createdAt: new Date(),
-      },
-      {
-        confirmationCode: uuidv4(),
-        expirationDate: add(new Date(), {
-          minutes: 10,
-        }),
-        isConfirmed: false,
-      },
+      uuidv4(),
+      command.createData.login,
+      passwordHash,
+      command.createData.email,
+      new Date().toISOString(),
+      uuidv4(),
+      add(new Date(), {
+        minutes: 10,
+      }).toISOString(),
+      false,
     );
 
     const createdUser = await this.usersRepository.createUser(newUser);
 
     try {
       await this.emailsManager.sendEmailConfirmationMessage(
-        newUser.accountData.email,
-        newUser.emailConfirmation.confirmationCode!,
+        newUser.email,
+        newUser.confirmationCode!,
       );
     } catch (e) {
       console.error(e);

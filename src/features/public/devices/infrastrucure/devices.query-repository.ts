@@ -8,12 +8,15 @@ import { InjectModel } from '@nestjs/mongoose';
 import { DeviceSession, DeviceSessionDocument } from '../domain/device.entity';
 import { Model } from 'mongoose';
 import { WithId } from 'mongodb';
+import { InjectDataSource } from '@nestjs/typeorm';
+import { DataSource } from 'typeorm';
 
 @Injectable()
 export class DevicesQueryRepository {
   constructor(
     @InjectModel(DeviceSession.name)
     private deviceModel: Model<DeviceSessionDocument>,
+    @InjectDataSource() protected dataSource: DataSource,
   ) {}
   async checkDeviceSession(
     userId: string,

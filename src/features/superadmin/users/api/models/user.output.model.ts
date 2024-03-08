@@ -1,6 +1,3 @@
-import { ObjectId } from 'mongodb';
-import { UserDocument } from '../../domain/user.entity';
-
 export class UserOutputModel {
   id: string;
   login: string;
@@ -8,38 +5,35 @@ export class UserOutputModel {
   createdAt: string;
 }
 
-export class UserModel {
+export class UserAccountModel {
+  id: string;
   login: string;
   password: string;
   email: string;
-  createdAt: Date;
-}
-
-export class EmailConfirmationModel {
+  createdAt: string;
   confirmationCode: string | null;
-  expirationDate: Date | null;
+  expirationDate: string | null;
   isConfirmed: boolean;
-}
-
-export class UserAccountModel {
-  _id: ObjectId;
-  accountData: UserModel;
-  emailConfirmation: EmailConfirmationModel;
 }
 
 export class User {
   constructor(
-    public _id: ObjectId,
-    public accountData: UserModel,
-    public emailConfirmation: EmailConfirmationModel,
+    public id: string,
+    public login: string,
+    public password: string,
+    public email: string,
+    public createdAt: string,
+    public confirmationCode: string | null,
+    public expirationDate: string | null,
+    public isConfirmed: boolean,
   ) {}
 }
 
-export const userMapper = (user: UserDocument): UserOutputModel => {
+export const userMapper = (user: UserAccountModel): UserOutputModel => {
   return {
-    id: user._id.toString(),
-    login: user.accountData.login,
-    email: user.accountData.email,
-    createdAt: user.accountData.createdAt.toISOString(),
+    id: user.id,
+    login: user.login,
+    email: user.email,
+    createdAt: user.createdAt,
   };
 };
