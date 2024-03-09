@@ -76,10 +76,7 @@ export class RecoveryCodeConstraint implements ValidatorConstraintInterface {
       return false;
     }
 
-    if (
-      user.expirationDate !== null &&
-      new Date(user.expirationDate) < new Date()
-    ) {
+    if (user.expirationDate !== null && user.expirationDate < new Date()) {
       return false;
     }
 
@@ -120,10 +117,7 @@ export class CodeConfirmationConstraint
       return false;
     }
 
-    if (
-      user.expirationDate !== null &&
-      new Date(user.expirationDate) < new Date()
-    ) {
+    if (user.expirationDate !== null && user.expirationDate < new Date()) {
       return false;
     }
 

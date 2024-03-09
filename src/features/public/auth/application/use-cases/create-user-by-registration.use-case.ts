@@ -32,11 +32,11 @@ export class CreateUserByRegistrationUseCase
       command.createData.login,
       passwordHash,
       command.createData.email,
-      new Date().toISOString(),
+      new Date(),
       uuidv4(),
       add(new Date(), {
         minutes: 10,
-      }).toISOString(),
+      }),
       false,
     );
 

@@ -22,7 +22,7 @@ export class CreateUserByAdminUseCase
       command.createData.login,
       passwordHash,
       command.createData.email,
-      new Date().toISOString(),
+      new Date(),
       null,
       null,
       true,

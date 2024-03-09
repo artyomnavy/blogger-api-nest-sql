@@ -34,13 +34,12 @@ export class UsersQueryRepository {
                 "id", "login", "email", "password", "createdAt", "confirmationCode", "expirationDate", "isConfirmed"
                 FROM public."Users"
                 WHERE "login" ILIKE $1 OR "email" ILIKE $2
-                ORDER BY $3
-                LIMIT $4 OFFSET $5`;
+                ORDER BY "${sortBy}" ${sortDirection}
+                LIMIT $3 OFFSET $4`;
 
     const users = await this.dataSource.query(query, [
       `%${searchLoginTerm}%`,
       `%${searchEmailTerm}%`,
-      `${sortBy} ${sortDirection}`,
       +pageSize,
       (+pageNumber - 1) * +pageSize,
     ]);

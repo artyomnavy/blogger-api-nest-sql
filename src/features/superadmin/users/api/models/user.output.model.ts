@@ -10,9 +10,9 @@ export class UserAccountModel {
   login: string;
   password: string;
   email: string;
-  createdAt: string;
+  createdAt: Date;
   confirmationCode: string | null;
-  expirationDate: string | null;
+  expirationDate: Date | null;
   isConfirmed: boolean;
 }
 
@@ -22,9 +22,9 @@ export class User {
     public login: string,
     public password: string,
     public email: string,
-    public createdAt: string,
+    public createdAt: Date,
     public confirmationCode: string | null,
-    public expirationDate: string | null,
+    public expirationDate: Date | null,
     public isConfirmed: boolean,
   ) {}
 }
@@ -34,6 +34,6 @@ export const userMapper = (user: UserAccountModel): UserOutputModel => {
     id: user.id,
     login: user.login,
     email: user.email,
-    createdAt: user.createdAt,
+    createdAt: user.createdAt.toISOString(),
   };
 };
