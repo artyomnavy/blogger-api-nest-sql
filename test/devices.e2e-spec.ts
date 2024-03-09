@@ -281,12 +281,6 @@ describe('Devices testing (e2e)', () => {
     const devicesSessions = [
       {
         ip: expect.any(String),
-        title: userAgent.title1,
-        lastActiveDate: new Date(payload1.iat * 1000).toISOString(),
-        deviceId: payload1.deviceId,
-      },
-      {
-        ip: expect.any(String),
         title: userAgent.title2,
         lastActiveDate: new Date(payload2.iat * 1000).toISOString(),
         deviceId: payload2.deviceId,
@@ -303,6 +297,12 @@ describe('Devices testing (e2e)', () => {
         lastActiveDate: new Date(payload4.iat * 1000).toISOString(),
         deviceId: payload4.deviceId,
       },
+      {
+        ip: expect.any(String),
+        title: userAgent.title1,
+        lastActiveDate: new Date(payload1.iat * 1000).toISOString(),
+        deviceId: payload1.deviceId,
+      },
     ];
 
     const foundDevicesSessions = await request(server)
@@ -318,12 +318,6 @@ describe('Devices testing (e2e)', () => {
     const devicesSessions = [
       {
         ip: expect.any(String),
-        title: userAgent.title1,
-        lastActiveDate: new Date(payload1.iat * 1000).toISOString(),
-        deviceId: payload1.deviceId,
-      },
-      {
-        ip: expect.any(String),
         title: userAgent.title3,
         lastActiveDate: new Date(payload3.iat * 1000).toISOString(),
         deviceId: payload3.deviceId,
@@ -333,6 +327,12 @@ describe('Devices testing (e2e)', () => {
         title: userAgent.title4,
         lastActiveDate: new Date(payload4.iat * 1000).toISOString(),
         deviceId: payload4.deviceId,
+      },
+      {
+        ip: expect.any(String),
+        title: userAgent.title1,
+        lastActiveDate: new Date(payload1.iat * 1000).toISOString(),
+        deviceId: payload1.deviceId,
       },
     ];
 
@@ -354,15 +354,15 @@ describe('Devices testing (e2e)', () => {
     const devicesSessions = [
       {
         ip: expect.any(String),
-        title: userAgent.title1,
-        lastActiveDate: new Date(payload1.iat * 1000).toISOString(),
-        deviceId: payload1.deviceId,
-      },
-      {
-        ip: expect.any(String),
         title: userAgent.title4,
         lastActiveDate: new Date(payload4.iat * 1000).toISOString(),
         deviceId: payload4.deviceId,
+      },
+      {
+        ip: expect.any(String),
+        title: userAgent.title1,
+        lastActiveDate: new Date(payload1.iat * 1000).toISOString(),
+        deviceId: payload1.deviceId,
       },
     ];
 

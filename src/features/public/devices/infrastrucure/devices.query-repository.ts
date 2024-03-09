@@ -4,55 +4,59 @@ import {
   DeviceSessionOutputModel,
 } from '../api/models/device.output.model';
 import { Injectable } from '@nestjs/common';
-import { InjectModel } from '@nestjs/mongoose';
-import { DeviceSession, DeviceSessionDocument } from '../domain/device.entity';
-import { Model } from 'mongoose';
 import { WithId } from 'mongodb';
 import { InjectDataSource } from '@nestjs/typeorm';
 import { DataSource } from 'typeorm';
 
 @Injectable()
 export class DevicesQueryRepository {
-  constructor(
-    @InjectModel(DeviceSession.name)
-    private deviceModel: Model<DeviceSessionDocument>,
-    @InjectDataSource() protected dataSource: DataSource,
-  ) {}
+  constructor(@InjectDataSource() protected dataSource: DataSource) {}
   async checkDeviceSession(
     userId: string,
     deviceId: string,
   ): Promise<WithId<DeviceSessionModel> | null> {
-    const deviceSession: WithId<DeviceSessionModel> | null =
-      await this.deviceModel.findOne({
-        userId: userId,
-        deviceId: deviceId,
-      });
+    const query = `SELECT
+                "iat", "exp", "ip", "deviceId", "deviceName", "userId"
+                FROM public."Devices"
+                WHERE "userId" = $1 AND "deviceId" = $2`;
 
-    if (deviceSession) {
-      return deviceSession;
-    } else {
+    const deviceSession = await this.dataSource.query(query, [
+      userId,
+      deviceId,
+    ]);
+
+    if (!deviceSession.length) {
       return null;
+    } else {
+      return deviceSession[0];
     }
   }
   async getAllDevicesSessionsForUser(
     userId: string,
   ): Promise<DeviceSessionOutputModel[]> {
-    const devicesSessions = await this.deviceModel.find({
-      userId: userId,
-    });
+    const query = `SELECT
+                "iat", "exp", "ip", "deviceId", "deviceName", "userId"
+                FROM public."Devices"
+                WHERE "userId" = $1`;
+
+    const devicesSessions = await this.dataSource.query(query, [userId]);
 
     return devicesSessions.map(deviceSessionMapper);
   }
   async getDeviceSessionById(
     deviceId: string,
   ): Promise<DeviceSessionModel | null> {
-    const deviceSession: DeviceSessionModel | null =
-      await this.deviceModel.findOne({ deviceId: deviceId });
+    const query = `SELECT
+                "iat", "exp", "ip", "deviceId", "deviceName", "userId"
+                FROM public."Devices"
+                WHERE "deviceId" = $1`;
 
-    if (deviceSession) {
-      return deviceSession;
-    } else {
+    const deviceSession = await this.dataSource.query(query, [deviceId]);
+
+    if (!deviceSession.length) {
       return null;
+    } else {
+      return deviceSession[0];
     }
   }
 }

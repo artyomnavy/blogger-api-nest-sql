@@ -356,44 +356,44 @@ describe('Auth testing (e2e)', () => {
   });
 
   // CHECK ATTEMPTS FROM ONE IP
-  // it('- POST login user with more than 5 attempts from one IP-address during 10 seconds', async () => {
-  //   // Create user
-  //   const createData = {
-  //     login: 'user',
-  //     password: 'user123',
-  //     email: 'user@test.com',
-  //   };
-  //
-  //   const authData = {
-  //     loginOrEmail: createData.login,
-  //     password: createData.password,
-  //   };
-  //
-  //   const createUserByAdmin = await createEntitiesTestManager.createUserByAdmin(
-  //     Paths.users,
-  //     createData,
-  //     basicLogin,
-  //     basicPassword,
-  //   );
-  //
-  //   expect(createUserByAdmin.body).toEqual({
-  //     id: expect.any(String),
-  //     login: createData.login,
-  //     email: createData.email,
-  //     createdAt: expect.any(String),
-  //   });
+  it('- POST login user with more than 5 attempts from one IP-address during 10 seconds', async () => {
+    // Create user
+    const createData = {
+      login: 'user',
+      password: 'user123',
+      email: 'user@test.com',
+    };
+
+    const authData = {
+      loginOrEmail: createData.login,
+      password: createData.password,
+    };
+
+    const createUserByAdmin = await createEntitiesTestManager.createUserByAdmin(
+      Paths.users,
+      createData,
+      basicLogin,
+      basicPassword,
+    );
+
+    expect(createUserByAdmin.body).toEqual({
+      id: expect.any(String),
+      login: createData.login,
+      email: createData.email,
+      createdAt: expect.any(String),
+    });
 
     // Check ip-restriction (because early testing with same local ip)
-  //   await request(server)
-  //     .post(`${Paths.auth}/login`)
-  //     .send(authData)
-  //     .expect(HTTP_STATUSES.OK_200);
-  //
-  //   await request(server)
-  //     .post(`${Paths.auth}/login`)
-  //     .send(authData)
-  //     .expect(HTTP_STATUSES.TOO_MANY_REQUESTS_429);
-  // });
+    await request(server)
+      .post(`${Paths.auth}/login`)
+      .send(authData)
+      .expect(HTTP_STATUSES.OK_200);
+
+    await request(server)
+      .post(`${Paths.auth}/login`)
+      .send(authData)
+      .expect(HTTP_STATUSES.TOO_MANY_REQUESTS_429);
+  });
 
   // CHECK RECOVERY PASSWORD
 

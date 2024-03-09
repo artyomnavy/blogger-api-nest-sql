@@ -174,8 +174,6 @@ const constraintsProviders = [
       { name: Blog.name, schema: BlogEntity },
       { name: Post.name, schema: PostEntity },
       { name: Comment.name, schema: CommentEntity },
-      { name: User.name, schema: UserEntity },
-      { name: DeviceSession.name, schema: DeviceSessionEntity },
       { name: Like.name, schema: LikeEntity },
     ]),
     TypeOrmModule.forRoot({
@@ -192,12 +190,12 @@ const constraintsProviders = [
       secret: jwtSecret,
       signOptions: { expiresIn: '10s' },
     }),
-    // ThrottlerModule.forRoot([
-    //   {
-    //     ttl: 10000,
-    //     limit: 5,
-    //   },
-    // ]),
+    ThrottlerModule.forRoot([
+      {
+        ttl: 10000,
+        limit: 5,
+      },
+    ]),
   ],
   controllers: [
     AppController,

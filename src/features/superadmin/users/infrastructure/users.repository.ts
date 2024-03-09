@@ -49,7 +49,11 @@ export class UsersRepository {
             SET "confirmationCode"=$1, "expirationDate"=$2
             WHERE "email" = $3`;
 
-    const resultUpdateCode = await this.dataSource.query(query, [newCode, newExpirationDate, email]);
+    const resultUpdateCode = await this.dataSource.query(query, [
+      newCode,
+      newExpirationDate,
+      email,
+    ]);
 
     if (resultUpdateCode[1] === 1) {
       return true;
@@ -78,7 +82,10 @@ export class UsersRepository {
             SET "password"=$1
             WHERE "confirmationCode" = $2`;
 
-    const resultUpdatePassword = await this.dataSource.query(query, [newPassword, recoveryCode]);
+    const resultUpdatePassword = await this.dataSource.query(query, [
+      newPassword,
+      recoveryCode,
+    ]);
 
     if (resultUpdatePassword[1] === 1) {
       return true;

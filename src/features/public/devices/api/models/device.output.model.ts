@@ -1,5 +1,3 @@
-import { DeviceSessionDocument } from '../../domain/device.entity';
-
 export class DeviceSessionModel {
   iat: Date;
   exp: Date;
@@ -28,7 +26,7 @@ export class DeviceSession {
 }
 
 export const deviceSessionMapper = (
-  deviceSession: DeviceSessionDocument,
+  deviceSession: DeviceSessionModel,
 ): DeviceSessionOutputModel => {
   return {
     ip: deviceSession.ip,
