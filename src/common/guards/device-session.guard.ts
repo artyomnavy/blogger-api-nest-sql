@@ -5,7 +5,7 @@ import {
   NotFoundException,
   ForbiddenException,
 } from '@nestjs/common';
-import { DevicesQueryRepository } from '../../features/public/devices/infrastrucure/devices.query-repository';
+import { DevicesQueryRepository } from '../../features/devices/infrastrucure/devices.query-repository';
 
 @Injectable()
 export class DeviceSessionGuard implements CanActivate {
@@ -15,7 +15,7 @@ export class DeviceSessionGuard implements CanActivate {
   async canActivate(context: ExecutionContext): Promise<boolean> {
     const req = context.switchToHttp().getRequest();
 
-    const deviceId = req.params.id;
+    const deviceId = req.params.deviceId;
     const userId = req.userId;
 
     const deviceSession =

@@ -1,21 +1,23 @@
 import { Injectable } from '@nestjs/common';
-import { InjectModel } from '@nestjs/mongoose';
-import { Blog, BlogDocument } from '../domain/blog.entity';
-import { Model } from 'mongoose';
-import { ObjectId } from 'mongodb';
-import { blogMapper, BlogOutputModel } from '../api/models/blog.output.model';
+import {
+  blogMapper,
+  BlogModel,
+  BlogOutputModel,
+} from '../api/models/blog.output.model';
 import { PaginatorModel } from '../../../common/models/paginator.input.model';
 import { PaginatorOutputModel } from '../../../common/models/paginator.output.model';
+import { InjectDataSource } from '@nestjs/typeorm';
+import { DataSource } from 'typeorm';
 
 @Injectable()
 export class BlogsQueryRepository {
-  constructor(@InjectModel(Blog.name) private blogModel: Model<BlogDocument>) {}
+  constructor(@InjectDataSource() protected dataSource: DataSource) {}
   async getAllBlogs(
     queryData: PaginatorModel,
   ): Promise<PaginatorOutputModel<BlogOutputModel>> {
     const searchNameTerm = queryData.searchNameTerm
       ? queryData.searchNameTerm
-      : null;
+      : '';
     const sortBy = queryData.sortBy ? queryData.sortBy : 'createdAt';
     const sortDirection = queryData.sortDirection
       ? queryData.sortDirection
@@ -23,44 +25,48 @@ export class BlogsQueryRepository {
     const pageNumber = queryData.pageNumber ? queryData.pageNumber : 1;
     const pageSize = queryData.pageSize ? queryData.pageSize : 10;
 
-    let filter = {};
+    const query = `SELECT
+                "id", "name", "description", "websiteUrl", "createdAt", "isMembership"
+                FROM public."Blogs"
+                WHERE "name" ILIKE $1
+                ORDER BY "${sortBy}" ${sortDirection}
+                LIMIT $2 OFFSET $3`;
 
-    if (searchNameTerm) {
-      filter = {
-        name: {
-          $regex: searchNameTerm,
-          $options: 'i',
-        },
-      };
-    }
+    const blogs = await this.dataSource.query(query, [
+      `%${searchNameTerm}%`,
+      +pageSize,
+      (+pageNumber - 1) * +pageSize,
+    ]);
 
-    const blogs = await this.blogModel
-      .find(filter)
-      .sort({
-        [sortBy]: sortDirection === 'desc' ? -1 : 1,
-      })
-      .skip((+pageNumber - 1) * +pageSize)
-      .limit(+pageSize);
+    const totalCount = await this.dataSource.query(
+      `SELECT
+                COUNT(*) FROM public."Blogs"
+                WHERE "name" ILIKE $1`,
+      [`%${searchNameTerm}%`],
+    );
 
-    const totalCount = await this.blogModel.countDocuments(filter);
-
-    const pagesCount = Math.ceil(+totalCount / +pageSize);
+    const pagesCount = Math.ceil(+totalCount[0].count / +pageSize);
 
     return {
       pagesCount: pagesCount,
       page: +pageNumber,
       pageSize: +pageSize,
-      totalCount: +totalCount,
+      totalCount: +totalCount[0].count,
       items: blogs.map(blogMapper),
     };
   }
   async getBlogById(id: string): Promise<BlogOutputModel | null> {
-    const blog = await this.blogModel.findOne({ _id: new ObjectId(id) });
+    const query = `SELECT
+                "id", "name", "description", "websiteUrl", "createdAt", "isMembership"
+                FROM public."Blogs"
+                WHERE "id" = $1`;
 
-    if (!blog) {
+    const blog = await this.dataSource.query(query, [id]);
+
+    if (!blog.length) {
       return null;
     } else {
-      return blogMapper(blog);
+      return blogMapper(blog[0]);
     }
   }
 }

@@ -5,7 +5,8 @@ import { Model } from 'mongoose';
 import { Like, LikeDocument } from '../domain/like.entity';
 import { likesStatuses } from '../../../utils';
 import { NewestLikesOutputModel } from '../../posts/api/models/post.output.model';
-import { UsersQueryRepository } from '../../superadmin/users/infrastructure/users.query-repository';
+import { UsersQueryRepository } from '../../users/infrastructure/users.query-repository';
+import { ObjectId } from 'mongodb';
 
 @Injectable()
 export class LikesQueryRepository {
@@ -40,6 +41,14 @@ export class LikesQueryRepository {
       .limit(3);
 
     return await Promise.all(newestLikes.map((like) => this.likeMapper(like)));
+  }
+  async getStatusCount(id: string, status: string): Promise<number> {
+    const statusCount = await this.likeModel.countDocuments({
+      commentIdOrPostId: id,
+      status: status,
+    });
+
+    return statusCount;
   }
   async likeMapper(like: LikeModel) {
     const userId = like.userId;

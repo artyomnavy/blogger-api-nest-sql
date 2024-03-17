@@ -6,7 +6,7 @@ import { HTTP_STATUSES, likesStatuses } from '../src/utils';
 import { appSettings } from '../src/app.settings';
 import { Paths } from './utils/test-constants';
 import { CreateEntitiesTestManager } from './utils/test-manager';
-import { UserOutputModel } from '../src/features/superadmin/users/api/models/user.output.model';
+import { UserOutputModel } from '../src/features/users/api/models/user.output.model';
 import { PostOutputModel } from '../src/features/posts/api/models/post.output.model';
 import { BlogOutputModel } from '../src/features/blogs/api/models/blog.output.model';
 import { CommentOutputModel } from '../src/features/comments/api/models/comment.output.model';
@@ -130,7 +130,7 @@ describe('Likes testing (e2e)', () => {
     };
 
     const createBlog = await createEntitiesTestManager.createBlog(
-      Paths.blogs,
+      Paths.blogsSA,
       createData,
       basicLogin,
       basicPassword,
@@ -148,7 +148,7 @@ describe('Likes testing (e2e)', () => {
     });
 
     const foundBlogs = await request(server)
-      .get(Paths.blogs)
+      .get(Paths.blogsSA)
       .expect(HTTP_STATUSES.OK_200);
 
     expect(foundBlogs.body).toStrictEqual({

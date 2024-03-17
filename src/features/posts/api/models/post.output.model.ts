@@ -1,24 +1,11 @@
-import { ObjectId } from 'mongodb';
-
 export class Post {
   constructor(
-    public _id: ObjectId,
+    public id: string,
     public title: string,
     public shortDescription: string,
     public content: string,
     public blogId: string,
-    public blogName: string,
     public createdAt: Date,
-    public extendedLikesInfo: {
-      likesCount: number;
-      dislikesCount: number;
-      myStatus: string;
-      newestLikes: {
-        addedAt: Date;
-        userId: string;
-        login: string;
-      }[];
-    },
   ) {}
 }
 
@@ -51,17 +38,11 @@ export class PostOutputModel {
 }
 
 export class PostModel {
-  _id: ObjectId;
+  id: string;
   title: string;
   shortDescription: string;
   content: string;
   blogId: string;
-  blogName: string;
+  blogName?: string;
   createdAt: Date;
-  extendedLikesInfo: {
-    likesCount: number;
-    dislikesCount: number;
-    myStatus: string;
-    newestLikes: NewestLikesModel[];
-  };
 }

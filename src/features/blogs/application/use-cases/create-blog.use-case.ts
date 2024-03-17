@@ -1,8 +1,8 @@
-import { ObjectId } from 'mongodb';
 import { BlogsRepository } from '../../infrastructure/blogs.repository';
 import { CreateAndUpdateBlogModel } from '../../api/models/blog.input.model';
 import { Blog } from '../../api/models/blog.output.model';
 import { CommandHandler, ICommandHandler } from '@nestjs/cqrs';
+import { v4 as uuidv4 } from 'uuid';
 
 export class CreateBlogCommand {
   constructor(public readonly createData: CreateAndUpdateBlogModel) {}
@@ -12,7 +12,7 @@ export class CreateBlogUseCase implements ICommandHandler<CreateBlogCommand> {
   constructor(private readonly blogsRepository: BlogsRepository) {}
   async execute(command: CreateBlogCommand) {
     const newBlog = new Blog(
-      new ObjectId(),
+      uuidv4(),
       command.createData.name,
       command.createData.description,
       command.createData.websiteUrl,

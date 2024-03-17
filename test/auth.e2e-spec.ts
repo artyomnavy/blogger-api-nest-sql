@@ -6,7 +6,7 @@ import { HTTP_STATUSES } from '../src/utils';
 import {
   userMapper,
   UserOutputModel,
-} from '../src/features/superadmin/users/api/models/user.output.model';
+} from '../src/features/users/api/models/user.output.model';
 import { appSettings } from '../src/app.settings';
 import { Paths } from './utils/test-constants';
 import jwt from 'jsonwebtoken';
@@ -15,8 +15,8 @@ import {
   jwtSecret,
   basicLogin,
   basicPassword,
-} from '../src/features/public/auth/api/auth.constants';
-import { EmailsAdapter } from '../src/adapters/emails-adapter';
+} from '../src/features/auth/api/auth.constants';
+import { EmailsAdapter } from '../src/features/auth/adapters/emails-adapter';
 import { EmailsAdapterMock } from './mock/emails-adapter.mock';
 import { DataSource } from 'typeorm';
 

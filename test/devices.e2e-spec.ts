@@ -6,11 +6,11 @@ import { HTTP_STATUSES } from '../src/utils';
 import { appSettings } from '../src/app.settings';
 import { Paths } from './utils/test-constants';
 import { CreateEntitiesTestManager } from './utils/test-manager';
-import { UserOutputModel } from '../src/features/superadmin/users/api/models/user.output.model';
+import { UserOutputModel } from '../src/features/users/api/models/user.output.model';
 import {
   basicLogin,
   basicPassword,
-} from '../src/features/public/auth/api/auth.constants';
+} from '../src/features/auth/api/auth.constants';
 import jwt from 'jsonwebtoken';
 import { v4 as uuidv4 } from 'uuid';
 

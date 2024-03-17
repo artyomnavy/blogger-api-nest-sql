@@ -3,14 +3,14 @@ import { Test, TestingModule } from '@nestjs/testing';
 import { AppModule } from '../src/app.module';
 import request from 'supertest';
 import { HTTP_STATUSES } from '../src/utils';
-import { UserOutputModel } from '../src/features/superadmin/users/api/models/user.output.model';
+import { UserOutputModel } from '../src/features/users/api/models/user.output.model';
 import { appSettings } from '../src/app.settings';
 import { badUuid, Paths, responseNullData } from './utils/test-constants';
 import { CreateEntitiesTestManager } from './utils/test-manager';
 import {
   basicLogin,
   basicPassword,
-} from '../src/features/public/auth/api/auth.constants';
+} from '../src/features/auth/api/auth.constants';
 
 describe('Users testing (e2e)', () => {
   let app: INestApplication;

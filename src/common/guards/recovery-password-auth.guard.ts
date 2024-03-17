@@ -4,7 +4,7 @@ import {
   Injectable,
   UnauthorizedException,
 } from '@nestjs/common';
-import { UsersQueryRepository } from '../../features/superadmin/users/infrastructure/users.query-repository';
+import { UsersQueryRepository } from '../../features/users/infrastructure/users.query-repository';
 
 @Injectable()
 export class RecoveryPasswordAuthGuard implements CanActivate {

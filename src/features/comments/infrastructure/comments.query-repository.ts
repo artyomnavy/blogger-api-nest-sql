@@ -34,7 +34,7 @@ export class CommentsQueryRepository {
   }
   async getCommentsByPostId(
     queryData: { query: PaginatorModel } & { postId: string } & {
-      userId?: string | null;
+      userId?: string;
     },
   ): Promise<PaginatorOutputModel<CommentOutputModel>> {
     const pageNumber = queryData.query.pageNumber

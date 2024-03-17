@@ -1,4 +1,4 @@
-import { EmailsAdapter } from '../../src/adapters/emails-adapter';
+import { EmailsAdapter } from '../../src/features/auth/adapters/emails-adapter';
 import { SentMessageInfo } from 'nodemailer';
 
 export class EmailsAdapterMock implements EmailsAdapter {

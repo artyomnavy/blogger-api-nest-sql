@@ -5,7 +5,7 @@ import {
   ValidatorConstraintInterface,
 } from 'class-validator';
 import { Injectable } from '@nestjs/common';
-import { UsersQueryRepository } from '../../../features/superadmin/users/infrastructure/users.query-repository';
+import { UsersQueryRepository } from '../../../features/users/infrastructure/users.query-repository';
 
 @ValidatorConstraint({ name: 'IsLoginExist', async: true })
 @Injectable()

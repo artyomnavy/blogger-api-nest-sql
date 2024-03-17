@@ -11,8 +11,8 @@ import { CreateEntitiesTestManager } from './utils/test-manager';
 import {
   basicLogin,
   basicPassword,
-} from '../src/features/public/auth/api/auth.constants';
-import { UserOutputModel } from '../src/features/superadmin/users/api/models/user.output.model';
+} from '../src/features/auth/api/auth.constants';
+import { UserOutputModel } from '../src/features/users/api/models/user.output.model';
 import { CommentOutputModel } from '../src/features/comments/api/models/comment.output.model';
 
 describe('Comments testing (e2e)', () => {
@@ -130,7 +130,7 @@ describe('Comments testing (e2e)', () => {
     };
 
     const createBlog = await createEntitiesTestManager.createBlog(
-      Paths.blogs,
+      Paths.blogsSA,
       createData,
       basicLogin,
       basicPassword,
@@ -148,7 +148,7 @@ describe('Comments testing (e2e)', () => {
     });
 
     const foundBlogs = await request(server)
-      .get(Paths.blogs)
+      .get(Paths.blogsSA)
       .expect(HTTP_STATUSES.OK_200);
 
     expect(foundBlogs.body).toStrictEqual({

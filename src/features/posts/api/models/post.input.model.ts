@@ -1,12 +1,5 @@
-import {
-  IsMongoId,
-  IsNotEmpty,
-  IsOptional,
-  IsString,
-  MaxLength,
-} from 'class-validator';
+import { IsNotEmpty, IsString, MaxLength } from 'class-validator';
 import { Transform } from 'class-transformer';
-import { IsBlogExist } from '../../../../common/decorators/validators/blog-validator.decorator';
 
 export class CreateAndUpdatePostModel {
   @MaxLength(30, { message: 'Invalid title length' })
@@ -26,12 +19,4 @@ export class CreateAndUpdatePostModel {
   @IsString()
   @IsNotEmpty()
   content: string;
-
-  @IsBlogExist({ message: 'Blog is not exist' })
-  @IsMongoId()
-  @Transform(({ value }) => value?.trim())
-  @IsString()
-  @IsNotEmpty()
-  @IsOptional()
-  blogId?: string;
 }

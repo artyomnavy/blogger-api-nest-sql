@@ -2,7 +2,7 @@ import request from 'supertest';
 import { HTTP_STATUSES, HttpStatusType } from '../../src/utils';
 import { CreateAndUpdateBlogModel } from '../../src/features/blogs/api/models/blog.input.model';
 import { CreateAndUpdatePostModel } from '../../src/features/posts/api/models/post.input.model';
-import { CreateUserModel } from '../../src/features/superadmin/users/api/models/user.input.model';
+import { CreateUserModel } from '../../src/features/users/api/models/user.input.model';
 import { INestApplication } from '@nestjs/common';
 
 export class CreateEntitiesTestManager {

@@ -4,8 +4,8 @@ import {
   UnauthorizedException,
 } from '@nestjs/common';
 import { NextFunction, Request, Response } from 'express';
-import { JwtService } from '../../application/jwt.service';
-import { UsersQueryRepository } from '../../features/superadmin/users/infrastructure/users.query-repository';
+import { JwtService } from '../../features/auth/application/jwt.service';
+import { UsersQueryRepository } from '../../features/users/infrastructure/users.query-repository';
 
 @Injectable()
 export class AccessTokenVerificationMiddleware implements NestMiddleware {

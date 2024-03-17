@@ -4,9 +4,9 @@ import {
   ExecutionContext,
   UnauthorizedException,
 } from '@nestjs/common';
-import { UsersQueryRepository } from '../../features/superadmin/users/infrastructure/users.query-repository';
-import { JwtService } from '../../application/jwt.service';
-import { DevicesQueryRepository } from '../../features/public/devices/infrastrucure/devices.query-repository';
+import { UsersQueryRepository } from '../../features/users/infrastructure/users.query-repository';
+import { JwtService } from '../../features/auth/application/jwt.service';
+import { DevicesQueryRepository } from '../../features/devices/infrastrucure/devices.query-repository';
 
 @Injectable()
 export class RefreshTokenAuthGuard implements CanActivate {

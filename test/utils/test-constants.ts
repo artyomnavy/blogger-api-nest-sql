@@ -2,6 +2,7 @@ import { ObjectId } from 'mongodb';
 import { v4 as uuidv4 } from 'uuid';
 export const Paths = {
   blogs: '/blogs',
+  blogsSA: '/sa/blogs',
   posts: '/posts',
   comments: '/comments',
   users: '/sa/users',

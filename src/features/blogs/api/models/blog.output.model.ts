@@ -1,9 +1,6 @@
-import { BlogDocument } from '../../domain/blog.entity';
-import { ObjectId } from 'mongodb';
-
 export class Blog {
   constructor(
-    public _id: ObjectId,
+    public id: string,
     public name: string,
     public description: string,
     public websiteUrl: string,
@@ -13,7 +10,7 @@ export class Blog {
 }
 
 export class BlogModel {
-  _id: ObjectId;
+  id: string;
   name: string;
   description: string;
   websiteUrl: string;
@@ -29,9 +26,9 @@ export class BlogOutputModel {
   isMembership: boolean;
 }
 
-export const blogMapper = (blog: BlogDocument): BlogOutputModel => {
+export const blogMapper = (blog: BlogModel): BlogOutputModel => {
   return {
-    id: blog._id.toString(),
+    id: blog.id,
     name: blog.name,
     description: blog.description,
     websiteUrl: blog.websiteUrl,
