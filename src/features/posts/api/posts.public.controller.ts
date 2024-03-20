@@ -8,6 +8,7 @@ import {
   Post,
   Put,
   Query,
+  Req,
   UseGuards,
 } from '@nestjs/common';
 import { PostsQueryRepository } from '../infrastructure/posts.query-repository';
@@ -38,9 +39,13 @@ export class PostsController {
   @Get()
   async getAllPosts(
     @Query() query: PaginatorModel,
+    @Req() req,
   ): Promise<PaginatorOutputModel<PostOutputModel>> {
+    const userId = req.userId;
+
     const posts = await this.postsQueryRepository.getAllPosts({
       query,
+      userId,
     });
 
     return posts;
@@ -48,8 +53,11 @@ export class PostsController {
   @Get(':postId')
   async getPost(
     @Param('postId', UuidPipe) postId: string,
+    @Req() req,
   ): Promise<PostOutputModel> {
-    const post = await this.postsQueryRepository.getPostById(postId);
+    const userId = req.userId;
+
+    const post = await this.postsQueryRepository.getPostById(postId, userId);
 
     if (!post) {
       throw new NotFoundException('Post not found');
@@ -58,13 +66,14 @@ export class PostsController {
     }
   }
   @Get(':postId/comments')
-  @UseGuards(JwtBearerAuthGuard)
   async getCommentsForPost(
     @Param('postId', UuidPipe) postId: string,
-    @CurrentUserId() userId: string,
     @Query() query: PaginatorModel,
+    @Req() req,
   ): Promise<PaginatorOutputModel<CommentOutputModel>> {
-    const post = await this.postsQueryRepository.getPostById(postId);
+    const userId = req.userId;
+
+    const post = await this.postsQueryRepository.getPostById(postId, userId);
 
     if (!post) {
       throw new NotFoundException('Post not found');
@@ -109,23 +118,16 @@ export class PostsController {
   @UseGuards(JwtBearerAuthGuard)
   @HttpCode(HTTP_STATUSES.NO_CONTENT_204)
   async changeLikeStatusForPost(
-    @Param('id', UuidPipe) postId: string,
-    @CurrentUserId() currentUserId: string,
+    @Param('postId', UuidPipe) postId: string,
+    @CurrentUserId() userId: string,
     @Body() updateData: UpdateLikeModel,
   ) {
-    const post = await this.postsQueryRepository.getPostById(
-      postId,
-      currentUserId,
-    );
+    const post = await this.postsQueryRepository.getPostById(postId, userId);
 
     if (!post) throw new NotFoundException('Post not found');
 
     const isUpdated = await this.commandBus.execute(
-      new ChangeLikeStatusForPostCommand(
-        currentUserId,
-        post,
-        updateData.likeStatus,
-      ),
+      new ChangeLikeStatusForPostCommand(userId, post, updateData.likeStatus),
     );
 
     if (isUpdated) return;

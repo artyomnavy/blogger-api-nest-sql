@@ -4,6 +4,7 @@ import {
   NotFoundException,
   Param,
   Query,
+  Req,
 } from '@nestjs/common';
 import { BlogsQueryRepository } from '../infrastructure/blogs.query-repository';
 import { PostsQueryRepository } from '../../posts/infrastructure/posts.query-repository';
@@ -44,7 +45,10 @@ export class BlogsPublicController {
   async getPostsForBlog(
     @Param('blogId', UuidPipe) blogId: string,
     @Query() query: PaginatorModel,
+    @Req() req,
   ): Promise<PaginatorOutputModel<PostOutputModel>> {
+    const userId = req.userId;
+
     const blog = await this.blogsQueryRepository.getBlogById(blogId);
 
     if (!blog) {
@@ -54,6 +58,7 @@ export class BlogsPublicController {
     const posts = await this.postsQueryRepository.getPostsByBlogId({
       query,
       blogId,
+      userId,
     });
 
     return posts;

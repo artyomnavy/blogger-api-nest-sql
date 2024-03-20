@@ -149,6 +149,7 @@ describe('Comments testing (e2e)', () => {
 
     const foundBlogs = await request(server)
       .get(Paths.blogsSA)
+      .auth(basicLogin, basicPassword)
       .expect(HTTP_STATUSES.OK_200);
 
     expect(foundBlogs.body).toStrictEqual({
@@ -166,11 +167,10 @@ describe('Comments testing (e2e)', () => {
       title: 'New post 1',
       shortDescription: 'New shortDescription 1',
       content: 'New content 1',
-      blogId: newBlog!.id,
     };
 
     const createPost = await createEntitiesTestManager.createPost(
-      Paths.posts,
+      `${Paths.blogsSA}/${newBlog!.id}/posts`,
       createData,
       basicLogin,
       basicPassword,

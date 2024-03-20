@@ -16,7 +16,7 @@ import {
 } from './features/comments/domain/comment.entity';
 import { BlogsSAController } from './features/blogs/api/blogs.sa.controller';
 import { PostsController } from './features/posts/api/posts.public.controller';
-import { CommentsController } from './features/comments/api/comments.controller';
+import { CommentsController } from './features/comments/api/comments.public.controller';
 import { UsersController } from './features/users/api/users.sa.controller';
 import { BlogsQueryRepository } from './features/blogs/infrastructure/blogs.query-repository';
 import { CommentsQueryRepository } from './features/comments/infrastructure/comments.query-repository';
@@ -39,8 +39,8 @@ import { EmailsAdapter } from './features/auth/adapters/emails-adapter';
 import { EmailsManager } from './features/auth/managers/emails-manager';
 import { JwtModule } from '@nestjs/jwt';
 import { CommentsRepository } from './features/comments/infrastructure/comments.repository';
-import { LikesRepository } from './features/likes/infrastructure/likes.repository';
-import { LikesQueryRepository } from './features/likes/infrastructure/likes.query-repository';
+import { LikesCommentsRepository } from './features/likes/infrastructure/likes-comments/likes-comments.repository';
+import { LikesCommentsQueryRepository } from './features/likes/infrastructure/likes-comments/likes-comments.query-repository';
 import { Like, LikeEntity } from './features/likes/domain/like.entity';
 import { DevicesController } from './features/devices/api/security.public.controller';
 import { CqrsModule } from '@nestjs/cqrs';
@@ -79,6 +79,8 @@ import { BlogsPublicController } from './features/blogs/api/blogs.public.control
 import { CreatePostUseCase } from './features/posts/application/use-cases/create-post.use-case';
 import { AccessTokenVerificationMiddleware } from './common/middlewares/access-token-verification.middleware';
 import { BasicStrategy } from './features/auth/api/strategies/basic.strategy';
+import { LikesPostsRepository } from './features/likes/infrastructure/likes-posts/likes-posts.repository';
+import { LikesPostsQueryRepository } from './features/likes/infrastructure/likes-posts/likes-posts.query-repository';
 
 config();
 
@@ -131,7 +133,8 @@ const repositoriesProviders = [
   UsersRepository,
   DevicesRepository,
   CommentsRepository,
-  LikesRepository,
+  LikesCommentsRepository,
+  LikesPostsRepository,
 ];
 
 const queryRepositoriesProviders = [
@@ -140,7 +143,8 @@ const queryRepositoriesProviders = [
   UsersQueryRepository,
   PostsQueryRepository,
   DevicesQueryRepository,
-  LikesQueryRepository,
+  LikesCommentsQueryRepository,
+  LikesPostsQueryRepository,
 ];
 
 const emailsProviders = [EmailsManager, EmailsAdapter];
@@ -159,15 +163,6 @@ const constraintsProviders = [
   imports: [
     CqrsModule,
     PassportModule,
-    MongooseModule.forRoot(mongoURI, {
-      dbName: 'BloggerPlatform',
-    }),
-    MongooseModule.forFeature([
-      { name: Blog.name, schema: BlogEntity },
-      { name: Post.name, schema: PostEntity },
-      { name: Comment.name, schema: CommentEntity },
-      { name: Like.name, schema: LikeEntity },
-    ]),
     TypeOrmModule.forRoot({
       type: 'postgres',
       host: process.env.DB_HOST || '127.0.0.1',
@@ -215,31 +210,29 @@ const constraintsProviders = [
     ...strategiesProviders,
   ],
 })
-
-// export class AppModule {}
 export class AppModule implements NestModule {
   configure(consumer: MiddlewareConsumer) {
     consumer.apply(AccessTokenVerificationMiddleware).forRoutes(
       {
-        path: '/comments/:id',
+        path: '/comments/:commentId',
         method: RequestMethod.GET,
       },
       {
-        path: '/posts/:id/comments',
+        path: '/posts/:postId/comments',
         method: RequestMethod.GET,
       },
-      // {
-      //   path: '/posts',
-      //   method: RequestMethod.GET,
-      // },
-      // {
-      //   path: '/posts/:id',
-      //   method: RequestMethod.GET,
-      // },
-      // {
-      //   path: '/blogs/:id/posts',
-      //   method: RequestMethod.GET,
-      // },
+      {
+        path: '/posts',
+        method: RequestMethod.GET,
+      },
+      {
+        path: '/posts/:postId',
+        method: RequestMethod.GET,
+      },
+      {
+        path: '/blogs/:blogId/posts',
+        method: RequestMethod.GET,
+      },
     );
   }
 }

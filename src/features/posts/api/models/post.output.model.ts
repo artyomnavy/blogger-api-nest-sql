@@ -9,12 +9,6 @@ export class Post {
   ) {}
 }
 
-export class NewestLikesModel {
-  addedAt: Date;
-  userId: string;
-  login: string;
-}
-
 export class NewestLikesOutputModel {
   addedAt: string;
   userId: string;

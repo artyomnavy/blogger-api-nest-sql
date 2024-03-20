@@ -12,7 +12,6 @@ import {
   UseGuards,
 } from '@nestjs/common';
 import { CommentsQueryRepository } from '../infrastructure/comments.query-repository';
-import { ObjectIdPipe } from '../../../common/pipes/object-id.pipe';
 import { UpdateLikeModel } from '../../likes/api/models/like.input.model';
 import { HTTP_STATUSES } from '../../../utils';
 import { CreateAndUpdateCommentModel } from './models/comment.input.model';
@@ -22,7 +21,7 @@ import { CommandBus } from '@nestjs/cqrs';
 import { DeleteCommentCommand } from '../application/use-cases/delete-comment.use-case';
 import { ChangeLikeStatusForCommentCommand } from '../application/use-cases/change-like-status-comment.use-case';
 import { UpdateCommentCommand } from '../application/use-cases/update-comment.use-case';
-import { Request } from 'express';
+import { UuidPipe } from '../../../common/pipes/uuid.pipe';
 
 @Controller('comments')
 export class CommentsController {
@@ -30,11 +29,10 @@ export class CommentsController {
     protected commentsQueryRepository: CommentsQueryRepository,
     private readonly commandBus: CommandBus,
   ) {}
-
-  @Get(':id')
+  @Get(':commentId')
   async getComment(
-    @Param('id', ObjectIdPipe) commentId: string,
-    @Req() req: Request,
+    @Param('commentId', UuidPipe) commentId: string,
+    @Req() req,
   ) {
     const userId = req.userId;
 
@@ -49,49 +47,22 @@ export class CommentsController {
       return comment;
     }
   }
-
-  @Put(':id/like-status')
-  @UseGuards(JwtBearerAuthGuard)
-  @HttpCode(HTTP_STATUSES.NO_CONTENT_204)
-  async changeLikeStatusForComment(
-    @Param('id', ObjectIdPipe) commentId: string,
-    @Body() updateModel: UpdateLikeModel,
-    @CurrentUserId() currentUserId: string,
-  ) {
-    const comment = await this.commentsQueryRepository.getCommentById(
-      commentId,
-      currentUserId,
-    );
-
-    if (!comment) throw new NotFoundException('Comment not found');
-
-    const isUpdated = await this.commandBus.execute(
-      new ChangeLikeStatusForCommentCommand(
-        currentUserId,
-        comment,
-        updateModel.likeStatus,
-      ),
-    );
-
-    if (isUpdated) return;
-  }
-
-  @Put(':id')
+  @Put(':commentId')
   @UseGuards(JwtBearerAuthGuard)
   @HttpCode(HTTP_STATUSES.NO_CONTENT_204)
   async updateComment(
-    @Param('id', ObjectIdPipe) commentId: string,
-    @CurrentUserId() currentUserId: string,
+    @Param('commentId', UuidPipe) commentId: string,
+    @CurrentUserId() userId: string,
     @Body() updateModel: CreateAndUpdateCommentModel,
   ) {
     const comment = await this.commentsQueryRepository.getCommentById(
       commentId,
-      currentUserId,
+      userId,
     );
 
     if (!comment) {
       throw new NotFoundException('Comment not found');
-    } else if (comment.commentatorInfo.userId !== currentUserId) {
+    } else if (comment.commentatorInfo.userId !== userId) {
       throw new ForbiddenException('Comment is not yours');
     }
 
@@ -101,22 +72,46 @@ export class CommentsController {
 
     if (isUpdated) return;
   }
-
-  @Delete(':id')
+  @Put(':commentId/like-status')
   @UseGuards(JwtBearerAuthGuard)
   @HttpCode(HTTP_STATUSES.NO_CONTENT_204)
-  async deleteComment(
-    @Param('id', ObjectIdPipe) commentId: string,
-    @CurrentUserId() currentUserId: string,
+  async changeLikeStatusForComment(
+    @Param('commentId', UuidPipe) commentId: string,
+    @Body() updateModel: UpdateLikeModel,
+    @CurrentUserId() userId: string,
   ) {
     const comment = await this.commentsQueryRepository.getCommentById(
       commentId,
-      currentUserId,
+      userId,
+    );
+
+    if (!comment) throw new NotFoundException('Comment not found');
+
+    const isUpdated = await this.commandBus.execute(
+      new ChangeLikeStatusForCommentCommand(
+        userId,
+        comment,
+        updateModel.likeStatus,
+      ),
+    );
+
+    if (isUpdated) return;
+  }
+  @Delete(':commentId')
+  @UseGuards(JwtBearerAuthGuard)
+  @HttpCode(HTTP_STATUSES.NO_CONTENT_204)
+  async deleteComment(
+    @Param('commentId', UuidPipe) commentId: string,
+    @CurrentUserId() userId: string,
+  ) {
+    const comment = await this.commentsQueryRepository.getCommentById(
+      commentId,
+      userId,
     );
 
     if (!comment) {
       throw new NotFoundException('Comment not found');
-    } else if (comment.commentatorInfo.userId !== currentUserId) {
+    } else if (comment.commentatorInfo.userId !== userId) {
       throw new ForbiddenException('Comment is not yours');
     }
 

@@ -13,7 +13,7 @@ import { CommentOutputModel } from '../src/features/comments/api/models/comment.
 import {
   basicLogin,
   basicPassword,
-} from '../src/features/public/auth/api/auth.constants';
+} from '../src/features/auth/api/auth.constants';
 
 describe('Likes testing (e2e)', () => {
   let app: INestApplication;
@@ -149,6 +149,7 @@ describe('Likes testing (e2e)', () => {
 
     const foundBlogs = await request(server)
       .get(Paths.blogsSA)
+      .auth(basicLogin, basicPassword)
       .expect(HTTP_STATUSES.OK_200);
 
     expect(foundBlogs.body).toStrictEqual({
@@ -166,11 +167,10 @@ describe('Likes testing (e2e)', () => {
       title: 'New post 1',
       shortDescription: 'New shortDescription 1',
       content: 'New content 1',
-      blogId: newBlog!.id,
     };
 
     const createPost = await createEntitiesTestManager.createPost(
-      Paths.posts,
+      `${Paths.blogsSA}/${newBlog!.id}/posts`,
       createData,
       basicLogin,
       basicPassword,
@@ -473,7 +473,7 @@ describe('Likes testing (e2e)', () => {
     });
   });
 
-  it("+ GET all comments post's for visitor with correct data", async () => {
+  it("+ GET all likes-comments post's for visitor with correct data", async () => {
     const foundComments = await request(server)
       .get(`${Paths.posts}/${newPost!.id}/comments`)
       .expect(HTTP_STATUSES.OK_200);
@@ -736,7 +736,7 @@ describe('Likes testing (e2e)', () => {
     });
   });
 
-  it('+ GET all posts for visitor with correct data', async () => {
+  it('+ GET all likes-posts for visitor with correct data', async () => {
     const foundPosts = await request(server)
       .get(Paths.posts)
       .expect(HTTP_STATUSES.OK_200);

@@ -1,8 +1,7 @@
 import { CommandHandler, ICommandHandler } from '@nestjs/cqrs';
 import { CommentsRepository } from '../../infrastructure/comments.repository';
 import { Comment } from '../../api/models/comment.output.model';
-import { ObjectId } from 'mongodb';
-import { likesStatuses } from '../../../../utils';
+import { v4 as uuidv4 } from 'uuid';
 
 export class CreateCommentCommand {
   constructor(
@@ -20,19 +19,12 @@ export class CreateCommentUseCase
 
   async execute(command: CreateCommentCommand) {
     const newComment = new Comment(
-      new ObjectId(),
+      uuidv4(),
       command.content,
-      {
-        userId: command.userId,
-        userLogin: command.userLogin,
-      },
+      command.userId,
+      command.userLogin,
       new Date(),
       command.postId,
-      {
-        likesCount: 0,
-        dislikesCount: 0,
-        myStatus: likesStatuses.none,
-      },
     );
 
     const createdComment =

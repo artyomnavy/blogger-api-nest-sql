@@ -3,14 +3,14 @@ import { PostModel, PostOutputModel } from '../api/models/post.output.model';
 import { PaginatorModel } from '../../../common/models/paginator.input.model';
 import { PaginatorOutputModel } from '../../../common/models/paginator.output.model';
 import { likesStatuses } from '../../../utils';
-import { LikesQueryRepository } from '../../likes/infrastructure/likes.query-repository';
 import { InjectDataSource } from '@nestjs/typeorm';
 import { DataSource } from 'typeorm';
+import { LikesPostsQueryRepository } from '../../likes/infrastructure/likes-posts/likes-posts.query-repository';
 
 @Injectable()
 export class PostsQueryRepository {
   constructor(
-    protected likesQueryRepository: LikesQueryRepository,
+    protected likesPostsQueryRepository: LikesPostsQueryRepository,
     @InjectDataSource() protected dataSource: DataSource,
   ) {}
   async getAllPosts(queryData: {
@@ -128,16 +128,11 @@ export class PostsQueryRepository {
       ),
     };
   }
-  async postMapper(
-    post: PostModel,
-    userId?: string,
-    likesCount?: number,
-    dislikesCount?: number,
-  ): Promise<PostOutputModel> {
+  async postMapper(post: PostModel, userId?: string): Promise<PostOutputModel> {
     let likeStatus: string | null = null;
 
     if (userId) {
-      const like = await this.likesQueryRepository.getLikeCommentOrPostForUser(
+      const like = await this.likesPostsQueryRepository.getLikeForPostUser(
         post.id,
         userId,
       );
@@ -147,23 +142,19 @@ export class PostsQueryRepository {
       }
     }
 
-    if (!likesCount) {
-      likesCount = await this.likesQueryRepository.getStatusCount(
-        post.id,
-        likesStatuses.like,
-      );
-    }
+    const likesCount = await this.likesPostsQueryRepository.getCountLikeForPost(
+      post.id,
+      likesStatuses.like,
+    );
 
-    if (!dislikesCount) {
-      dislikesCount = await this.likesQueryRepository.getStatusCount(
+    const dislikesCount =
+      await this.likesPostsQueryRepository.getCountLikeForPost(
         post.id,
         likesStatuses.dislike,
       );
-    }
 
-    const newestLikes = await this.likesQueryRepository.getNewestLikesForPost(
-      post.id,
-    );
+    const newestLikes =
+      await this.likesPostsQueryRepository.getNewestLikesForPost(post.id);
 
     return {
       id: post.id,

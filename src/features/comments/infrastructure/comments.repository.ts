@@ -3,61 +3,54 @@ import {
   CommentModel,
   CommentOutputModel,
 } from '../api/models/comment.output.model';
-import { InjectModel } from '@nestjs/mongoose';
-import { Comment, CommentDocument } from '../domain/comment.entity';
-import { Model } from 'mongoose';
-import { ObjectId } from 'mongodb';
 import { CreateAndUpdateCommentModel } from '../api/models/comment.input.model';
 import { CommentsQueryRepository } from './comments.query-repository';
+import { InjectDataSource } from '@nestjs/typeorm';
+import { DataSource } from 'typeorm';
 
 @Injectable()
 export class CommentsRepository {
   constructor(
-    @InjectModel(Comment.name) private commentModel: Model<CommentDocument>,
     protected commentsQueryRepository: CommentsQueryRepository,
+    @InjectDataSource() protected dataSource: DataSource,
   ) {}
   async createComment(newComment: CommentModel): Promise<CommentOutputModel> {
-    const resultCreateComment = await this.commentModel.create(newComment);
-    return await this.commentsQueryRepository.commentMapper(
-      resultCreateComment,
-    );
+    const query = `INSERT INTO public."Comments"(
+            "id", "content", "userId", "userLogin", "createdAt", "postId")
+            VALUES ($1, $2, $3, $4, $5, $6)`;
+
+    await this.dataSource.query(query, [
+      newComment.id,
+      newComment.content,
+      newComment.userId,
+      newComment.userLogin,
+      newComment.createdAt,
+      newComment.postId,
+    ]);
+
+    return await this.commentsQueryRepository.commentMapper(newComment);
   }
   async updateComment(
     id: string,
     updateData: CreateAndUpdateCommentModel,
   ): Promise<boolean> {
-    const resultUpdateComment = await this.commentModel.updateOne(
-      { _id: new ObjectId(id) },
-      {
-        $set: {
-          content: updateData.content,
-        },
-      },
-    );
-    return resultUpdateComment.matchedCount === 1;
-  }
-  async changeLikeStatusCommentForUser(
-    commentId: string,
-    likesCount: number,
-    dislikesCount: number,
-  ): Promise<boolean> {
-    const resultUpdateLikeStatus = await this.commentModel.updateOne(
-      {
-        _id: new ObjectId(commentId),
-      },
-      {
-        $set: {
-          'likesInfo.likesCount': likesCount,
-          'likesInfo.dislikesCount': dislikesCount,
-        },
-      },
-    );
-    return resultUpdateLikeStatus.matchedCount === 1;
+    const query = `UPDATE public."Comments"
+            SET "content"=$1
+            WHERE "id" = $2`;
+
+    const resultUpdateComment = await this.dataSource.query(query, [
+      updateData.content,
+      id,
+    ]);
+
+    return resultUpdateComment[1] === 1;
   }
   async deleteComment(id: string): Promise<boolean> {
-    const resultDeleteComment = await this.commentModel.deleteOne({
-      _id: new ObjectId(id),
-    });
-    return resultDeleteComment.deletedCount === 1;
+    const query = `DELETE FROM public."Comments"
+             WHERE "id" = $1`;
+
+    const resultDeleteComment = await this.dataSource.query(query, [id]);
+
+    return resultDeleteComment[1] === 1;
   }
 }

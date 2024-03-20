@@ -1,9 +1,5 @@
 import { Injectable } from '@nestjs/common';
-import {
-  blogMapper,
-  BlogModel,
-  BlogOutputModel,
-} from '../api/models/blog.output.model';
+import { blogMapper, BlogOutputModel } from '../api/models/blog.output.model';
 import { PaginatorModel } from '../../../common/models/paginator.input.model';
 import { PaginatorOutputModel } from '../../../common/models/paginator.output.model';
 import { InjectDataSource } from '@nestjs/typeorm';

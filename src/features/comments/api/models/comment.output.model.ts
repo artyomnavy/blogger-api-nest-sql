@@ -1,18 +1,10 @@
-import { ObjectId } from 'mongodb';
-
 export class CommentModel {
-  _id: ObjectId;
+  id: string;
   content: string;
-  commentatorInfo: {
-    userId: string;
-    userLogin: string;
-  };
+  userId: string;
+  userLogin: string;
   createdAt: Date;
-  likesInfo: {
-    likesCount: number;
-    dislikesCount: number;
-    myStatus: string;
-  };
+  postId: string;
 }
 export class CommentOutputModel {
   id: string;
@@ -31,18 +23,11 @@ export class CommentOutputModel {
 
 export class Comment {
   constructor(
-    public _id: ObjectId,
+    public id: string,
     public content: string,
-    public commentatorInfo: {
-      userId: string;
-      userLogin: string;
-    },
+    public userId: string,
+    public userLogin: string,
     public createdAt: Date,
     public postId: string,
-    public likesInfo: {
-      likesCount: number;
-      dislikesCount: number;
-      myStatus: string;
-    },
   ) {}
 }
