@@ -1,7 +1,6 @@
-import { HydratedDocument } from 'mongoose';
 import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
 
-export type LikeDocument = HydratedDocument<>;
+// export type LikeDocument = HydratedDocument<>;
 
 @Schema()
 export class Like {
