@@ -7,13 +7,6 @@ import {
 import { AppController } from './app.controller';
 import { AppService } from './app.service';
 import { config } from 'dotenv';
-import { MongooseModule } from '@nestjs/mongoose';
-import { Blog, BlogEntity } from './features/blogs/domain/blog.entity';
-import { Post, PostEntity } from './features/posts/domain/post.entity';
-import {
-  Comment,
-  CommentEntity,
-} from './features/comments/domain/comment.entity';
 import { BlogsSAController } from './features/blogs/api/blogs.sa.controller';
 import { PostsController } from './features/posts/api/posts.public.controller';
 import { CommentsController } from './features/comments/api/comments.public.controller';
@@ -41,7 +34,6 @@ import { JwtModule } from '@nestjs/jwt';
 import { CommentsRepository } from './features/comments/infrastructure/comments.repository';
 import { LikesCommentsRepository } from './features/likes/infrastructure/likes-comments/likes-comments.repository';
 import { LikesCommentsQueryRepository } from './features/likes/infrastructure/likes-comments/likes-comments.query-repository';
-import { Like, LikeEntity } from './features/likes/domain/like.entity';
 import { DevicesController } from './features/devices/api/security.public.controller';
 import { CqrsModule } from '@nestjs/cqrs';
 import { UpdateBlogUseCase } from './features/blogs/application/use-cases/update-blog.use-case';
