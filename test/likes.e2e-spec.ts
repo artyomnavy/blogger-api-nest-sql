@@ -473,7 +473,7 @@ describe('Likes testing (e2e)', () => {
     });
   });
 
-  it("+ GET all likes-comments post's for visitor with correct data", async () => {
+  it("+ GET all comments post's for visitor with correct data", async () => {
     const foundComments = await request(server)
       .get(`${Paths.posts}/${newPost!.id}/comments`)
       .expect(HTTP_STATUSES.OK_200);
@@ -736,7 +736,7 @@ describe('Likes testing (e2e)', () => {
     });
   });
 
-  it('+ GET all likes-posts for visitor with correct data', async () => {
+  it('+ GET all posts for visitor with correct data', async () => {
     const foundPosts = await request(server)
       .get(Paths.posts)
       .expect(HTTP_STATUSES.OK_200);

@@ -32,8 +32,7 @@ import { EmailsAdapter } from './features/auth/adapters/emails-adapter';
 import { EmailsManager } from './features/auth/managers/emails-manager';
 import { JwtModule } from '@nestjs/jwt';
 import { CommentsRepository } from './features/comments/infrastructure/comments.repository';
-import { LikesCommentsRepository } from './features/likes/infrastructure/likes-comments/likes-comments.repository';
-import { LikesCommentsQueryRepository } from './features/likes/infrastructure/likes-comments/likes-comments.query-repository';
+import { LikesCommentsRepository } from './features/likes/infrastructure/likes-comments.repository';
 import { DevicesController } from './features/devices/api/security.public.controller';
 import { CqrsModule } from '@nestjs/cqrs';
 import { UpdateBlogUseCase } from './features/blogs/application/use-cases/update-blog.use-case';
@@ -71,8 +70,7 @@ import { BlogsPublicController } from './features/blogs/api/blogs.public.control
 import { CreatePostUseCase } from './features/posts/application/use-cases/create-post.use-case';
 import { AccessTokenVerificationMiddleware } from './common/middlewares/access-token-verification.middleware';
 import { BasicStrategy } from './features/auth/api/strategies/basic.strategy';
-import { LikesPostsRepository } from './features/likes/infrastructure/likes-posts/likes-posts.repository';
-import { LikesPostsQueryRepository } from './features/likes/infrastructure/likes-posts/likes-posts.query-repository';
+import { LikesPostsRepository } from './features/likes/infrastructure/likes-posts.repository';
 
 config();
 
@@ -135,8 +133,6 @@ const queryRepositoriesProviders = [
   UsersQueryRepository,
   PostsQueryRepository,
   DevicesQueryRepository,
-  LikesCommentsQueryRepository,
-  LikesPostsQueryRepository,
 ];
 
 const emailsProviders = [EmailsManager, EmailsAdapter];

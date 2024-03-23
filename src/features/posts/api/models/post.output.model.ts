@@ -40,3 +40,21 @@ export class PostModel {
   blogName?: string;
   createdAt: Date;
 }
+
+export class PostMapperModel {
+  id: string;
+  title: string;
+  shortDescription: string;
+  content: string;
+  blogId: string;
+  blogName: string;
+  createdAt: Date;
+  likesCount: string;
+  dislikesCount: string;
+  myStatus: string;
+  newestLikes: {
+    addedAt: string;
+    userId: string;
+    login: string;
+  }[];
+}

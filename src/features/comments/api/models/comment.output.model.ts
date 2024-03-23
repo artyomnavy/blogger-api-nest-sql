@@ -31,3 +31,14 @@ export class Comment {
     public postId: string,
   ) {}
 }
+
+export class CommentMapperModel {
+  id: string;
+  content: string;
+  userId: string;
+  userLogin: string;
+  createdAt: Date;
+  likesCount: string;
+  dislikesCount: string;
+  myStatus: string;
+}

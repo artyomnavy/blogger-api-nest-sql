@@ -1,36 +1,43 @@
 import { Injectable } from '@nestjs/common';
 import {
-  CommentModel,
+  CommentMapperModel,
   CommentOutputModel,
 } from '../api/models/comment.output.model';
 import { PaginatorModel } from '../../../common/models/paginator.input.model';
 import { PaginatorOutputModel } from '../../../common/models/paginator.output.model';
-import { LikesCommentsQueryRepository } from '../../likes/infrastructure/likes-comments/likes-comments.query-repository';
 import { likesStatuses } from '../../../utils';
 import { InjectDataSource } from '@nestjs/typeorm';
 import { DataSource } from 'typeorm';
 
 @Injectable()
 export class CommentsQueryRepository {
-  constructor(
-    protected likesCommentsQueryRepository: LikesCommentsQueryRepository,
-    @InjectDataSource() protected dataSource: DataSource,
-  ) {}
+  constructor(@InjectDataSource() protected dataSource: DataSource) {}
   async getCommentById(
     id: string,
-    userId?: string,
+    userId?: string | null,
   ): Promise<CommentOutputModel | null> {
     const query = `SELECT
-                "id", "content", "userId", "userLogin", "createdAt", "postId"
-                FROM public."Comments" 
-                WHERE "id" = $1`;
+                c."id", c."content", c."userId", c."userLogin", c."createdAt", c."postId",
+                (SELECT COUNT(*) FROM public."LikesComments" AS l
+                WHERE l."commentId"=$1 AND l."status"=$2) AS "likesCount",
+                (SELECT COUNT(*) FROM public."LikesComments" AS l
+                WHERE l."commentId"=$1 AND l."status"=$3) AS "dislikesCount",
+                (SELECT l."status" FROM public."LikesComments" AS l 
+                WHERE l."commentId"=$1 AND l."userId"=$4 AND $4 IS NOT NULL) AS "myStatus"
+                FROM public."Comments" AS c
+                WHERE c."id" = $1`;
 
-    const comment = await this.dataSource.query(query, [id]);
+    const comment = await this.dataSource.query(query, [
+      id,
+      likesStatuses.like,
+      likesStatuses.dislike,
+      userId,
+    ]);
 
     if (!comment.length) {
       return null;
     } else {
-      return await this.commentMapper(comment[0], userId);
+      return await this.commentMapper(comment[0]);
     }
   }
   async getCommentsByPostId(
@@ -52,13 +59,22 @@ export class CommentsQueryRepository {
     const userId = queryData.userId;
 
     const query = `SELECT
-                "id", "content", "userId", "userLogin", "createdAt", "postId"
-                FROM public."Comments"
-                WHERE "postId"=$1
-                ORDER BY "${sortBy}" ${sortDirection}
-                LIMIT $2 OFFSET $3`;
+                c."id", c."content", c."userId", c."userLogin", c."createdAt", c."postId",
+                (SELECT COUNT(*) FROM public."LikesComments" AS l
+                WHERE l."commentId"=c."id" AND l."status"=$1) AS "likesCount",
+                (SELECT COUNT(*) FROM public."LikesComments" AS l
+                WHERE l."commentId"=c."id" AND l."status"=$2) AS "dislikesCount",
+                (SELECT "status" FROM public."LikesComments" AS l
+                WHERE l."commentId"=c."id" AND l."userId"=$3 AND $3 IS NOT NULL) AS "myStatus"
+                FROM public."Comments" AS c
+                WHERE c."postId"=$4
+                ORDER BY c."${sortBy}" ${sortDirection}
+                LIMIT $5 OFFSET $6`;
 
     const comments = await this.dataSource.query(query, [
+      likesStatuses.like,
+      likesStatuses.dislike,
+      userId,
       postId,
       +pageSize,
       (+pageNumber - 1) * +pageSize,
@@ -78,39 +94,15 @@ export class CommentsQueryRepository {
       pageSize: +pageSize,
       totalCount: +totalCount[0].count,
       items: await Promise.all(
-        comments.map((comment: CommentModel) =>
-          this.commentMapper(comment, userId),
+        comments.map((comment: CommentMapperModel) =>
+          this.commentMapper(comment),
         ),
       ),
     };
   }
-  async commentMapper(comment: CommentModel, userId?: string) {
-    let likeStatus: string | null = null;
-
-    if (userId) {
-      const like =
-        await this.likesCommentsQueryRepository.getLikeForCommentUser(
-          comment.id,
-          userId,
-        );
-
-      if (like) {
-        likeStatus = like.status;
-      }
-    }
-
-    const likesCount =
-      await this.likesCommentsQueryRepository.getCountLikeForComment(
-        comment.id,
-        likesStatuses.like,
-      );
-
-    const dislikesCount =
-      await this.likesCommentsQueryRepository.getCountLikeForComment(
-        comment.id,
-        likesStatuses.dislike,
-      );
-
+  async commentMapper(
+    comment: CommentMapperModel,
+  ): Promise<CommentOutputModel> {
     return {
       id: comment.id,
       content: comment.content,
@@ -120,9 +112,9 @@ export class CommentsQueryRepository {
       },
       createdAt: comment.createdAt.toISOString(),
       likesInfo: {
-        likesCount: likesCount,
-        dislikesCount: dislikesCount,
-        myStatus: likeStatus || likesStatuses.none,
+        likesCount: +comment.likesCount,
+        dislikesCount: +comment.dislikesCount,
+        myStatus: comment.myStatus || likesStatuses.none,
       },
     };
   }

@@ -4,6 +4,7 @@ import { CreateAndUpdatePostModel } from '../api/models/post.input.model';
 import { PostsQueryRepository } from './posts.query-repository';
 import { InjectDataSource } from '@nestjs/typeorm';
 import { DataSource } from 'typeorm';
+import { likesStatuses } from '../../../utils';
 
 @Injectable()
 export class PostsRepository {
@@ -31,6 +32,10 @@ export class PostsRepository {
     return await this.postsQueryRepository.postMapper({
       ...newPost,
       blogName,
+      likesCount: '0',
+      dislikesCount: '0',
+      myStatus: likesStatuses.none,
+      newestLikes: [],
     });
   }
   async updatePost(

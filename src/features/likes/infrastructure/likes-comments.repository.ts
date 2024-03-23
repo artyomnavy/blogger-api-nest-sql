@@ -1,24 +1,24 @@
 import { Injectable } from '@nestjs/common';
 import {
-  LikePostModel,
-  LikePostOutputModel,
-} from '../../api/models/like-post.output.model';
+  LikeCommentModel,
+  LikeCommentOutputModel,
+} from '../api/models/like-comment.output.model';
 import { InjectDataSource } from '@nestjs/typeorm';
 import { DataSource } from 'typeorm';
 
 @Injectable()
-export class LikesPostsRepository {
+export class LikesCommentsRepository {
   constructor(@InjectDataSource() protected dataSource: DataSource) {}
-  async createLikeForPost(
-    inputData: LikePostModel,
-  ): Promise<LikePostOutputModel> {
-    const query = `INSERT INTO public."LikesPosts"(
-            "id", "postId", "userId", "status", "addedAt")
+  async createLikeForComment(
+    inputData: LikeCommentModel,
+  ): Promise<LikeCommentOutputModel> {
+    const query = `INSERT INTO public."LikesComments"(
+            "id", "commentId", "userId", "status", "addedAt")
             VALUES ($1, $2, $3, $4, $5)`;
 
     await this.dataSource.query(query, [
       inputData.id,
-      inputData.postId,
+      inputData.commentId,
       inputData.userId,
       inputData.status,
       inputData.addedAt,
@@ -29,26 +29,29 @@ export class LikesPostsRepository {
       addedAt: inputData.addedAt.toISOString(),
     };
   }
-  async deleteLikeForPost(postId: string, userId: string): Promise<boolean> {
-    const query = `DELETE FROM public."LikesPosts"
-             WHERE "postId" = $1 AND "userId" = $2`;
+  async deleteLikeForComment(
+    commentId: string,
+    userId: string,
+  ): Promise<boolean> {
+    const query = `DELETE FROM public."LikesComments"
+             WHERE "commentId" = $1 AND "userId" = $2`;
 
     const resultDeleteLikeStatus = await this.dataSource.query(query, [
-      postId,
+      commentId,
       userId,
     ]);
 
     return resultDeleteLikeStatus[1] === 1;
   }
-  async updateLikeForPost(updateData: LikePostModel): Promise<boolean> {
-    const query = `UPDATE public."LikesPosts"
+  async updateLikeForComment(updateData: LikeCommentModel): Promise<boolean> {
+    const query = `UPDATE public."LikesComments"
             SET "status"=$1, "addedAt"=$2
-            WHERE "postId" = $3 AND "userId" = $4`;
+            WHERE "commentId" = $3 AND "userId" = $4`;
 
     const resultUpdateLikeStatus = await this.dataSource.query(query, [
       updateData.status,
       updateData.addedAt,
-      updateData.postId,
+      updateData.commentId,
       updateData.userId,
     ]);
 

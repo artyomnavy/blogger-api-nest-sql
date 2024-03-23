@@ -7,6 +7,7 @@ import { CreateAndUpdateCommentModel } from '../api/models/comment.input.model';
 import { CommentsQueryRepository } from './comments.query-repository';
 import { InjectDataSource } from '@nestjs/typeorm';
 import { DataSource } from 'typeorm';
+import { likesStatuses } from '../../../utils';
 
 @Injectable()
 export class CommentsRepository {
@@ -28,7 +29,12 @@ export class CommentsRepository {
       newComment.postId,
     ]);
 
-    return await this.commentsQueryRepository.commentMapper(newComment);
+    return await this.commentsQueryRepository.commentMapper({
+      ...newComment,
+      likesCount: '0',
+      dislikesCount: '0',
+      myStatus: likesStatuses.none,
+    });
   }
   async updateComment(
     id: string,
