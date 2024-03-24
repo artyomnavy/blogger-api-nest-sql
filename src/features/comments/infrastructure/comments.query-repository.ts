@@ -16,16 +16,41 @@ export class CommentsQueryRepository {
     id: string,
     userId?: string | null,
   ): Promise<CommentOutputModel | null> {
-    const query = `SELECT
-                c."id", c."content", c."userId", c."userLogin", c."createdAt", c."postId",
-                (SELECT COUNT(*) FROM public."LikesComments" AS l
-                WHERE l."commentId"=$1 AND l."status"=$2) AS "likesCount",
-                (SELECT COUNT(*) FROM public."LikesComments" AS l
-                WHERE l."commentId"=$1 AND l."status"=$3) AS "dislikesCount",
-                (SELECT l."status" FROM public."LikesComments" AS l 
-                WHERE l."commentId"=$1 AND l."userId"=$4 AND $4 IS NOT NULL) AS "myStatus"
-                FROM public."Comments" AS c
-                WHERE c."id" = $1`;
+    // Запрос с подзапросами
+    // const query = `SELECT
+    //             c."id", c."content", c."userId", c."userLogin", c."createdAt", c."postId",
+    //             -- Подзапрос количества лайков комментария
+    //             (SELECT COUNT(*) FROM public."LikesComments" AS l
+    //             WHERE l."commentId"=$1 AND l."status"=$2) AS "likesCount",
+    //             -- Подзапрос количества дизлайков комментария
+    //             (SELECT COUNT(*) FROM public."LikesComments" AS l
+    //             WHERE l."commentId"=$1 AND l."status"=$3) AS "dislikesCount",
+    //             -- Подзапрос статуса пользователя (лайк или дизлайк) для комментария
+    //             (SELECT l."status" FROM public."LikesComments" AS l
+    //             WHERE l."commentId"=$1 AND l."userId"=$4 AND $4 IS NOT NULL) AS "myStatus"
+    //             FROM public."Comments" AS c
+    //             WHERE c."id" = $1`;
+
+    // Запрос с CTE (common table expressions)
+    const query = `WITH
+                                            "LikesCounts" AS (
+                                              SELECT l."commentId", COUNT(*) FILTER (WHERE l."status"=$2) AS "likesCount",
+                                              COUNT(*) FILTER (WHERE l."status"=$3) AS "dislikesCount"
+                                              FROM public."LikesComments" AS l
+                                              WHERE l."commentId"=$1
+                                              GROUP BY l."commentId"
+                                              ),
+                                            "MyStatus" AS (
+                                              SELECT l."commentId", l."status" AS "myStatus"
+                                              FROM public."LikesComments" AS l
+                                              WHERE l."commentId"=$1 AND l."userId"=$4 AND $4 IS NOT NULL
+                                              )
+                                            SELECT c."id", c."content", c."userId", c."userLogin", c."createdAt", c."postId",
+                                            lc."likesCount", lc."dislikesCount", ms."myStatus"
+                                            FROM public."Comments" AS c
+                                              LEFT JOIN "LikesCounts" AS lc ON c."id"=lc."commentId"
+                                              LEFT JOIN "MyStatus" AS ms ON c."id"=ms."commentId"
+                                            --WHERE c."id"=$1`;
 
     const comment = await this.dataSource.query(query, [
       id,
@@ -60,10 +85,13 @@ export class CommentsQueryRepository {
 
     const query = `SELECT
                 c."id", c."content", c."userId", c."userLogin", c."createdAt", c."postId",
+                -- Подзапрос количества лайков комментария
                 (SELECT COUNT(*) FROM public."LikesComments" AS l
                 WHERE l."commentId"=c."id" AND l."status"=$1) AS "likesCount",
+                -- Подзапрос количества дизлайков комментария
                 (SELECT COUNT(*) FROM public."LikesComments" AS l
                 WHERE l."commentId"=c."id" AND l."status"=$2) AS "dislikesCount",
+                -- Подзапрос статуса пользователя (лайк или дизлайк) для комментария
                 (SELECT "status" FROM public."LikesComments" AS l
                 WHERE l."commentId"=c."id" AND l."userId"=$3 AND $3 IS NOT NULL) AS "myStatus"
                 FROM public."Comments" AS c
