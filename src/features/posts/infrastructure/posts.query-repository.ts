@@ -73,24 +73,42 @@ export class PostsQueryRepository {
                               WHERE l."userId" = $3 AND $3 IS NOT NULL
                               ),
                             -- Для каждого поста собираем информацию о последних 3(трех) лайках
+                            -- json_agg объединяет объекты в массив
+                            -- В подзапросе формируем новую таблицу "LikesPosts" с ограничением в 3(три) лайка
+                            -- Объединяем полученную таблицу "LikesPosts" с таблицей "Users" для получения логинов пользователей
+                            -- Группируем полученные данные по id каждого поста
+                            "NewestLikes" AS (
+                              SELECT l."postId", json_agg(json_build_object('addedAt', l."addedAt", 'userId', l."userId", 'login', u."login")) AS "newestLikes"
+                              FROM (
+                              SELECT l."postId", l."addedAt", l."userId"
+                              FROM public."LikesPosts" AS l
+                              WHERE l."status"=$1
+                              ORDER BY l."addedAt" DESC
+                              LIMIT $4
+                              ) AS l
+                                LEFT JOIN public."Users" AS u
+                                ON l."userId"=u."id"
+                              GROUP BY l."postId")
+                            -- Еще вариант выборки 3(трех) последних лайков
+                            -- Для каждого поста собираем информацию о последних 3(трех) лайках
                             -- ROW_NUMBER() оконная функция, которая используется для нумерации строк внутри каждой группы,
                             -- определенной с помощью PARTITION BY, отсортированной по "addedAt" DESC, т.е. каждая строка
                             -- получит свой уникальный номер в столбце rn с помощью которого выставляется ограничение в 3(три) лайка 
                             -- json_agg объединяет объекты в массив, если пост есть в таблице лайков (т.е. у поста вообще есть лайки)
-                            "NewestLikes" AS (
-                              SELECT p."id" AS "postId",
-                              CASE WHEN COUNT(l."postId") > 0
-                              THEN json_agg(json_build_object('addedAt', l."addedAt", 'userId', l."userId", 'login', u."login"))
-                              ELSE '[]'::json
-                              END AS "newestLikes"
-                              FROM public."Posts" AS p
-                                LEFT JOIN (SELECT *,
-                                ROW_NUMBER() OVER (PARTITION BY "postId" ORDER BY "addedAt" DESC) AS rn
-                                FROM public."LikesPosts"
-                                WHERE "status" = $1) AS l ON p."id" = l."postId" AND l.rn <= $4
-                                LEFT JOIN public."Users" AS u ON l."userId" = u."id"
-                              GROUP BY p."id"
-                              )
+                            --"NewestLikes" AS (
+                            --SELECT p."id" AS "postId",
+                            --CASE WHEN COUNT(l."postId") > 0
+                            --THEN json_agg(json_build_object('addedAt', l."addedAt", 'userId', l."userId", 'login', u."login"))
+                            --ELSE '[]'::json
+                            --END AS "newestLikes"
+                            --FROM public."Posts" AS p
+                            --  LEFT JOIN (SELECT *,
+                            --  ROW_NUMBER() OVER (PARTITION BY "postId" ORDER BY "addedAt" DESC) AS rn
+                            --  FROM public."LikesPosts"
+                            --  WHERE "status" = $1) AS l ON p."id" = l."postId" AND l.rn <= $4
+                            --  LEFT JOIN public."Users" AS u ON l."userId" = u."id"
+                            --GROUP BY p."id"
+                            --)
                             SELECT
                               p."id", p."title", p."shortDescription", p."content",
                               p."blogId", p."createdAt", b."name" AS "blogName",
@@ -259,7 +277,7 @@ export class PostsQueryRepository {
         dislikesCount: +post.dislikesCount || 0,
         myStatus: post.myStatus || likesStatuses.none,
         newestLikes:
-          post.newestLikes.length > 0
+          post.newestLikes && post.newestLikes.length > 0
             ? [
                 {
                   addedAt: post.newestLikes[0].addedAt,
