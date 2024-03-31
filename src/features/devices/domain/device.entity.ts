@@ -1,28 +1,36 @@
-import { HydratedDocument } from 'mongoose';
-import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
-import { DeviceSessionModel } from '../api/models/device.output.model';
+import {
+  Column,
+  Entity,
+  JoinColumn,
+  ManyToOne,
+  PrimaryGeneratedColumn,
+} from 'typeorm';
+import { User } from '../../users/domain/user.entity';
 
-export type DeviceSessionDocument = HydratedDocument<DeviceSessionModel>;
-
-@Schema()
-export class DeviceSession {
-  @Prop({ required: true })
-  iat: Date;
-
-  @Prop({ required: true })
-  exp: Date;
-
-  @Prop({ required: true })
-  ip: string;
-
-  @Prop({ required: true })
+@Entity({ name: 'devices' })
+export class Device {
+  @PrimaryGeneratedColumn('uuid', { name: 'id' })
   deviceId: string;
 
-  @Prop({ required: true })
+  @Column()
+  iat: Date;
+
+  @Column('timestamp with time zone')
+  exp: Date;
+
+  @Column('character varying')
+  ip: string;
+
+  @Column({
+    name: 'device_name',
+    type: 'character varying',
+  })
   deviceName: string;
 
-  @Prop({ required: true })
+  @Column({ name: 'user_id', type: 'uuid' })
   userId: string;
-}
 
-export const DeviceSessionEntity = SchemaFactory.createForClass(DeviceSession);
+  @ManyToOne(() => User, (u) => u.devices, { onDelete: 'CASCADE' })
+  @JoinColumn({ name: 'user_id' })
+  user: User;
+}

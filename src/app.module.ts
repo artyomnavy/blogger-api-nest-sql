@@ -52,7 +52,7 @@ import { DeletePostUseCase } from './features/posts/application/use-cases/delete
 import { ChangeLikeStatusForPostUseCase } from './features/posts/application/use-cases/change-like-status-for-post-use.case';
 import { DeleteUserUseCase } from './features/users/application/use-cases/delete-user.use-case';
 import { CreateUserByAdminUseCase } from './features/users/application/use-cases/create-user-by-admin.use-case';
-import { TypeOrmModule } from '@nestjs/typeorm';
+import { TypeOrmModule, TypeOrmModuleOptions } from '@nestjs/typeorm';
 import { UpdatePasswordForRecoveryUseCase } from './features/auth/application/use-cases/update-password-for-recovery-user.use-case';
 import { SendEmailForPasswordRecoveryUseCase } from './features/auth/application/use-cases/send-email-for-password-recovery-user.use-case';
 import { ResendingEmailUseCase } from './features/auth/application/use-cases/re-sending-email-user.use-case';
@@ -71,6 +71,8 @@ import { CreatePostUseCase } from './features/posts/application/use-cases/create
 import { AccessTokenVerificationMiddleware } from './common/middlewares/access-token-verification.middleware';
 import { BasicStrategy } from './features/auth/api/strategies/basic.strategy';
 import { LikesPostsRepository } from './features/likes/infrastructure/likes-posts.repository';
+import { User } from './features/users/domain/user.entity';
+import { Device } from './features/devices/domain/device.entity';
 
 config();
 
@@ -147,20 +149,24 @@ const constraintsProviders = [
   EmailExistAndConfirmedConstraint,
 ];
 
+const options: TypeOrmModuleOptions = {
+  type: 'postgres',
+  host: process.env.DB_HOST || '127.0.0.1',
+  port: 5432,
+  username: process.env.DB_USER,
+  password: process.env.DB_PASSWORD,
+  database: 'BloggerPlatform',
+  // logging: ['query'],
+  autoLoadEntities: true,
+  synchronize: true,
+};
+
 @Module({
   imports: [
+    TypeOrmModule.forFeature([User, Device]),
     CqrsModule,
     PassportModule,
-    TypeOrmModule.forRoot({
-      type: 'postgres',
-      host: process.env.DB_HOST || '127.0.0.1',
-      port: 5432,
-      username: process.env.DB_USER,
-      password: process.env.DB_PASSWORD,
-      database: 'BloggerPlatform',
-      autoLoadEntities: false,
-      synchronize: false,
-    }),
+    TypeOrmModule.forRoot(options),
     JwtModule.register({
       secret: jwtSecret,
       signOptions: { expiresIn: '10m' },

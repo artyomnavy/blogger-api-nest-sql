@@ -7,22 +7,27 @@ import {
 import { PaginatorModel } from '../../../common/models/paginator.input.model';
 import { PaginatorOutputModel } from '../../../common/models/paginator.output.model';
 import bcrypt from 'bcrypt';
-import { InjectDataSource } from '@nestjs/typeorm';
-import { DataSource } from 'typeorm';
+import { InjectDataSource, InjectRepository } from '@nestjs/typeorm';
+import { DataSource, Repository } from 'typeorm';
 import { AuthMeOutputModel } from '../../auth/api/models/auth.output.model';
+import { User } from '../domain/user.entity';
 
 @Injectable()
 export class UsersQueryRepository {
-  constructor(@InjectDataSource() protected dataSource: DataSource) {}
+  constructor(
+    @InjectRepository(User)
+    private readonly usersQueryRepository: Repository<User>,
+    @InjectDataSource() protected dataSource: DataSource,
+  ) {}
   async getAllUsers(
     queryData: PaginatorModel,
   ): Promise<PaginatorOutputModel<UserOutputModel>> {
     const sortBy = queryData.sortBy ? queryData.sortBy : 'createdAt';
-    const sortDirection = queryData.sortDirection
-      ? queryData.sortDirection
-      : 'desc';
-    const pageNumber = queryData.pageNumber ? queryData.pageNumber : 1;
-    const pageSize = queryData.pageSize ? queryData.pageSize : 10;
+    const sortDirection = queryData.sortDirection!
+      ? (queryData.sortDirection.toUpperCase() as 'ASC' | 'DESC')
+      : 'DESC';
+    const pageNumber = queryData.pageNumber ? +queryData.pageNumber : 1;
+    const pageSize = queryData.pageSize ? +queryData.pageSize : 10;
     const searchLoginTerm = queryData.searchLoginTerm
       ? queryData.searchLoginTerm
       : '';
@@ -30,143 +35,218 @@ export class UsersQueryRepository {
       ? queryData.searchEmailTerm
       : '';
 
-    const query = `SELECT
-                "id", "login", "email", "password", "createdAt", "confirmationCode", "expirationDate", "isConfirmed"
-                FROM public."Users"
-                WHERE "login" ILIKE $1 OR "email" ILIKE $2
-                ORDER BY "${sortBy}" ${sortDirection}
-                LIMIT $3 OFFSET $4`;
+    const users = await this.usersQueryRepository
+      .createQueryBuilder('u')
+      .select([
+        'u.id',
+        'u.login',
+        'u.email',
+        'u.password',
+        'u.createdAt',
+        'u.confirmationCode',
+        'u.expirationDate',
+        'u.isConfirmed',
+      ])
+      .where('(u.login ILIKE :login OR u.email ILIKE :email)', {
+        login: `%${searchLoginTerm}%`,
+        email: `%${searchEmailTerm}%`,
+      })
+      .orderBy(`u.${sortBy}`, sortDirection)
+      .skip((pageNumber - 1) * pageSize)
+      .take(pageSize)
+      .getMany();
 
-    const users = await this.dataSource.query(query, [
-      `%${searchLoginTerm}%`,
-      `%${searchEmailTerm}%`,
-      +pageSize,
-      (+pageNumber - 1) * +pageSize,
-    ]);
+    const totalCount: number = await this.usersQueryRepository
+      .createQueryBuilder('u')
+      .select('COUNT(u.id)')
+      // .from(User, 'u')
+      .where('(u.login ILIKE :login OR u.email ILIKE :email)', {
+        login: `%${searchLoginTerm}%`,
+        email: `%${searchEmailTerm}%`,
+      })
+      .getCount();
 
-    const totalCount = await this.dataSource.query(
-      `SELECT
-                COUNT(*) FROM public."Users"
-                WHERE "login" ILIKE $1 OR "email" ILIKE $2`,
-      [`%${searchLoginTerm}%`, `%${searchEmailTerm}%`],
-    );
-
-    const pagesCount = Math.ceil(+totalCount[0].count / +pageSize);
+    const pagesCount = Math.ceil(totalCount / pageSize);
 
     return {
       pagesCount: pagesCount,
-      page: +pageNumber,
-      pageSize: +pageSize,
-      totalCount: +totalCount[0].count,
+      page: pageNumber,
+      pageSize: pageSize,
+      totalCount: totalCount,
       items: users.map(userMapper),
     };
   }
   async getUserByLogin(login: string): Promise<UserOutputModel | null> {
-    const query = `SELECT
-                "id", "login", "password", "email", "createdAt", "confirmationCode", "expirationDate", "isConfirmed"
-                FROM public."Users"
-                WHERE "login" = $1`;
+    const user = await this.usersQueryRepository
+      .createQueryBuilder()
+      .select([
+        'u.id',
+        'u.login',
+        'u.password',
+        'u.email',
+        'u.createdAt',
+        'u.confirmationCode',
+        'u.expirationDate',
+        'u.isConfirmed',
+      ])
+      .from(User, 'u')
+      .where('u.login = :login', { login })
+      .getOne();
 
-    const user = await this.dataSource.query(query, [login]);
-
-    if (!user.length) {
+    if (!user) {
       return null;
     } else {
-      return userMapper(user[0]);
+      return userMapper(user);
     }
   }
   async getUserByEmail(email: string): Promise<UserAccountModel | null> {
-    const query = `SELECT
-                "id", "login", "password", "email", "createdAt", "confirmationCode", "expirationDate", "isConfirmed"
-                FROM public."Users"
-                WHERE "email" = $1`;
+    const user = await this.usersQueryRepository
+      .createQueryBuilder()
+      .select([
+        'u.id',
+        'u.login',
+        'u.password',
+        'u.email',
+        'u.createdAt',
+        'u.confirmationCode',
+        'u.expirationDate',
+        'u.isConfirmed',
+      ])
+      .from(User, 'u')
+      .where('u.email = :email', { email })
+      .getOne();
 
-    const user = await this.dataSource.query(query, [email]);
-
-    if (!user.length) {
+    if (!user) {
       return null;
     } else {
-      return user[0];
+      return user;
     }
   }
   async getUserByLoginOrEmail(
     loginOrEmail: string,
   ): Promise<UserAccountModel | null> {
-    const query = `SELECT
-                "id", "login", "password", "email", "createdAt", "confirmationCode", "expirationDate", "isConfirmed"
-                FROM public."Users"
-                WHERE "login" = $1 OR "email" = $1`;
+    const user = await this.usersQueryRepository
+      .createQueryBuilder()
+      .select([
+        'u.id',
+        'u.login',
+        'u.password',
+        'u.email',
+        'u.createdAt',
+        'u.confirmationCode',
+        'u.expirationDate',
+        'u.isConfirmed',
+      ])
+      .from(User, 'u')
+      .where('u.login = :loginOrEmail OR u.email = :loginOrEmail', {
+        loginOrEmail,
+      })
+      .getOne();
 
-    const user = await this.dataSource.query(query, [loginOrEmail]);
-
-    if (!user.length) {
+    if (!user) {
       return null;
     } else {
-      return user[0];
+      return user;
     }
   }
   async getUserByConfirmationCode(
     code: string,
   ): Promise<UserAccountModel | null> {
-    const query = `SELECT
-                "id", "login", "password", "email", "createdAt", "confirmationCode", "expirationDate", "isConfirmed"
-                FROM public."Users"
-                WHERE "confirmationCode" = $1`;
+    const user = await this.usersQueryRepository
+      .createQueryBuilder()
+      .select([
+        'u.id',
+        'u.login',
+        'u.password',
+        'u.email',
+        'u.createdAt',
+        'u.confirmationCode',
+        'u.expirationDate',
+        'u.isConfirmed',
+      ])
+      .from(User, 'u')
+      .where('u.confirmationCode = :code', { code })
+      .getOne();
 
-    const user = await this.dataSource.query(query, [code]);
-
-    if (!user.length) {
+    if (!user) {
       return null;
     } else {
-      return user[0];
+      return user;
     }
   }
   async checkUserPasswordForRecovery(
     recoveryCode: string,
     newPassword: string,
   ): Promise<boolean> {
-    const query = `SELECT
-                "id", "login", "password", "email", "createdAt", "confirmationCode", "expirationDate", "isConfirmed"
-                FROM public."Users"
-                WHERE "confirmationCode" = $1`;
+    const user = await this.usersQueryRepository
+      .createQueryBuilder()
+      .select([
+        'u.id',
+        'u.login',
+        'u.password',
+        'u.email',
+        'u.createdAt',
+        'u.confirmationCode',
+        'u.expirationDate',
+        'u.isConfirmed',
+      ])
+      .from(User, 'u')
+      .where('u.confirmationCode = :recoveryCode', { recoveryCode })
+      .getOne();
 
-    const user = await this.dataSource.query(query, [recoveryCode]);
-
-    if (!user.length) {
+    if (!user) {
       return false;
     } else {
-      return await bcrypt.compare(newPassword, user[0].password);
+      return await bcrypt.compare(newPassword, user.password);
     }
   }
   async getUserById(id: string): Promise<UserOutputModel | null> {
-    const query = `SELECT
-                "id", "login", "password", "email", "createdAt", "confirmationCode", "expirationDate", "isConfirmed"
-                FROM public."Users"
-                WHERE "id" = $1`;
+    const user = await this.usersQueryRepository
+      .createQueryBuilder()
+      .select([
+        'u.id',
+        'u.login',
+        'u.password',
+        'u.email',
+        'u.createdAt',
+        'u.confirmationCode',
+        'u.expirationDate',
+        'u.isConfirmed',
+      ])
+      .from(User, 'u')
+      .where('u.id = :id', { id })
+      .getOne();
 
-    const user = await this.dataSource.query(query, [id]);
-
-    if (!user.length) {
+    if (!user) {
       return null;
     } else {
-      return userMapper(user[0]);
+      return userMapper(user);
     }
   }
   async getUserByIdForAuthMe(id: string): Promise<AuthMeOutputModel | null> {
-    const query = `SELECT
-                "id", "login", "password", "email", "createdAt", "confirmationCode", "expirationDate", "isConfirmed"
-                FROM public."Users"
-                WHERE "id" = $1`;
+    const user = await this.usersQueryRepository
+      .createQueryBuilder()
+      .select([
+        'u.id',
+        'u.login',
+        'u.password',
+        'u.email',
+        'u.createdAt',
+        'u.confirmationCode',
+        'u.expirationDate',
+        'u.isConfirmed',
+      ])
+      .from(User, 'u')
+      .where('u.id = :id', { id })
+      .getOne();
 
-    const user = await this.dataSource.query(query, [id]);
-
-    if (!user.length) {
+    if (!user) {
       return null;
     } else {
       return {
-        email: user[0].email,
-        login: user[0].login,
-        userId: user[0].id,
+        email: user.email,
+        login: user.login,
+        userId: user.id,
       };
     }
   }

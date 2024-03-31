@@ -4,59 +4,87 @@ import {
   DeviceSessionOutputModel,
 } from '../api/models/device.output.model';
 import { Injectable } from '@nestjs/common';
-import { WithId } from 'mongodb';
-import { InjectDataSource } from '@nestjs/typeorm';
-import { DataSource } from 'typeorm';
+import { InjectDataSource, InjectRepository } from '@nestjs/typeorm';
+import { DataSource, Repository } from 'typeorm';
+import { Device } from '../domain/device.entity';
 
 @Injectable()
 export class DevicesQueryRepository {
-  constructor(@InjectDataSource() protected dataSource: DataSource) {}
+  constructor(
+    @InjectRepository(Device)
+    private readonly devicesQueryRepository: Repository<Device>,
+    @InjectDataSource() protected dataSource: DataSource,
+  ) {}
   async checkDeviceSession(
     userId: string,
     deviceId: string,
-  ): Promise<WithId<DeviceSessionModel> | null> {
-    const query = `SELECT
-                "iat", "exp", "ip", "deviceId", "deviceName", "userId"
-                FROM public."Devices"
-                WHERE "userId" = $1 AND "deviceId" = $2`;
+  ): Promise<DeviceSessionModel | null> {
+    const deviceSession = await this.devicesQueryRepository
+      .createQueryBuilder()
+      .select([
+        'd.iat',
+        'd.exp',
+        'd.ip',
+        'd.deviceId',
+        'd.deviceName',
+        'd.userId',
+      ])
+      .from(Device, 'd')
+      .where('d.deviceId = :deviceId AND d.userId = :userId', {
+        deviceId,
+        userId,
+      })
+      .getOne();
 
-    const deviceSession = await this.dataSource.query(query, [
-      userId,
-      deviceId,
-    ]);
-
-    if (!deviceSession.length) {
+    if (!deviceSession) {
       return null;
     } else {
-      return deviceSession[0];
+      return deviceSession;
     }
   }
   async getAllDevicesSessionsForUser(
     userId: string,
   ): Promise<DeviceSessionOutputModel[]> {
-    const query = `SELECT
-                "iat", "exp", "ip", "deviceId", "deviceName", "userId"
-                FROM public."Devices"
-                WHERE "userId" = $1`;
-
-    const devicesSessions = await this.dataSource.query(query, [userId]);
+    const devicesSessions = await this.devicesQueryRepository
+      .createQueryBuilder('d')
+      .select([
+        'd.iat',
+        'd.exp',
+        'd.ip',
+        'd.deviceId',
+        'd.deviceName',
+        'd.userId',
+      ])
+      .where('d.userId = :userId', {
+        userId,
+      })
+      .getMany();
 
     return devicesSessions.map(deviceSessionMapper);
   }
   async getDeviceSessionById(
     deviceId: string,
   ): Promise<DeviceSessionModel | null> {
-    const query = `SELECT
-                "iat", "exp", "ip", "deviceId", "deviceName", "userId"
-                FROM public."Devices"
-                WHERE "deviceId" = $1`;
+    const deviceSession = await this.devicesQueryRepository
+      .createQueryBuilder()
+      .select([
+        'd.iat',
+        'd.exp',
+        'd.ip',
+        'd.deviceId',
+        'd.deviceName',
+        'd.userId',
+      ])
+      .from(Device, 'd')
+      .where('d.deviceId = :deviceId', {
+        deviceId,
+      })
+      .getOne();
 
-    const deviceSession = await this.dataSource.query(query, [deviceId]);
-
-    if (!deviceSession.length) {
+    if (!deviceSession) {
       return null;
     } else {
-      return deviceSession[0];
+      return deviceSession;
     }
   }
 }

@@ -18,13 +18,15 @@ import {
 } from '../src/features/auth/api/auth.constants';
 import { EmailsAdapter } from '../src/features/auth/adapters/emails-adapter';
 import { EmailsAdapterMock } from './mock/emails-adapter.mock';
-import { DataSource } from 'typeorm';
+import { Repository } from 'typeorm';
+import { User } from '../src/features/users/domain/user.entity';
+import { getRepositoryToken } from '@nestjs/typeorm';
 
 describe('Auth testing (e2e)', () => {
   let app: INestApplication;
   let server;
   let createEntitiesTestManager: CreateEntitiesTestManager;
-  let dataSource: DataSource;
+  let userEntity: Repository<User>;
 
   let newUserByAdmin: UserOutputModel | null = null;
   let newUserByRegistration: UserOutputModel | null = null;
@@ -36,6 +38,12 @@ describe('Auth testing (e2e)', () => {
   beforeAll(async () => {
     const moduleFixture: TestingModule = await Test.createTestingModule({
       imports: [AppModule],
+      providers: [
+        {
+          provide: getRepositoryToken(User),
+          useClass: Repository,
+        },
+      ],
     })
       .overrideProvider(EmailsAdapter)
       .useClass(EmailsAdapterMock)
@@ -51,7 +59,9 @@ describe('Auth testing (e2e)', () => {
 
     createEntitiesTestManager = new CreateEntitiesTestManager(app);
 
-    dataSource = moduleFixture.get<DataSource>(DataSource);
+    userEntity = app.get(getRepositoryToken(User));
+
+    // moduleFixture.get<User>(User);
 
     await request(server)
       .delete(`${Paths.testing}/all-data`)
@@ -255,17 +265,35 @@ describe('Auth testing (e2e)', () => {
       createData,
     );
 
-    const getUserByLogin = await dataSource.query(
-      `SELECT
-                "id", "login", "password", "email", "createdAt", "confirmationCode", "expirationDate", "isConfirmed"
-                FROM public."Users"
-                WHERE "login" = $1`,
-      [createData.login],
-    );
+    // const getUserByLogin = await dataSource.query(
+    //   `SELECT
+    //             "id", "login", "password", "email", "createdAt", "confirmationCode", "expirationDate", "isConfirmed"
+    //             FROM public."Users"
+    //             WHERE "login" = $1`,
+    //   [createData.login],
+    // );
 
-    code = getUserByLogin![0].confirmationCode;
+    console.log(createData.login);
 
-    newUserByRegistration = userMapper(getUserByLogin![0]);
+    const getUserByLogin = await userEntity
+      .createQueryBuilder()
+      .select([
+        'u.id',
+        'u.login',
+        'u.password',
+        'u.email',
+        'u.createdAt',
+        'u.confirmationCode',
+        'u.expirationDate',
+        'u.isConfirmed',
+      ])
+      .from(User, 'u')
+      .where('u.login = :login', { login: createData.login })
+      .getOne();
+
+    code = getUserByLogin!.confirmationCode;
+
+    newUserByRegistration = userMapper(getUserByLogin!);
   });
 
   it('- POST does not enter to system and does not create token with unconfirmed email', async () => {
@@ -301,15 +329,31 @@ describe('Auth testing (e2e)', () => {
       })
       .expect(HTTP_STATUSES.NO_CONTENT_204);
 
-    const getUserByLogin = await dataSource.query(
-      `SELECT
-                "id", "login", "password", "email", "createdAt", "confirmationCode", "expirationDate", "isConfirmed"
-                FROM public."Users"
-                WHERE "login" = $1`,
-      [newUserByRegistration!.login],
-    );
+    // const getUserByLogin = await dataSource.query(
+    //   `SELECT
+    //             "id", "login", "password", "email", "createdAt", "confirmationCode", "expirationDate", "isConfirmed"
+    //             FROM public."Users"
+    //             WHERE "login" = $1`,
+    //   [newUserByRegistration!.login],
+    // );
 
-    code = getUserByLogin![0].confirmationCode;
+    const getUserByLogin = await userEntity
+      .createQueryBuilder()
+      .select([
+        'u.id',
+        'u.login',
+        'u.password',
+        'u.email',
+        'u.createdAt',
+        'u.confirmationCode',
+        'u.expirationDate',
+        'u.isConfirmed',
+      ])
+      .from(User, 'u')
+      .where('u.login = :login', { login: newUserByRegistration!.login })
+      .getOne();
+
+    code = getUserByLogin!.confirmationCode;
   });
 
   it('+ POST confirm registration user with correct confirmation code', async () => {
@@ -336,12 +380,19 @@ describe('Auth testing (e2e)', () => {
 
   it('- POST confirm registration user with confirmation code expired', async () => {
     // Prepare data for test expirationDate
-    await dataSource.query(
-      `UPDATE public."Users"
-            SET "expirationDate"=$1, "isConfirmed"=$2
-            WHERE "login" = $3`,
-      [new Date(), false, newUserByRegistration!.login],
-    );
+    // await dataSource.query(
+    //   `UPDATE public."Users"
+    //         SET "expirationDate"=$1, "isConfirmed"=$2
+    //         WHERE "login" = $3`,
+    //   [new Date(), false, newUserByRegistration!.login],
+    // );
+
+    await userEntity
+      .createQueryBuilder()
+      .update(User)
+      .set({ expirationDate: new Date(), isConfirmed: false })
+      .where('login = :login', { login: newUserByRegistration!.login })
+      .execute();
 
     const errorsConfirmUser = await request(server)
       .post(`${Paths.auth}/registration-confirmation`)
@@ -414,15 +465,31 @@ describe('Auth testing (e2e)', () => {
       })
       .expect(HTTP_STATUSES.NO_CONTENT_204);
 
-    const getUserByLogin = await dataSource.query(
-      `SELECT
-                "id", "login", "password", "email", "createdAt", "confirmationCode", "expirationDate", "isConfirmed"
-                FROM public."Users"
-                WHERE "login" = $1`,
-      [newUserByAdmin!.login],
-    );
+    // const getUserByLogin = await dataSource.query(
+    //   `SELECT
+    //             "id", "login", "password", "email", "createdAt", "confirmationCode", "expirationDate", "isConfirmed"
+    //             FROM public."Users"
+    //             WHERE "login" = $1`,
+    //   [newUserByAdmin!.login],
+    // );
 
-    recoveryCode = getUserByLogin![0].confirmationCode;
+    const getUserByLogin = await userEntity
+      .createQueryBuilder()
+      .select([
+        'u.id',
+        'u.login',
+        'u.password',
+        'u.email',
+        'u.createdAt',
+        'u.confirmationCode',
+        'u.expirationDate',
+        'u.isConfirmed',
+      ])
+      .from(User, 'u')
+      .where('u.login = :login', { login: newUserByAdmin!.login })
+      .getOne();
+
+    recoveryCode = getUserByLogin!.confirmationCode;
   });
 
   it('- POST recovery password with incorrect data', async () => {

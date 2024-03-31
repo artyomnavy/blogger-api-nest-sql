@@ -1,11 +1,19 @@
 import { Controller, Delete, HttpCode } from '@nestjs/common';
-import { InjectDataSource } from '@nestjs/typeorm';
-import { DataSource } from 'typeorm';
+import { InjectDataSource, InjectRepository } from '@nestjs/typeorm';
+import { DataSource, Repository } from 'typeorm';
 import { HTTP_STATUSES } from '../utils';
+import { User } from './users/domain/user.entity';
+import { Device } from './devices/domain/device.entity';
 
 @Controller('testing')
 export class TestController {
-  constructor(@InjectDataSource() protected dataSource: DataSource) {}
+  constructor(
+    @InjectDataSource() protected dataSource: DataSource,
+    @InjectRepository(User)
+    private readonly usersRepository: Repository<User>,
+    @InjectRepository(User)
+    private readonly devicesRepository: Repository<Device>,
+  ) {}
 
   @Delete('all-data')
   @HttpCode(HTTP_STATUSES.NO_CONTENT_204)
@@ -13,10 +21,18 @@ export class TestController {
     await this.dataSource.query(`DELETE FROM public."Blogs"`);
     await this.dataSource.query(`DELETE FROM public."Posts"`);
     await this.dataSource.query(`DELETE FROM public."Comments"`);
-    await this.dataSource.query(`DELETE FROM public."Devices"`);
+    await this.devicesRepository
+      .createQueryBuilder()
+      .delete()
+      .from(Device)
+      .execute();
     await this.dataSource.query(`DELETE FROM public."LikesComments"`);
     await this.dataSource.query(`DELETE FROM public."LikesPosts"`);
-    await this.dataSource.query(`DELETE FROM public."Users"`);
+    await this.usersRepository
+      .createQueryBuilder()
+      .delete()
+      .from(User)
+      .execute();
     return;
   }
 }

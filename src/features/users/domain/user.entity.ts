@@ -1,43 +1,53 @@
-import { UserAccountModel } from '../api/models/user.output.model';
-import { HydratedDocument } from 'mongoose';
-import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
+import { Column, Entity, OneToMany, PrimaryGeneratedColumn } from 'typeorm';
+import { Device } from '../../devices/domain/device.entity';
 
-export type UserDocument = HydratedDocument<UserAccountModel>;
+@Entity({ name: 'users' })
+export class User {
+  @PrimaryGeneratedColumn('uuid')
+  id: string;
 
-@Schema()
-class AccountData {
-  @Prop({ required: true })
+  @Column({
+    type: 'character varying',
+    length: 10,
+    unique: true,
+    collation: 'C',
+  })
   login: string;
 
-  @Prop({ required: true })
+  @Column({ type: 'character varying' })
   password: string;
 
-  @Prop({ required: true })
+  @Column({ type: 'character varying', unique: true, collation: 'C' })
   email: string;
 
-  @Prop({ required: true })
+  @Column('timestamp with time zone', { name: 'created_at' })
   createdAt: Date;
-}
 
-@Schema()
-class EmailConfirmation {
-  @Prop()
-  confirmationCode: string;
+  @Column({
+    name: 'confirmation_code',
+    type: 'character varying',
+    nullable: true,
+  })
+  confirmationCode: string | null;
 
-  @Prop()
-  expirationDate: Date;
+  @Column('timestamp with time zone', {
+    name: 'expiration_date',
+    nullable: true,
+  })
+  expirationDate: Date | null;
 
-  @Prop({ required: true })
+  @Column('boolean', { name: 'is_confirmed', default: false })
   isConfirmed: boolean;
+
+  @OneToMany(() => Device, (d) => d.user)
+  devices: Device[];
+
+  // @OneToMany(() => Comments, (c) => c.userId)
+  // comments: ;
+  //
+  // @OneToMany(() => LikesPosts, (lp) => lp.userId)
+  // likesPosts: ;
+  //
+  // @OneToMany(() => LikesComments, (lc) => lc.userId)
+  // likesComments: ;
 }
-
-@Schema()
-export class User {
-  @Prop({ required: true })
-  accountData: AccountData;
-
-  @Prop({ required: true })
-  emailConfirmation: EmailConfirmation;
-}
-
-export const UserEntity = SchemaFactory.createForClass(User);
