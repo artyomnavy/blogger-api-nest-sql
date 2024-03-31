@@ -59,7 +59,6 @@ export class UsersQueryRepository {
     const totalCount: number = await this.usersQueryRepository
       .createQueryBuilder('u')
       .select('COUNT(u.id)')
-      // .from(User, 'u')
       .where('(u.login ILIKE :login OR u.email ILIKE :email)', {
         login: `%${searchLoginTerm}%`,
         email: `%${searchEmailTerm}%`,
