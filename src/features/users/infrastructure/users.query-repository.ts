@@ -7,8 +7,8 @@ import {
 import { PaginatorModel } from '../../../common/models/paginator.input.model';
 import { PaginatorOutputModel } from '../../../common/models/paginator.output.model';
 import bcrypt from 'bcrypt';
-import { InjectDataSource, InjectRepository } from '@nestjs/typeorm';
-import { DataSource, Repository } from 'typeorm';
+import { InjectRepository } from '@nestjs/typeorm';
+import { Repository } from 'typeorm';
 import { AuthMeOutputModel } from '../../auth/api/models/auth.output.model';
 import { User } from '../domain/user.entity';
 
@@ -17,7 +17,6 @@ export class UsersQueryRepository {
   constructor(
     @InjectRepository(User)
     private readonly usersQueryRepository: Repository<User>,
-    @InjectDataSource() protected dataSource: DataSource,
   ) {}
   async getAllUsers(
     queryData: PaginatorModel,

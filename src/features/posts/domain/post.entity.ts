@@ -1,58 +1,46 @@
-import { HydratedDocument } from 'mongoose';
-import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
-import { PostModel } from '../api/models/post.output.model';
+import {
+  Column,
+  Entity,
+  JoinColumn,
+  ManyToOne,
+  PrimaryGeneratedColumn,
+} from 'typeorm';
+import { Blog } from '../../blogs/domain/blog.entity';
 
-export type PostDocument = HydratedDocument<PostModel>;
-
-@Schema()
-class NewestLikes {
-  @Prop({ required: true })
-  addedAt: Date;
-
-  @Prop({ required: true })
-  userId: string;
-
-  @Prop({ required: true })
-  login: string;
-}
-
-@Schema()
-class ExtendedLikesInfo {
-  @Prop({ required: true })
-  likesCount: number;
-
-  @Prop({ required: true })
-  dislikesCount: number;
-
-  @Prop({ required: true })
-  myStatus: string;
-
-  @Prop({ required: true })
-  newestLikes: NewestLikes[];
-}
-
-@Schema()
+@Entity({ name: 'posts' })
 export class Post {
-  @Prop({ required: true })
+  @PrimaryGeneratedColumn('uuid')
+  id: string;
+
+  @Column({
+    type: 'character varying',
+    length: 30,
+    collation: 'C',
+  })
   title: string;
 
-  @Prop({ required: true })
+  @Column({
+    name: 'short_description',
+    type: 'character varying',
+    length: 100,
+    collation: 'C',
+  })
   shortDescription: string;
 
-  @Prop({ required: true })
+  @Column({
+    type: 'character varying',
+    length: 1000,
+    collation: 'C',
+  })
   content: string;
 
-  @Prop({ required: true })
+  @Column({ name: 'blog_id', type: 'uuid' })
   blogId: string;
 
-  @Prop({ required: true })
-  blogName: string;
-
-  @Prop({ required: true })
+  @Column('timestamp with time zone', { name: 'created_at' })
   createdAt: Date;
 
-  @Prop({ required: true })
-  extendedLikesInfo: ExtendedLikesInfo;
+  @ManyToOne(() => Blog, (b) => b.posts, { onDelete: 'CASCADE' })
+  @JoinColumn({ name: 'blog_id' })
+  blog: Blog;
 }
-
-export const PostEntity = SchemaFactory.createForClass(Post);

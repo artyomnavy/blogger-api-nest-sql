@@ -1,25 +1,39 @@
-import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
-import { HydratedDocument } from 'mongoose';
-import { BlogModel } from '../api/models/blog.output.model';
+import { Column, Entity, OneToMany, PrimaryGeneratedColumn } from 'typeorm';
+import { Post } from '../../posts/domain/post.entity';
 
-export type BlogDocument = HydratedDocument<BlogModel>;
-
-@Schema()
+@Entity({ name: 'blogs' })
 export class Blog {
-  @Prop({ required: true })
+  @PrimaryGeneratedColumn('uuid')
+  id: string;
+
+  @Column({
+    type: 'character varying',
+    length: 15,
+    collation: 'C',
+  })
   name: string;
 
-  @Prop({ required: true })
+  @Column({
+    type: 'character varying',
+    length: 500,
+    collation: 'C',
+  })
   description: string;
 
-  @Prop({ required: true })
+  @Column({
+    name: 'website_url',
+    type: 'character varying',
+    length: 100,
+    collation: 'C',
+  })
   websiteUrl: string;
 
-  @Prop({ required: true })
+  @Column('timestamp with time zone', { name: 'created_at' })
   createdAt: Date;
 
-  @Prop({ required: true })
+  @Column('boolean', { name: 'is_membership', default: false })
   isMembership: boolean;
-}
 
-export const BlogEntity = SchemaFactory.createForClass(Blog);
+  @OneToMany(() => Post, (p) => p.blog)
+  posts: Post[];
+}

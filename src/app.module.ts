@@ -73,6 +73,8 @@ import { BasicStrategy } from './features/auth/api/strategies/basic.strategy';
 import { LikesPostsRepository } from './features/likes/infrastructure/likes-posts.repository';
 import { User } from './features/users/domain/user.entity';
 import { Device } from './features/devices/domain/device.entity';
+import { Blog } from './features/blogs/domain/blog.entity';
+import { Post } from './features/posts/domain/post.entity';
 
 config();
 
@@ -163,7 +165,7 @@ const options: TypeOrmModuleOptions = {
 
 @Module({
   imports: [
-    TypeOrmModule.forFeature([User, Device]),
+    TypeOrmModule.forFeature([User, Device, Blog, Post]),
     CqrsModule,
     PassportModule,
     TypeOrmModule.forRoot(options),

@@ -2,12 +2,16 @@ import { Injectable } from '@nestjs/common';
 import { blogMapper, BlogOutputModel } from '../api/models/blog.output.model';
 import { PaginatorModel } from '../../../common/models/paginator.input.model';
 import { PaginatorOutputModel } from '../../../common/models/paginator.output.model';
-import { InjectDataSource } from '@nestjs/typeorm';
-import { DataSource } from 'typeorm';
+import { InjectRepository } from '@nestjs/typeorm';
+import { Repository } from 'typeorm';
+import { Blog } from '../domain/blog.entity';
 
 @Injectable()
 export class BlogsQueryRepository {
-  constructor(@InjectDataSource() protected dataSource: DataSource) {}
+  constructor(
+    @InjectRepository(Blog)
+    private readonly blogsQueryRepository: Repository<Blog>,
+  ) {}
   async getAllBlogs(
     queryData: PaginatorModel,
   ): Promise<PaginatorOutputModel<BlogOutputModel>> {
@@ -16,53 +20,62 @@ export class BlogsQueryRepository {
       : '';
     const sortBy = queryData.sortBy ? queryData.sortBy : 'createdAt';
     const sortDirection = queryData.sortDirection
-      ? queryData.sortDirection
-      : 'desc';
-    const pageNumber = queryData.pageNumber ? queryData.pageNumber : 1;
-    const pageSize = queryData.pageSize ? queryData.pageSize : 10;
+      ? (queryData.sortDirection.toUpperCase() as 'ASC' | 'DESC')
+      : 'DESC';
+    const pageNumber = queryData.pageNumber ? +queryData.pageNumber : 1;
+    const pageSize = queryData.pageSize ? +queryData.pageSize : 10;
 
-    const query = `SELECT
-                "id", "name", "description", "websiteUrl", "createdAt", "isMembership"
-                FROM public."Blogs"
-                WHERE "name" ILIKE $1
-                ORDER BY "${sortBy}" ${sortDirection}
-                LIMIT $2 OFFSET $3`;
+    const blogs = await this.blogsQueryRepository
+      .createQueryBuilder('b')
+      .select([
+        'b.id',
+        'b.name',
+        'b.description',
+        'b.websiteUrl',
+        'b.createdAt',
+        'b.isMembership',
+      ])
+      .where('b.name ILIKE :name', { name: `%${searchNameTerm}%` })
+      .orderBy(`b.${sortBy}`, sortDirection)
+      .skip((pageNumber - 1) * pageSize)
+      .take(pageSize)
+      .getMany();
 
-    const blogs = await this.dataSource.query(query, [
-      `%${searchNameTerm}%`,
-      +pageSize,
-      (+pageNumber - 1) * +pageSize,
-    ]);
+    const totalCount: number = await this.blogsQueryRepository
+      .createQueryBuilder('b')
+      .select('COUNT(b.id)')
+      .where('b.name ILIKE :name', { name: `%${searchNameTerm}%` })
+      .getCount();
 
-    const totalCount = await this.dataSource.query(
-      `SELECT
-                COUNT(*) FROM public."Blogs"
-                WHERE "name" ILIKE $1`,
-      [`%${searchNameTerm}%`],
-    );
-
-    const pagesCount = Math.ceil(+totalCount[0].count / +pageSize);
+    const pagesCount = Math.ceil(totalCount / pageSize);
 
     return {
       pagesCount: pagesCount,
-      page: +pageNumber,
-      pageSize: +pageSize,
-      totalCount: +totalCount[0].count,
+      page: pageNumber,
+      pageSize: pageSize,
+      totalCount: totalCount,
       items: blogs.map(blogMapper),
     };
   }
   async getBlogById(id: string): Promise<BlogOutputModel | null> {
-    const query = `SELECT
-                "id", "name", "description", "websiteUrl", "createdAt", "isMembership"
-                FROM public."Blogs"
-                WHERE "id" = $1`;
+    const blog = await this.blogsQueryRepository
+      .createQueryBuilder()
+      .select([
+        'b.id',
+        'b.name',
+        'b.description',
+        'b.websiteUrl',
+        'b.createdAt',
+        'b.isMembership',
+      ])
+      .from(Blog, 'b')
+      .where('b.id = :id', { id })
+      .getOne();
 
-    const blog = await this.dataSource.query(query, [id]);
-
-    if (!blog.length) {
+    if (!blog) {
       return null;
     } else {
-      return blogMapper(blog[0]);
+      return blogMapper(blog);
     }
   }
 }

@@ -210,9 +210,15 @@ describe('Posts testing (e2e)', () => {
       },
     });
 
+    const queryData = {
+      sortBy: 'blogName',
+      sortDirection: 'ASC',
+    };
+
     const foundPosts = await request(server)
       .get(`${Paths.blogsSA}/${newBlog!.id}/posts`)
       .auth(basicLogin, basicPassword)
+      .query(queryData)
       .expect(HTTP_STATUSES.OK_200);
 
     expect(foundPosts.body).toStrictEqual({

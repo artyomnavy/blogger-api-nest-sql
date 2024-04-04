@@ -4,8 +4,8 @@ import {
   DeviceSessionOutputModel,
 } from '../api/models/device.output.model';
 import { Injectable } from '@nestjs/common';
-import { InjectDataSource, InjectRepository } from '@nestjs/typeorm';
-import { DataSource, Repository } from 'typeorm';
+import { InjectRepository } from '@nestjs/typeorm';
+import { Repository } from 'typeorm';
 import { Device } from '../domain/device.entity';
 
 @Injectable()
@@ -13,7 +13,6 @@ export class DevicesQueryRepository {
   constructor(
     @InjectRepository(Device)
     private readonly devicesQueryRepository: Repository<Device>,
-    @InjectDataSource() protected dataSource: DataSource,
   ) {}
   async checkDeviceSession(
     userId: string,

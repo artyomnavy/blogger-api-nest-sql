@@ -26,7 +26,7 @@ export class PostOutputModel {
   extendedLikesInfo: {
     likesCount: number;
     dislikesCount: number;
-    myStatus: string;
+    myStatus: 'None' | 'Like' | 'Dislike';
     newestLikes: NewestLikesOutputModel[];
   };
 }
@@ -49,9 +49,9 @@ export class PostMapperModel {
   blogId: string;
   blogName: string;
   createdAt: Date;
-  likesCount: string;
-  dislikesCount: string;
-  myStatus: string;
+  likesCount: number;
+  dislikesCount: number;
+  myStatus: 'None' | 'Like' | 'Dislike';
   newestLikes: {
     addedAt: string;
     userId: string;
