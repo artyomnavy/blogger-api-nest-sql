@@ -3,55 +3,62 @@ import {
   LikePostModel,
   LikePostOutputModel,
 } from '../api/models/like-post.output.model';
-import { InjectDataSource } from '@nestjs/typeorm';
-import { DataSource } from 'typeorm';
+import { InjectRepository } from '@nestjs/typeorm';
+import { Repository } from 'typeorm';
+import { LikePost } from '../domain/like-post.entity';
 
 @Injectable()
 export class LikesPostsRepository {
-  constructor(@InjectDataSource() protected dataSource: DataSource) {}
+  constructor(
+    @InjectRepository(LikePost)
+    private readonly likesPostsRepository: Repository<LikePost>,
+  ) {}
   async createLikeForPost(
-    inputData: LikePostModel,
+    likePost: LikePostModel,
   ): Promise<LikePostOutputModel> {
-    const query = `INSERT INTO public."LikesPosts"(
-            "id", "postId", "userId", "status", "addedAt")
-            VALUES ($1, $2, $3, $4, $5)`;
-
-    await this.dataSource.query(query, [
-      inputData.id,
-      inputData.postId,
-      inputData.userId,
-      inputData.status,
-      inputData.addedAt,
-    ]);
+    await this.likesPostsRepository
+      .createQueryBuilder()
+      .insert()
+      .into(LikePost)
+      .values(likePost)
+      .execute();
 
     return {
-      ...inputData,
-      addedAt: inputData.addedAt.toISOString(),
+      ...likePost,
+      addedAt: likePost.addedAt.toISOString(),
     };
   }
   async deleteLikeForPost(postId: string, userId: string): Promise<boolean> {
-    const query = `DELETE FROM public."LikesPosts"
-             WHERE "postId" = $1 AND "userId" = $2`;
+    const resultDeleteLikeStatus = await this.likesPostsRepository
+      .createQueryBuilder()
+      .delete()
+      .from(LikePost)
+      .where('postId = :postId AND userId = :userId', { postId, userId })
+      .execute();
 
-    const resultDeleteLikeStatus = await this.dataSource.query(query, [
-      postId,
-      userId,
-    ]);
-
-    return resultDeleteLikeStatus[1] === 1;
+    return resultDeleteLikeStatus.affected === 1;
   }
-  async updateLikeForPost(updateData: LikePostModel): Promise<boolean> {
-    const query = `UPDATE public."LikesPosts"
-            SET "status"=$1, "addedAt"=$2
-            WHERE "postId" = $3 AND "userId" = $4`;
+  async updateLikeForPost(
+    postId: string,
+    userId: string,
+    updateData: {
+      status: string;
+      addedAt: Date;
+    },
+  ): Promise<boolean> {
+    const resultUpdateLikeStatus = await this.likesPostsRepository
+      .createQueryBuilder()
+      .update(LikePost)
+      .set({
+        status: updateData.status,
+        addedAt: updateData.addedAt,
+      })
+      .where('postId = :postId AND userId = :userId', {
+        postId,
+        userId,
+      })
+      .execute();
 
-    const resultUpdateLikeStatus = await this.dataSource.query(query, [
-      updateData.status,
-      updateData.addedAt,
-      updateData.postId,
-      updateData.userId,
-    ]);
-
-    return resultUpdateLikeStatus[1] === 1;
+    return resultUpdateLikeStatus.affected === 1;
   }
 }

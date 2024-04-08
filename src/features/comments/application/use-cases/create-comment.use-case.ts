@@ -22,13 +22,14 @@ export class CreateCommentUseCase
       uuidv4(),
       command.content,
       command.userId,
-      command.userLogin,
       new Date(),
       command.postId,
     );
 
-    const createdComment =
-      await this.commentsRepository.createComment(newComment);
+    const createdComment = await this.commentsRepository.createComment(
+      newComment,
+      command.userLogin,
+    );
 
     return createdComment;
   }

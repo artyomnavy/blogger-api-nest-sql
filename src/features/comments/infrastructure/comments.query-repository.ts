@@ -6,63 +6,73 @@ import {
 import { PaginatorModel } from '../../../common/models/paginator.input.model';
 import { PaginatorOutputModel } from '../../../common/models/paginator.output.model';
 import { likesStatuses } from '../../../utils';
-import { InjectDataSource } from '@nestjs/typeorm';
-import { DataSource } from 'typeorm';
+import { InjectRepository } from '@nestjs/typeorm';
+import { Repository } from 'typeorm';
+import { Comment } from '../domain/comment.entity';
+import { LikeComment } from '../../likes/domain/like-comment.entity';
 
 @Injectable()
 export class CommentsQueryRepository {
-  constructor(@InjectDataSource() protected dataSource: DataSource) {}
+  constructor(
+    @InjectRepository(Comment)
+    private readonly commentsQueryRepository: Repository<Comment>,
+  ) {}
   async getCommentById(
     id: string,
     userId?: string | null,
   ): Promise<CommentOutputModel | null> {
-    // Запрос с подзапросами
-    // const query = `SELECT
-    //             c."id", c."content", c."userId", c."userLogin", c."createdAt", c."postId",
-    //             -- Подзапрос количества лайков комментария
-    //             (SELECT COUNT(*) FROM public."LikesComments" AS l
-    //             WHERE l."commentId"=$1 AND l."status"=$2) AS "likesCount",
-    //             -- Подзапрос количества дизлайков комментария
-    //             (SELECT COUNT(*) FROM public."LikesComments" AS l
-    //             WHERE l."commentId"=$1 AND l."status"=$3) AS "dislikesCount",
-    //             -- Подзапрос статуса пользователя (лайк или дизлайк) для комментария
-    //             (SELECT l."status" FROM public."LikesComments" AS l
-    //             WHERE l."commentId"=$1 AND l."userId"=$4 AND $4 IS NOT NULL) AS "myStatus"
-    //             FROM public."Comments" AS c
-    //             WHERE c."id" = $1`;
+    const comment = await this.commentsQueryRepository
+      .createQueryBuilder('c')
+      .leftJoin('c.user', 'u')
+      .select([
+        'c.id AS "id"',
+        'c.content AS "content"',
+        'c.userId AS "userId"',
+        'c.createdAt AS "createdAt"',
+        'c.postId AS "postId"',
+        'u.login AS "userLogin"',
+      ])
+      // Подзапрос количества лайков комментария
+      .addSelect((subQuery) => {
+        return subQuery
+          .select('COUNT(lc.id)')
+          .from(LikeComment, 'lc')
+          .where('lc.commentId = :id AND lc.status = :like', {
+            id,
+            like: likesStatuses.like,
+          });
+      }, 'likesCount')
+      // Подзапрос количества дизлайков комментария
+      .addSelect((subQuery) => {
+        return subQuery
+          .select('COUNT(lc.id)')
+          .from(LikeComment, 'lc')
+          .where('lc.commentId = :id AND lc.status = :dislike', {
+            id,
+            dislike: likesStatuses.dislike,
+          });
+      }, 'dislikesCount')
+      // Подзапрос статуса пользователя (лайк или дизлайк) для комментария
+      // Если userId не придет (запрос идет от посетителя), то подзапрос не будет выполняться
+      .addSelect((subQuery) => {
+        return subQuery
+          .select('lc.status')
+          .from(LikeComment, 'lc')
+          .where(
+            'lc.commentId = :id AND lc.userId = :userId AND :userId IS NOT NULL',
+            {
+              id,
+              userId: userId,
+            },
+          );
+      }, 'myStatus')
+      .where('c.id = :id', { id })
+      .getRawOne();
 
-    // Запрос с CTE (common table expressions)
-    const query = `WITH
-                                            "LikesCounts" AS (
-                                              SELECT l."commentId", COUNT(*) FILTER (WHERE l."status"=$2) AS "likesCount",
-                                              COUNT(*) FILTER (WHERE l."status"=$3) AS "dislikesCount"
-                                              FROM public."LikesComments" AS l
-                                              WHERE l."commentId"=$1
-                                              GROUP BY l."commentId"
-                                              ),
-                                            "MyStatus" AS (
-                                              SELECT l."commentId", l."status" AS "myStatus"
-                                              FROM public."LikesComments" AS l
-                                              WHERE l."commentId"=$1 AND l."userId"=$4 AND $4 IS NOT NULL
-                                              )
-                                            SELECT c."id", c."content", c."userId", c."userLogin", c."createdAt", c."postId",
-                                            lc."likesCount", lc."dislikesCount", ms."myStatus"
-                                            FROM public."Comments" AS c
-                                              LEFT JOIN "LikesCounts" AS lc ON c."id"=lc."commentId"
-                                              LEFT JOIN "MyStatus" AS ms ON c."id"=ms."commentId"
-                                            --WHERE c."id"=$1`;
-
-    const comment = await this.dataSource.query(query, [
-      id,
-      likesStatuses.like,
-      likesStatuses.dislike,
-      userId,
-    ]);
-
-    if (!comment.length) {
+    if (!comment) {
       return null;
     } else {
-      return await this.commentMapper(comment[0]);
+      return await this.commentMapper(comment);
     }
   }
   async getCommentsByPostId(
@@ -71,56 +81,81 @@ export class CommentsQueryRepository {
     },
   ): Promise<PaginatorOutputModel<CommentOutputModel>> {
     const pageNumber = queryData.query.pageNumber
-      ? queryData.query.pageNumber
+      ? +queryData.query.pageNumber
       : 1;
-    const pageSize = queryData.query.pageSize ? queryData.query.pageSize : 10;
+    const pageSize = queryData.query.pageSize ? +queryData.query.pageSize : 10;
     const sortBy = queryData.query.sortBy
       ? queryData.query.sortBy
       : 'createdAt';
     const sortDirection = queryData.query.sortDirection
-      ? queryData.query.sortDirection
-      : 'desc';
+      ? (queryData.query.sortDirection.toUpperCase() as 'ASC' | 'DESC')
+      : 'DESC';
     const postId = queryData.postId;
     const userId = queryData.userId;
 
-    const query = `SELECT
-                c."id", c."content", c."userId", c."userLogin", c."createdAt", c."postId",
-                -- Подзапрос количества лайков комментария
-                (SELECT COUNT(*) FROM public."LikesComments" AS l
-                WHERE l."commentId"=c."id" AND l."status"=$1) AS "likesCount",
-                -- Подзапрос количества дизлайков комментария
-                (SELECT COUNT(*) FROM public."LikesComments" AS l
-                WHERE l."commentId"=c."id" AND l."status"=$2) AS "dislikesCount",
-                -- Подзапрос статуса пользователя (лайк или дизлайк) для комментария
-                (SELECT "status" FROM public."LikesComments" AS l
-                WHERE l."commentId"=c."id" AND l."userId"=$3 AND $3 IS NOT NULL) AS "myStatus"
-                FROM public."Comments" AS c
-                WHERE c."postId"=$4
-                ORDER BY c."${sortBy}" ${sortDirection}
-                LIMIT $5 OFFSET $6`;
+    const order = sortBy === 'userLogin' ? `u.login` : `c.${sortBy}`;
 
-    const comments = await this.dataSource.query(query, [
-      likesStatuses.like,
-      likesStatuses.dislike,
-      userId,
-      postId,
-      +pageSize,
-      (+pageNumber - 1) * +pageSize,
-    ]);
+    const comments = await this.commentsQueryRepository
+      .createQueryBuilder('c')
+      .leftJoin('c.user', 'u')
+      .select([
+        'c.id AS "id"',
+        'c.content AS "content"',
+        'c.userId AS "userId"',
+        'c.createdAt AS "createdAt"',
+        'c.postId AS "postId"',
+        'u.login AS "userLogin"',
+      ])
+      // Подзапрос количества лайков комментария
+      .addSelect((subQuery) => {
+        return subQuery
+          .select('COUNT(lc.id)')
+          .from(LikeComment, 'lc')
+          .where('lc.commentId = c.id AND lc.status = :like', {
+            like: likesStatuses.like,
+          });
+      }, 'likesCount')
+      // Подзапрос количества дизлайков комментария
+      .addSelect((subQuery) => {
+        return subQuery
+          .select('COUNT(lc.id)')
+          .from(LikeComment, 'lc')
+          .where('lc.commentId = c.id AND lc.status = :dislike', {
+            dislike: likesStatuses.dislike,
+          });
+      }, 'dislikesCount')
+      // Подзапрос статуса пользователя (лайк или дизлайк) для комментария
+      // Если userId не придет (запрос идет от посетителя), то подзапрос не будет выполняться
+      .addSelect((subQuery) => {
+        return subQuery
+          .select('lc.status')
+          .from(LikeComment, 'lc')
+          .where(
+            'lc.commentId = c.id AND lc.userId = :userId AND :userId IS NOT NULL',
+            {
+              userId: userId,
+            },
+          );
+      }, 'myStatus')
+      .where('c.postId = :postId', { postId: postId })
+      .orderBy(order, sortDirection)
+      .offset((pageNumber - 1) * pageSize)
+      .limit(pageSize)
+      .getRawMany();
 
-    const totalCount = await this.dataSource.query(
-      `SELECT COUNT(*) FROM public."Comments"
-                WHERE "postId"=$1`,
-      [postId],
-    );
+    const totalCount: number = await this.commentsQueryRepository
+      .createQueryBuilder('c')
+      .select('COUNT(c.id)')
+      .where('c.postId = :postId', { postId: postId })
+      .getCount();
 
-    const pagesCount = Math.ceil(+totalCount[0].count / +pageSize);
+    const pagesCount = Math.ceil(totalCount / pageSize);
 
     return {
       pagesCount: pagesCount,
-      page: +pageNumber,
-      pageSize: +pageSize,
-      totalCount: +totalCount[0].count,
+      page: pageNumber,
+      pageSize: pageSize,
+      totalCount: totalCount,
       items: await Promise.all(
         comments.map((comment: CommentMapperModel) =>
           this.commentMapper(comment),

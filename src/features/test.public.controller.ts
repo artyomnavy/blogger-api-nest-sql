@@ -6,6 +6,9 @@ import { User } from './users/domain/user.entity';
 import { Device } from './devices/domain/device.entity';
 import { Blog } from './blogs/domain/blog.entity';
 import { Post } from './posts/domain/post.entity';
+import { LikePost } from './likes/domain/like-post.entity';
+import { Comment } from './comments/domain/comment.entity';
+import { LikeComment } from './likes/domain/like-comment.entity';
 
 @Controller('testing')
 export class TestController {
@@ -15,6 +18,12 @@ export class TestController {
     private readonly blogsRepository: Repository<Blog>,
     @InjectRepository(Post)
     private readonly postsRepository: Repository<Post>,
+    @InjectRepository(LikePost)
+    private readonly likesPostsRepository: Repository<LikePost>,
+    @InjectRepository(Comment)
+    private readonly commentsRepository: Repository<Comment>,
+    @InjectRepository(LikeComment)
+    private readonly likesCommentsRepository: Repository<LikeComment>,
     @InjectRepository(User)
     private readonly usersRepository: Repository<User>,
     @InjectRepository(Device)
@@ -34,14 +43,26 @@ export class TestController {
       .delete()
       .from(Post)
       .execute();
-    await this.dataSource.query(`DELETE FROM public."Comments"`);
+    await this.likesPostsRepository
+      .createQueryBuilder()
+      .delete()
+      .from(LikePost)
+      .execute();
+    await this.commentsRepository
+      .createQueryBuilder()
+      .delete()
+      .from(Comment)
+      .execute();
+    await this.likesCommentsRepository
+      .createQueryBuilder()
+      .delete()
+      .from(LikeComment)
+      .execute();
     await this.devicesRepository
       .createQueryBuilder()
       .delete()
       .from(Device)
       .execute();
-    await this.dataSource.query(`DELETE FROM public."LikesComments"`);
-    await this.dataSource.query(`DELETE FROM public."LikesPosts"`);
     await this.usersRepository
       .createQueryBuilder()
       .delete()

@@ -48,7 +48,14 @@ export class ChangeLikeStatusForPostUseCase
           return isDeleteLikeForPost;
         default:
           const isUpdateLikeForPost =
-            await this.likesPostsRepository.updateLikeForPost(newLike);
+            await this.likesPostsRepository.updateLikeForPost(
+              command.post.id,
+              command.userId,
+              {
+                status: command.likeStatus,
+                addedAt: new Date(),
+              },
+            );
           return isUpdateLikeForPost;
       }
     }

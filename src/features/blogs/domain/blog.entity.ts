@@ -1,5 +1,13 @@
-import { Column, Entity, OneToMany, PrimaryGeneratedColumn } from 'typeorm';
+import {
+  Column,
+  Entity,
+  JoinColumn,
+  ManyToOne,
+  OneToMany,
+  PrimaryGeneratedColumn,
+} from 'typeorm';
 import { Post } from '../../posts/domain/post.entity';
+import { User } from '../../users/domain/user.entity';
 
 @Entity({ name: 'blogs' })
 export class Blog {
@@ -36,4 +44,8 @@ export class Blog {
 
   @OneToMany(() => Post, (p) => p.blog)
   posts: Post[];
+
+  @ManyToOne(() => User, (u) => u.blogs, { onDelete: 'CASCADE' })
+  @JoinColumn({ name: 'user_id' })
+  user: User;
 }

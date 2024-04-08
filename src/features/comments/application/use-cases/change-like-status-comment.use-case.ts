@@ -49,7 +49,14 @@ export class ChangeLikeStatusForCommentUseCase
 
         default:
           const isUpdateLikeForComment =
-            await this.likesRepository.updateLikeForComment(newLike);
+            await this.likesRepository.updateLikeForComment(
+              command.comment.id,
+              command.userId,
+              {
+                status: command.likeStatus,
+                addedAt: new Date(),
+              },
+            );
           return isUpdateLikeForComment;
       }
     }

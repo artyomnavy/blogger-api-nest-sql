@@ -3,9 +3,11 @@ import {
   Entity,
   JoinColumn,
   ManyToOne,
+  OneToMany,
   PrimaryGeneratedColumn,
 } from 'typeorm';
 import { Blog } from '../../blogs/domain/blog.entity';
+import { LikePost } from '../../likes/domain/like-post.entity';
 
 @Entity({ name: 'posts' })
 export class Post {
@@ -39,6 +41,9 @@ export class Post {
 
   @Column('timestamp with time zone', { name: 'created_at' })
   createdAt: Date;
+
+  @OneToMany(() => LikePost, (lp) => lp.post)
+  likesPosts: LikePost[];
 
   @ManyToOne(() => Blog, (b) => b.posts, { onDelete: 'CASCADE' })
   @JoinColumn({ name: 'blog_id' })

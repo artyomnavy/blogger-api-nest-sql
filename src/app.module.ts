@@ -75,6 +75,9 @@ import { User } from './features/users/domain/user.entity';
 import { Device } from './features/devices/domain/device.entity';
 import { Blog } from './features/blogs/domain/blog.entity';
 import { Post } from './features/posts/domain/post.entity';
+import { Comment } from './features/comments/domain/comment.entity';
+import { LikePost } from './features/likes/domain/like-post.entity';
+import { LikeComment } from './features/likes/domain/like-comment.entity';
 
 config();
 
@@ -151,6 +154,20 @@ const constraintsProviders = [
   EmailExistAndConfirmedConstraint,
 ];
 
+const controllers = [
+  AppController,
+  AuthController,
+  DevicesController,
+  BlogsSAController,
+  BlogsPublicController,
+  PostsController,
+  CommentsController,
+  UsersController,
+  TestController,
+];
+
+const entities = [User, Device, Blog, Post, LikePost, Comment, LikeComment];
+
 const options: TypeOrmModuleOptions = {
   type: 'postgres',
   host: process.env.DB_HOST || '127.0.0.1',
@@ -165,7 +182,7 @@ const options: TypeOrmModuleOptions = {
 
 @Module({
   imports: [
-    TypeOrmModule.forFeature([User, Device, Blog, Post]),
+    TypeOrmModule.forFeature([...entities]),
     CqrsModule,
     PassportModule,
     TypeOrmModule.forRoot(options),
@@ -180,17 +197,7 @@ const options: TypeOrmModuleOptions = {
       },
     ]),
   ],
-  controllers: [
-    AppController,
-    AuthController,
-    DevicesController,
-    BlogsSAController,
-    BlogsPublicController,
-    PostsController,
-    CommentsController,
-    UsersController,
-    TestController,
-  ],
+  controllers: [...controllers],
   providers: [
     ...authUseCases,
     ...blogsUseCases,

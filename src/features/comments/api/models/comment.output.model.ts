@@ -2,7 +2,6 @@ export class CommentModel {
   id: string;
   content: string;
   userId: string;
-  userLogin: string;
   createdAt: Date;
   postId: string;
 }
@@ -26,7 +25,6 @@ export class Comment {
     public id: string,
     public content: string,
     public userId: string,
-    public userLogin: string,
     public createdAt: Date,
     public postId: string,
   ) {}

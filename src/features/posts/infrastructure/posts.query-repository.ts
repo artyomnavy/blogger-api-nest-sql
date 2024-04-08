@@ -1,11 +1,15 @@
 import { Injectable } from '@nestjs/common';
-import { PostOutputModel } from '../api/models/post.output.model';
+import {
+  PostMapperModel,
+  PostOutputModel,
+} from '../api/models/post.output.model';
 import { PaginatorModel } from '../../../common/models/paginator.input.model';
 import { PaginatorOutputModel } from '../../../common/models/paginator.output.model';
 import { likesStatuses } from '../../../utils';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { Post } from '../domain/post.entity';
+import { LikePost } from '../../likes/domain/like-post.entity';
 
 @Injectable()
 export class PostsQueryRepository {
@@ -36,18 +40,69 @@ export class PostsQueryRepository {
       .createQueryBuilder('p')
       .leftJoin('p.blog', 'b')
       .select([
-        'p.id',
-        'p.title',
-        'p.shortDescription',
-        'p.content',
-        'p.blogId',
-        'p.createdAt',
-        'b.name',
+        'p.id AS "id"',
+        'p.title AS "title"',
+        'p.shortDescription AS "shortDescription"',
+        'p.content AS "content"',
+        'p.blogId AS "blogId"',
+        'p.createdAt AS "createdAt"',
+        'b.name AS "blogName"',
       ])
+      // Подзапрос количества лайков поста
+      .addSelect((subQuery) => {
+        return subQuery
+          .select('COUNT(lp.id)')
+          .from(LikePost, 'lp')
+          .where('lp.postId = p.id AND lp.status = :like', {
+            like: likesStatuses.like,
+          });
+      }, 'likesCount')
+      // Подзапрос количества дизлайков поста
+      .addSelect((subQuery) => {
+        return subQuery
+          .select('COUNT(lp.id)')
+          .from(LikePost, 'lp')
+          .where('lp.postId = p.id AND lp.status = :dislike', {
+            dislike: likesStatuses.dislike,
+          });
+      }, 'dislikesCount')
+      // Подзапрос статуса пользователя (лайк или дизлайк) для поста
+      // Если userId не придет (запрос идет от посетителя), то подзапрос не будет выполняться
+      .addSelect((subQuery) => {
+        return subQuery
+          .select('lp.status')
+          .from(LikePost, 'lp')
+          .where(
+            'lp.postId = p.id AND lp.userId = :userId AND :userId IS NOT NULL',
+            {
+              userId: userId,
+            },
+          );
+      }, 'myStatus')
+      // Подзапрос последних 3 (трех) лайков поста с информацией о пользователях, которые поставили лайк
+      .addSelect((subQuery) => {
+        return subQuery
+          .select(
+            "json_agg(json_build_object('addedAt', sub_lp.added_at, 'userId', sub_lp.user_id, 'login', sub_lp.login))",
+          )
+          .from(
+            (subQuery) =>
+              subQuery
+                .select('lp.addedAt, lp.userId, u.login')
+                .from(LikePost, 'lp')
+                .leftJoin('lp.user', 'u')
+                .where('lp.postId = p.id AND lp.status = :status', {
+                  status: likesStatuses.like,
+                })
+                .orderBy('lp.addedAt', 'DESC')
+                .limit(3),
+            'sub_lp',
+          );
+      }, 'newestLikes')
       .orderBy(order, sortDirection)
-      .skip((pageNumber - 1) * pageSize)
-      .take(pageSize)
-      .getMany();
+      .offset((pageNumber - 1) * pageSize)
+      .limit(pageSize)
+      .getRawMany();
 
     const totalCount: number = await this.postsQueryRepository
       .createQueryBuilder('p')
@@ -62,7 +117,7 @@ export class PostsQueryRepository {
       pageSize: pageSize,
       totalCount: totalCount,
       items: await Promise.all(
-        posts.map((post: Post) => this.postMapper(post)),
+        posts.map((post: PostMapperModel) => this.postMapper(post)),
       ),
     };
   }
@@ -74,16 +129,71 @@ export class PostsQueryRepository {
       .createQueryBuilder('p')
       .leftJoin('p.blog', 'b')
       .select([
-        'p.id',
-        'p.title',
-        'p.shortDescription',
-        'p.content',
-        'p.blogId',
-        'p.createdAt',
-        'b.name',
+        'p.id AS "id"',
+        'p.title AS "title"',
+        'p.shortDescription AS "shortDescription"',
+        'p.content AS "content"',
+        'p.blogId AS "blogId"',
+        'p.createdAt AS "createdAt"',
+        'b.name AS "blogName"',
       ])
+      // Подзапрос количества лайков поста
+      .addSelect((subQuery) => {
+        return subQuery
+          .select('COUNT(lp.id)')
+          .from(LikePost, 'lp')
+          .where('lp.postId = :id AND lp.status = :like', {
+            id,
+            like: likesStatuses.like,
+          });
+      }, 'likesCount')
+      // Подзапрос количества дизлайков поста
+      .addSelect((subQuery) => {
+        return subQuery
+          .select('COUNT(lp.id)')
+          .from(LikePost, 'lp')
+          .where('lp.postId = :id AND lp.status = :dislike', {
+            id,
+            dislike: likesStatuses.dislike,
+          });
+      }, 'dislikesCount')
+      // Подзапрос статуса пользователя (лайк или дизлайк) для поста
+      // Если userId не придет (запрос идет от посетителя), то подзапрос не будет выполняться
+      .addSelect((subQuery) => {
+        return subQuery
+          .select('lp.status')
+          .from(LikePost, 'lp')
+          .where(
+            'lp.postId = :id AND lp.userId = :userId AND :userId IS NOT NULL',
+            {
+              id,
+              userId: userId,
+            },
+          );
+      }, 'myStatus')
+      // Подзапрос последних 3 (трех) лайков поста с информацией о пользователях, которые поставили лайк
+      .addSelect((subQuery) => {
+        return subQuery
+          .select(
+            "json_agg(json_build_object('addedAt', sub_lp.added_at, 'userId', sub_lp.user_id, 'login', sub_lp.login))",
+          )
+          .from(
+            (subQuery) =>
+              subQuery
+                .select('lp.addedAt, lp.userId, u.login')
+                .from(LikePost, 'lp')
+                .leftJoin('lp.user', 'u')
+                .where('lp.postId = :id AND lp.status = :status', {
+                  id,
+                  status: likesStatuses.like,
+                })
+                .orderBy('lp.addedAt', 'DESC')
+                .limit(3),
+            'sub_lp',
+          );
+      }, 'newestLikes')
       .where('p.id = :id', { id })
-      .getOne();
+      .getRawOne();
 
     if (!post) {
       return null;
@@ -115,19 +225,70 @@ export class PostsQueryRepository {
       .createQueryBuilder('p')
       .leftJoin('p.blog', 'b')
       .select([
-        'p.id',
-        'p.title',
-        'p.shortDescription',
-        'p.content',
-        'p.blogId',
-        'p.createdAt',
-        'b.name',
+        'p.id AS "id"',
+        'p.title AS "title"',
+        'p.shortDescription AS "shortDescription"',
+        'p.content AS "content"',
+        'p.blogId AS "blogId"',
+        'p.createdAt AS "createdAt"',
+        'b.name AS "blogName"',
       ])
+      // Подзапрос количества лайков поста
+      .addSelect((subQuery) => {
+        return subQuery
+          .select('COUNT(lp.id)')
+          .from(LikePost, 'lp')
+          .where('lp.postId = p.id AND lp.status = :like', {
+            like: likesStatuses.like,
+          });
+      }, 'likesCount')
+      // Подзапрос количества дизлайков поста
+      .addSelect((subQuery) => {
+        return subQuery
+          .select('COUNT(lp.id)')
+          .from(LikePost, 'lp')
+          .where('lp.postId = p.id AND lp.status = :dislike', {
+            dislike: likesStatuses.dislike,
+          });
+      }, 'dislikesCount')
+      // Подзапрос статуса пользователя (лайк или дизлайк) для поста
+      // Если userId не придет (запрос идет от посетителя), то подзапрос не будет выполняться
+      .addSelect((subQuery) => {
+        return subQuery
+          .select('lp.status')
+          .from(LikePost, 'lp')
+          .where(
+            'lp.postId = p.id AND lp.userId = :userId AND :userId IS NOT NULL',
+            {
+              userId: userId,
+            },
+          );
+      }, 'myStatus')
+      // Подзапрос последних 3 (трех) лайков поста с информацией о пользователях, которые поставили лайк
+      .addSelect((subQuery) => {
+        return subQuery
+          .select(
+            "json_agg(json_build_object('addedAt', sub_lp.added_at, 'userId', sub_lp.user_id, 'login', sub_lp.login))",
+          )
+          .from(
+            (subQuery) =>
+              subQuery
+                .select('lp.addedAt, lp.userId, u.login')
+                .from(LikePost, 'lp')
+                .leftJoin('lp.user', 'u')
+                .where('lp.postId = p.id AND lp.status = :status', {
+                  status: likesStatuses.like,
+                })
+                .orderBy('lp.addedAt', 'DESC')
+                .limit(3),
+            'sub_lp',
+          );
+      }, 'newestLikes')
       .where('p.blogId = :blogId', { blogId: blogId })
       .orderBy(order, sortDirection)
-      .skip((pageNumber - 1) * pageSize)
-      .take(pageSize)
-      .getMany();
+      .offset((pageNumber - 1) * pageSize)
+      .limit(pageSize)
+      .getRawMany();
 
     const totalCount: number = await this.postsQueryRepository
       .createQueryBuilder('p')
@@ -145,24 +306,33 @@ export class PostsQueryRepository {
       pageSize: pageSize,
       totalCount: totalCount,
       items: await Promise.all(
-        posts.map((post: Post) => this.postMapper(post)),
+        posts.map((post: PostMapperModel) => this.postMapper(post)),
       ),
     };
   }
-  async postMapper(post: Post): Promise<PostOutputModel> {
+  async postMapper(post: PostMapperModel): Promise<PostOutputModel> {
     return {
       id: post.id,
       title: post.title,
       shortDescription: post.shortDescription,
       content: post.content,
       blogId: post.blogId,
-      blogName: post.blog.name,
+      blogName: post.blogName,
       createdAt: post.createdAt.toISOString(),
       extendedLikesInfo: {
-        likesCount: 0,
-        dislikesCount: 0,
-        myStatus: likesStatuses.none,
-        newestLikes: [],
+        likesCount: +post.likesCount,
+        dislikesCount: +post.dislikesCount,
+        myStatus: post.myStatus || likesStatuses.none,
+        newestLikes:
+          post.newestLikes && post.newestLikes.length > 0
+            ? post.newestLikes.map((like) => {
+                return {
+                  addedAt: like.addedAt,
+                  userId: like.userId,
+                  login: like.login,
+                };
+              })
+            : [],
       },
     };
   }

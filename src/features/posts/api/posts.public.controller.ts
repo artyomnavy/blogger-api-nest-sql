@@ -19,7 +19,6 @@ import { PaginatorOutputModel } from '../../../common/models/paginator.output.mo
 import { CommentOutputModel } from '../../comments/api/models/comment.output.model';
 import { HTTP_STATUSES } from '../../../utils';
 import { CreateAndUpdateCommentModel } from '../../comments/api/models/comment.input.model';
-import { UsersQueryRepository } from '../../users/infrastructure/users.query-repository';
 import { UpdateLikeModel } from '../../likes/api/models/like.input.model';
 import { JwtBearerAuthGuard } from '../../../common/guards/jwt-bearer-auth-guard.service';
 import { CurrentUserId } from '../../../common/decorators/current-user-id.param.decorator';
@@ -27,6 +26,7 @@ import { CommandBus } from '@nestjs/cqrs';
 import { ChangeLikeStatusForPostCommand } from '../application/use-cases/change-like-status-for-post-use.case';
 import { CreateCommentCommand } from '../../comments/application/use-cases/create-comment.use-case';
 import { UuidPipe } from '../../../common/pipes/uuid.pipe';
+import { UsersQueryRepository } from '../../users/infrastructure/users.query-repository';
 
 @Controller('posts')
 export class PostsController {
@@ -92,24 +92,19 @@ export class PostsController {
   @HttpCode(HTTP_STATUSES.CREATED_201)
   async createCommentForPost(
     @Param('postId', UuidPipe) postId: string,
-    @CurrentUserId() currentUserId: string,
+    @CurrentUserId() userId: string,
     @Body() createModel: CreateAndUpdateCommentModel,
-  ) {
-    const post = await this.postsQueryRepository.getPostById(postId);
+  ): Promise<CommentOutputModel> {
+    const post = await this.postsQueryRepository.getPostById(postId, userId);
 
     if (!post) throw new NotFoundException('Post not found');
 
-    const user = await this.usersQueryRepository.getUserById(currentUserId);
+    const user = await this.usersQueryRepository.getUserById(userId);
 
     const userLogin = user!.login;
 
     const newComment = await this.commandBus.execute(
-      new CreateCommentCommand(
-        postId,
-        currentUserId,
-        userLogin,
-        createModel.content,
-      ),
+      new CreateCommentCommand(postId, userId, userLogin, createModel.content),
     );
 
     return newComment;

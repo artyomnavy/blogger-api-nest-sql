@@ -1,46 +1,39 @@
-import { HydratedDocument } from 'mongoose';
-import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
-import { CommentModel } from '../api/models/comment.output.model';
+import {
+  Column,
+  Entity,
+  JoinColumn,
+  ManyToOne,
+  OneToMany,
+  PrimaryGeneratedColumn,
+} from 'typeorm';
+import { User } from '../../users/domain/user.entity';
+import { LikeComment } from '../../likes/domain/like-comment.entity';
 
-export type CommentDocument = HydratedDocument<CommentModel>;
-
-@Schema()
-class CommentatorInfo {
-  @Prop({ required: true })
-  userId: string;
-
-  @Prop({ required: true })
-  userLogin: string;
-}
-
-@Schema()
-class LikesInfo {
-  @Prop({ required: true })
-  likesCount: number;
-
-  @Prop({ required: true })
-  dislikesCount: number;
-
-  @Prop({ required: true })
-  myStatus: string;
-}
-
-@Schema()
+@Entity('comments')
 export class Comment {
-  @Prop({ required: true })
+  @PrimaryGeneratedColumn('uuid')
+  id: string;
+
+  @Column({
+    type: 'character varying',
+    length: 300,
+    collation: 'C',
+  })
   content: string;
 
-  @Prop({ required: true })
-  commentatorInfo: CommentatorInfo;
+  @Column({ name: 'user_id', type: 'uuid' })
+  userId: string;
 
-  @Prop({ required: true })
+  @Column('timestamp with time zone', { name: 'created_at' })
   createdAt: Date;
 
-  @Prop({ required: true })
+  @Column({ name: 'post_id', type: 'uuid' })
   postId: string;
 
-  @Prop({ required: true })
-  likesInfo: LikesInfo;
-}
+  @OneToMany(() => LikeComment, (lc) => lc.comment)
+  likesComments: LikeComment[];
 
-export const CommentEntity = SchemaFactory.createForClass(Comment);
+  @ManyToOne(() => User, (u) => u.comments, { onDelete: 'CASCADE' })
+  @JoinColumn({ name: 'user_id' })
+  user: User;
+}

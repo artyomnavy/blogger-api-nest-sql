@@ -1,5 +1,9 @@
 import { Column, Entity, OneToMany, PrimaryGeneratedColumn } from 'typeorm';
 import { Device } from '../../devices/domain/device.entity';
+import { Comment } from '../../comments/domain/comment.entity';
+import { LikeComment } from '../../likes/domain/like-comment.entity';
+import { LikePost } from '../../likes/domain/like-post.entity';
+import { Blog } from '../../blogs/domain/blog.entity';
 
 @Entity({ name: 'users' })
 export class User {
@@ -42,12 +46,15 @@ export class User {
   @OneToMany(() => Device, (d) => d.user)
   devices: Device[];
 
-  // @OneToMany(() => Comments, (c) => c.userId)
-  // comments: ;
-  //
-  // @OneToMany(() => LikesPosts, (lp) => lp.userId)
-  // likesPosts: ;
-  //
-  // @OneToMany(() => LikesComments, (lc) => lc.userId)
-  // likesComments: ;
+  @OneToMany(() => Blog, (blog) => blog.user)
+  blogs: Blog[];
+
+  @OneToMany(() => Comment, (c) => c.user)
+  comments: Comment[];
+
+  @OneToMany(() => LikePost, (lp) => lp.user)
+  likesPosts: LikePost[];
+
+  @OneToMany(() => LikeComment, (lc) => lc.user)
+  likesComments: LikeComment[];
 }

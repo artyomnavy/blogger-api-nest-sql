@@ -26,7 +26,7 @@ export class PostOutputModel {
   extendedLikesInfo: {
     likesCount: number;
     dislikesCount: number;
-    myStatus: 'None' | 'Like' | 'Dislike';
+    myStatus: string;
     newestLikes: NewestLikesOutputModel[];
   };
 }
@@ -51,7 +51,7 @@ export class PostMapperModel {
   createdAt: Date;
   likesCount: number;
   dislikesCount: number;
-  myStatus: 'None' | 'Like' | 'Dislike';
+  myStatus: string;
   newestLikes: {
     addedAt: string;
     userId: string;
