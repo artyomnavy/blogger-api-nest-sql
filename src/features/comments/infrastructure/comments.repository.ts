@@ -19,6 +19,8 @@ export class CommentsRepository {
     newComment: CommentModel,
     userLogin: string,
   ): Promise<CommentOutputModel> {
+    // await this.commentsRepository.insert(newComment);
+
     await this.commentsRepository
       .createQueryBuilder()
       .insert()
@@ -45,6 +47,10 @@ export class CommentsRepository {
     id: string,
     updateData: CreateAndUpdateCommentModel,
   ): Promise<boolean> {
+    // const resultUpdateComment = await this.commentsRepository.update(id, {
+    //   content: updateData.content,
+    // });
+
     const resultUpdateComment = await this.commentsRepository
       .createQueryBuilder()
       .update(Comment)
@@ -57,6 +63,8 @@ export class CommentsRepository {
     return resultUpdateComment.affected === 1;
   }
   async deleteComment(id: string): Promise<boolean> {
+    // const resultDeleteComment = await this.commentsRepository.delete(id);
+
     const resultDeleteComment = await this.commentsRepository
       .createQueryBuilder()
       .delete()
