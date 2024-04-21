@@ -177,7 +177,7 @@ const options: TypeOrmModuleOptions = {
   database: 'BloggerPlatform',
   // logging: ['query'],
   autoLoadEntities: true,
-  synchronize: true,
+  synchronize: false,
 };
 
 @Module({
