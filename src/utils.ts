@@ -15,8 +15,25 @@ type HttpStatusKeys = keyof typeof HTTP_STATUSES;
 
 export type HttpStatusType = (typeof HTTP_STATUSES)[HttpStatusKeys];
 
-export enum likesStatuses {
-  none = 'None',
-  like = 'Like',
-  dislike = 'Dislike',
+export enum LikeStatuses {
+  NONE = 'None',
+  LIKE = 'Like',
+  DISLIKE = 'Dislike',
+}
+
+export enum AnswerStatuses {
+  CORRECT = 'Correct',
+  INCORRECT = 'Incorrect',
+}
+
+export enum QuizStatuses {
+  PENDING_SECOND_PLAYER = 'PendingSecondPlayer',
+  ACTIVE = 'Active',
+  FINISHED = 'Finished',
+}
+
+export enum PublishedStatuses {
+  ALL = 'all',
+  PUBLISHED = 'published',
+  NOT_PUBLISHED = 'notPublished',
 }

@@ -4,6 +4,7 @@ import { Comment } from '../../comments/domain/comment.entity';
 import { LikeComment } from '../../likes/domain/like-comment.entity';
 import { LikePost } from '../../likes/domain/like-post.entity';
 import { Blog } from '../../blogs/domain/blog.entity';
+import { PlayerSession } from '../../quiz/domain/player-session.entity';
 
 @Entity({ name: 'users' })
 export class User {
@@ -57,4 +58,7 @@ export class User {
 
   @OneToMany(() => LikeComment, (lc) => lc.user)
   likesComments: LikeComment[];
+
+  @OneToMany(() => PlayerSession, (ps) => ps.player)
+  playersSessions: PlayerSession[];
 }

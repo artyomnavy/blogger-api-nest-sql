@@ -4,7 +4,7 @@ import request from 'supertest';
 import { AppModule } from '../src/app.module';
 import { PostOutputModel } from '../src/features/posts/api/models/post.output.model';
 import { BlogOutputModel } from '../src/features/blogs/api/models/blog.output.model';
-import { HTTP_STATUSES, likesStatuses } from '../src/utils';
+import { HTTP_STATUSES, LikeStatuses } from '../src/utils';
 import { appSettings } from '../src/app.settings';
 import { badId, Paths, responseNullData } from './utils/test-constants';
 import { CreateEntitiesTestManager } from './utils/test-manager';
@@ -205,7 +205,7 @@ describe('Posts testing (e2e)', () => {
       extendedLikesInfo: {
         likesCount: 0,
         dislikesCount: 0,
-        myStatus: likesStatuses.none,
+        myStatus: LikeStatuses.NONE,
         newestLikes: [],
       },
     });

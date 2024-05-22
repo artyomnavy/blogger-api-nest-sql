@@ -5,7 +5,7 @@ import {
 } from '../api/models/comment.output.model';
 import { PaginatorModel } from '../../../common/models/paginator.input.model';
 import { PaginatorOutputModel } from '../../../common/models/paginator.output.model';
-import { likesStatuses } from '../../../utils';
+import { LikeStatuses } from '../../../utils';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { Comment } from '../domain/comment.entity';
@@ -39,7 +39,7 @@ export class CommentsQueryRepository {
           .from(LikeComment, 'lc')
           .where('lc.commentId = :id AND lc.status = :like', {
             id,
-            like: likesStatuses.like,
+            like: LikeStatuses.LIKE,
           });
       }, 'likesCount')
       // Подзапрос количества дизлайков комментария
@@ -49,7 +49,7 @@ export class CommentsQueryRepository {
           .from(LikeComment, 'lc')
           .where('lc.commentId = :id AND lc.status = :dislike', {
             id,
-            dislike: likesStatuses.dislike,
+            dislike: LikeStatuses.DISLIKE,
           });
       }, 'dislikesCount')
       // Подзапрос статуса пользователя (лайк или дизлайк) для комментария
@@ -112,7 +112,7 @@ export class CommentsQueryRepository {
           .select('COUNT(lc.id)')
           .from(LikeComment, 'lc')
           .where('lc.commentId = c.id AND lc.status = :like', {
-            like: likesStatuses.like,
+            like: LikeStatuses.LIKE,
           });
       }, 'likesCount')
       // Подзапрос количества дизлайков комментария
@@ -121,7 +121,7 @@ export class CommentsQueryRepository {
           .select('COUNT(lc.id)')
           .from(LikeComment, 'lc')
           .where('lc.commentId = c.id AND lc.status = :dislike', {
-            dislike: likesStatuses.dislike,
+            dislike: LikeStatuses.DISLIKE,
           });
       }, 'dislikesCount')
       // Подзапрос статуса пользователя (лайк или дизлайк) для комментария
@@ -177,7 +177,7 @@ export class CommentsQueryRepository {
       likesInfo: {
         likesCount: +comment.likesCount,
         dislikesCount: +comment.dislikesCount,
-        myStatus: comment.myStatus || likesStatuses.none,
+        myStatus: comment.myStatus || LikeStatuses.NONE,
       },
     };
   }

@@ -4,7 +4,7 @@ import { CreateAndUpdatePostModel } from '../api/models/post.input.model';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { Post } from '../domain/post.entity';
-import { likesStatuses } from '../../../utils';
+import { LikeStatuses } from '../../../utils';
 
 @Injectable()
 export class PostsRepository {
@@ -34,7 +34,7 @@ export class PostsRepository {
       extendedLikesInfo: {
         likesCount: 0,
         dislikesCount: 0,
-        myStatus: likesStatuses.none,
+        myStatus: LikeStatuses.NONE,
         newestLikes: [],
       },
     };

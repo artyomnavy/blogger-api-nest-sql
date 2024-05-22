@@ -8,6 +8,8 @@ export const Paths = {
   users: '/sa/users',
   auth: '/auth',
   security: '/security',
+  questions: '/sa/quiz/questions',
+  quiz: '/pair-game-quiz/pairs',
   testing: '/testing',
 };
 

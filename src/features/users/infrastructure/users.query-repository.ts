@@ -248,4 +248,13 @@ export class UsersQueryRepository {
       };
     }
   }
+  async getUserByIdForQuiz(userId: string): Promise<User | null> {
+    const user = await this.usersQueryRepository.findOneBy({ id: userId });
+
+    if (!user) {
+      return null;
+    } else {
+      return user;
+    }
+  }
 }

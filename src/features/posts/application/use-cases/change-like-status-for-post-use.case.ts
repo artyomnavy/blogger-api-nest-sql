@@ -1,6 +1,6 @@
 import { CommandHandler, ICommandHandler } from '@nestjs/cqrs';
 import { PostOutputModel } from '../../api/models/post.output.model';
-import { likesStatuses } from '../../../../utils';
+import { LikeStatuses } from '../../../../utils';
 import { v4 as uuidv4 } from 'uuid';
 import { LikePost } from '../../../likes/api/models/like-post.output.model';
 import { LikesPostsRepository } from '../../../likes/infrastructure/likes-posts.repository';
@@ -33,13 +33,13 @@ export class ChangeLikeStatusForPostUseCase
       new Date(),
     );
 
-    if (currentMyStatus === likesStatuses.none) {
+    if (currentMyStatus === LikeStatuses.NONE) {
       const likeForPost =
         await this.likesPostsRepository.createLikeForPost(newLike);
       return likeForPost ? true : false;
     } else {
       switch (command.likeStatus) {
-        case likesStatuses.none:
+        case LikeStatuses.NONE:
           const isDeleteLikeForPost =
             await this.likesPostsRepository.deleteLikeForPost(
               command.post.id,

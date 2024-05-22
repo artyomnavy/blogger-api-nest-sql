@@ -273,8 +273,6 @@ describe('Auth testing (e2e)', () => {
     //   [createData.login],
     // );
 
-    console.log(createData.login);
-
     const getUserByLogin = await userEntity
       .createQueryBuilder()
       .select([

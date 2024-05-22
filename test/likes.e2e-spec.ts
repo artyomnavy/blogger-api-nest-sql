@@ -2,7 +2,7 @@ import { INestApplication } from '@nestjs/common';
 import { Test, TestingModule } from '@nestjs/testing';
 import { AppModule } from '../src/app.module';
 import request from 'supertest';
-import { HTTP_STATUSES, likesStatuses } from '../src/utils';
+import { HTTP_STATUSES, LikeStatuses } from '../src/utils';
 import { appSettings } from '../src/app.settings';
 import { Paths } from './utils/test-constants';
 import { CreateEntitiesTestManager } from './utils/test-manager';
@@ -189,7 +189,7 @@ describe('Likes testing (e2e)', () => {
       extendedLikesInfo: {
         likesCount: 0,
         dislikesCount: 0,
-        myStatus: likesStatuses.none,
+        myStatus: LikeStatuses.NONE,
         newestLikes: [],
       },
     });
@@ -259,7 +259,7 @@ describe('Likes testing (e2e)', () => {
       likesInfo: {
         likesCount: 0,
         dislikesCount: 0,
-        myStatus: likesStatuses.none,
+        myStatus: LikeStatuses.NONE,
       },
     });
 
@@ -292,7 +292,7 @@ describe('Likes testing (e2e)', () => {
     await request(server)
       .put(`${Paths.comments}/${newComment!.id}/like-status`)
       .auth(token1, { type: 'bearer' })
-      .send({ likeStatus: likesStatuses.none })
+      .send({ likeStatus: LikeStatuses.NONE })
       .expect(HTTP_STATUSES.NO_CONTENT_204);
 
     const commentStatus1ByUser1 = await request(server)
@@ -305,7 +305,7 @@ describe('Likes testing (e2e)', () => {
       commentatorInfo: { ...newComment!.commentatorInfo },
       likesInfo: {
         ...newComment!.likesInfo,
-        myStatus: likesStatuses.none,
+        myStatus: LikeStatuses.NONE,
       },
     });
 
@@ -313,7 +313,7 @@ describe('Likes testing (e2e)', () => {
       .put(`${Paths.comments}/${newComment!.id}/like-status`)
       .auth(token1, { type: 'bearer' })
       .send({
-        likeStatus: likesStatuses.like,
+        likeStatus: LikeStatuses.LIKE,
       })
       .expect(HTTP_STATUSES.NO_CONTENT_204);
 
@@ -328,7 +328,7 @@ describe('Likes testing (e2e)', () => {
       likesInfo: {
         ...newComment!.likesInfo,
         likesCount: 1,
-        myStatus: likesStatuses.like,
+        myStatus: LikeStatuses.LIKE,
       },
     });
 
@@ -336,7 +336,7 @@ describe('Likes testing (e2e)', () => {
       .put(`${Paths.comments}/${newComment!.id}/like-status`)
       .auth(token1, { type: 'bearer' })
       .send({
-        likeStatus: likesStatuses.dislike,
+        likeStatus: LikeStatuses.DISLIKE,
       })
       .expect(HTTP_STATUSES.NO_CONTENT_204);
 
@@ -352,7 +352,7 @@ describe('Likes testing (e2e)', () => {
         ...newComment!.likesInfo,
         likesCount: 0,
         dislikesCount: 1,
-        myStatus: likesStatuses.dislike,
+        myStatus: LikeStatuses.DISLIKE,
       },
     });
 
@@ -360,7 +360,7 @@ describe('Likes testing (e2e)', () => {
       .put(`${Paths.comments}/${newComment!.id}/like-status`)
       .auth(token1, { type: 'bearer' })
       .send({
-        likeStatus: likesStatuses.dislike,
+        likeStatus: LikeStatuses.DISLIKE,
       })
       .expect(HTTP_STATUSES.NO_CONTENT_204);
 
@@ -376,7 +376,7 @@ describe('Likes testing (e2e)', () => {
         ...newComment!.likesInfo,
         likesCount: 0,
         dislikesCount: 1,
-        myStatus: likesStatuses.dislike,
+        myStatus: LikeStatuses.DISLIKE,
       },
     });
   });
@@ -387,7 +387,7 @@ describe('Likes testing (e2e)', () => {
       .put(`${Paths.comments}/${newComment!.id}/like-status`)
       .auth(token2, { type: 'bearer' })
       .send({
-        likeStatus: likesStatuses.none,
+        likeStatus: LikeStatuses.NONE,
       })
       .expect(HTTP_STATUSES.NO_CONTENT_204);
 
@@ -403,7 +403,7 @@ describe('Likes testing (e2e)', () => {
         ...newComment!.likesInfo,
         likesCount: 0,
         dislikesCount: 1,
-        myStatus: likesStatuses.none,
+        myStatus: LikeStatuses.NONE,
       },
     });
 
@@ -411,7 +411,7 @@ describe('Likes testing (e2e)', () => {
       .put(`${Paths.comments}/${newComment!.id}/like-status`)
       .auth(token2, { type: 'bearer' })
       .send({
-        likeStatus: likesStatuses.like,
+        likeStatus: LikeStatuses.LIKE,
       })
       .expect(HTTP_STATUSES.NO_CONTENT_204);
 
@@ -427,7 +427,7 @@ describe('Likes testing (e2e)', () => {
         ...newComment!.likesInfo,
         likesCount: 1,
         dislikesCount: 1,
-        myStatus: likesStatuses.like,
+        myStatus: LikeStatuses.LIKE,
       },
     });
 
@@ -435,7 +435,7 @@ describe('Likes testing (e2e)', () => {
       .put(`${Paths.comments}/${newComment!.id}/like-status`)
       .auth(token2, { type: 'bearer' })
       .send({
-        likeStatus: likesStatuses.dislike,
+        likeStatus: LikeStatuses.DISLIKE,
       })
       .expect(HTTP_STATUSES.NO_CONTENT_204);
 
@@ -450,7 +450,7 @@ describe('Likes testing (e2e)', () => {
       likesInfo: {
         ...newComment!.likesInfo,
         dislikesCount: 2,
-        myStatus: likesStatuses.dislike,
+        myStatus: LikeStatuses.DISLIKE,
       },
     });
   });
@@ -468,7 +468,7 @@ describe('Likes testing (e2e)', () => {
         ...newComment!.likesInfo,
         likesCount: 0,
         dislikesCount: 2,
-        myStatus: likesStatuses.none,
+        myStatus: LikeStatuses.NONE,
       },
     });
   });
@@ -491,7 +491,7 @@ describe('Likes testing (e2e)', () => {
             ...newComment!.likesInfo,
             likesCount: 0,
             dislikesCount: 2,
-            myStatus: likesStatuses.none,
+            myStatus: LikeStatuses.NONE,
           },
         },
       ],
@@ -506,7 +506,7 @@ describe('Likes testing (e2e)', () => {
       .put(`${Paths.posts}/${newPost!.id}/like-status`)
       .auth(token1, { type: 'bearer' })
       .send({
-        likeStatus: likesStatuses.none,
+        likeStatus: LikeStatuses.NONE,
       })
       .expect(HTTP_STATUSES.NO_CONTENT_204);
 
@@ -527,7 +527,7 @@ describe('Likes testing (e2e)', () => {
       .put(`${Paths.posts}/${newPost!.id}/like-status`)
       .auth(token1, { type: 'bearer' })
       .send({
-        likeStatus: likesStatuses.like,
+        likeStatus: LikeStatuses.LIKE,
       })
       .expect(HTTP_STATUSES.NO_CONTENT_204);
 
@@ -547,7 +547,7 @@ describe('Likes testing (e2e)', () => {
       extendedLikesInfo: {
         likesCount: 1,
         dislikesCount: 0,
-        myStatus: likesStatuses.like,
+        myStatus: LikeStatuses.LIKE,
         newestLikes: [
           {
             addedAt: expect.any(String),
@@ -562,7 +562,7 @@ describe('Likes testing (e2e)', () => {
       .put(`${Paths.posts}/${newPost!.id}/like-status`)
       .auth(token1, { type: 'bearer' })
       .send({
-        likeStatus: likesStatuses.dislike,
+        likeStatus: LikeStatuses.DISLIKE,
       })
       .expect(HTTP_STATUSES.NO_CONTENT_204);
 
@@ -582,7 +582,7 @@ describe('Likes testing (e2e)', () => {
       extendedLikesInfo: {
         likesCount: 0,
         dislikesCount: 1,
-        myStatus: likesStatuses.dislike,
+        myStatus: LikeStatuses.DISLIKE,
         newestLikes: [],
       },
     });
@@ -591,7 +591,7 @@ describe('Likes testing (e2e)', () => {
       .put(`${Paths.posts}/${newPost!.id}/like-status`)
       .auth(token1, { type: 'bearer' })
       .send({
-        likeStatus: likesStatuses.dislike,
+        likeStatus: LikeStatuses.DISLIKE,
       })
       .expect(HTTP_STATUSES.NO_CONTENT_204);
 
@@ -611,7 +611,7 @@ describe('Likes testing (e2e)', () => {
       extendedLikesInfo: {
         likesCount: 0,
         dislikesCount: 1,
-        myStatus: likesStatuses.dislike,
+        myStatus: LikeStatuses.DISLIKE,
         newestLikes: [],
       },
     });
@@ -623,7 +623,7 @@ describe('Likes testing (e2e)', () => {
       .put(`${Paths.posts}/${newPost!.id}/like-status`)
       .auth(token2, { type: 'bearer' })
       .send({
-        likeStatus: likesStatuses.none,
+        likeStatus: LikeStatuses.NONE,
       })
       .expect(HTTP_STATUSES.NO_CONTENT_204);
 
@@ -643,7 +643,7 @@ describe('Likes testing (e2e)', () => {
       extendedLikesInfo: {
         likesCount: 0,
         dislikesCount: 1,
-        myStatus: likesStatuses.none,
+        myStatus: LikeStatuses.NONE,
         newestLikes: [],
       },
     });
@@ -652,7 +652,7 @@ describe('Likes testing (e2e)', () => {
       .put(`${Paths.posts}/${newPost!.id}/like-status`)
       .auth(token2, { type: 'bearer' })
       .send({
-        likeStatus: likesStatuses.like,
+        likeStatus: LikeStatuses.LIKE,
       })
       .expect(HTTP_STATUSES.NO_CONTENT_204);
 
@@ -672,7 +672,7 @@ describe('Likes testing (e2e)', () => {
       extendedLikesInfo: {
         likesCount: 1,
         dislikesCount: 1,
-        myStatus: likesStatuses.like,
+        myStatus: LikeStatuses.LIKE,
         newestLikes: [
           {
             addedAt: expect.any(String),
@@ -687,7 +687,7 @@ describe('Likes testing (e2e)', () => {
       .put(`${Paths.posts}/${newPost!.id}/like-status`)
       .auth(token2, { type: 'bearer' })
       .send({
-        likeStatus: likesStatuses.dislike,
+        likeStatus: LikeStatuses.DISLIKE,
       })
       .expect(HTTP_STATUSES.NO_CONTENT_204);
 
@@ -707,7 +707,7 @@ describe('Likes testing (e2e)', () => {
       extendedLikesInfo: {
         likesCount: 0,
         dislikesCount: 2,
-        myStatus: likesStatuses.dislike,
+        myStatus: LikeStatuses.DISLIKE,
         newestLikes: [],
       },
     });
@@ -730,7 +730,7 @@ describe('Likes testing (e2e)', () => {
       extendedLikesInfo: {
         likesCount: 0,
         dislikesCount: 2,
-        myStatus: likesStatuses.none,
+        myStatus: LikeStatuses.NONE,
         newestLikes: [],
       },
     });
@@ -758,7 +758,7 @@ describe('Likes testing (e2e)', () => {
           extendedLikesInfo: {
             likesCount: 0,
             dislikesCount: 2,
-            myStatus: likesStatuses.none,
+            myStatus: LikeStatuses.NONE,
             newestLikes: [],
           },
         },

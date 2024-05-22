@@ -78,6 +78,25 @@ import { Post } from './features/posts/domain/post.entity';
 import { Comment } from './features/comments/domain/comment.entity';
 import { LikePost } from './features/likes/domain/like-post.entity';
 import { LikeComment } from './features/likes/domain/like-comment.entity';
+import { CreateQuestionUseCase } from './features/quiz/application/create-question.use-case';
+import { DeleteQuestionUseCase } from './features/quiz/application/delete-question.use-case';
+import { UpdatePublishQuestionUseCase } from './features/quiz/application/update-publish-question.use-case';
+import { UpdateQuestionUseCase } from './features/quiz/application/update-question.use-case';
+import { QuestionsRepository } from './features/quiz/infrastructure/questions.repository';
+import { QuestionsQueryRepository } from './features/quiz/infrastructure/questions.query-repository';
+import { QuizSAController } from './features/quiz/api/quiz.sa.controller';
+import { Question } from './features/quiz/domain/question.entity';
+import { Answer } from './features/quiz/domain/answer.entity';
+import { Quiz } from './features/quiz/domain/quiz.entity';
+import { PlayerSession } from './features/quiz/domain/player-session.entity';
+import { CreateOrConnectQuizUseCase } from './features/quiz/application/create-or-connect-quiz.use-case';
+import { CreateAnswerUseCase } from './features/quiz/application/create-answer.use-case';
+import { QuizzesRepository } from './features/quiz/infrastructure/quizzes.repository';
+import { PlayersSessionsRepository } from './features/quiz/infrastructure/players-sessions.repository';
+import { AnswersRepository } from './features/quiz/infrastructure/answers.repository';
+import { QuizzesQueryRepository } from './features/quiz/infrastructure/quizzes.query-repository';
+import { QuizPublicController } from './features/quiz/api/quiz.public.controller';
+import { PlayersSessionsQueryRepository } from './features/quiz/infrastructure/players-sessions.query-repository';
 
 config();
 
@@ -86,6 +105,15 @@ const mongoURI = process.env.MONGO_URL || 'mongodb://0.0.0.0:27017';
 if (!mongoURI) {
   throw new Error(`Url doesn't found`);
 }
+
+const quizzesUseCases = [
+  CreateQuestionUseCase,
+  DeleteQuestionUseCase,
+  UpdateQuestionUseCase,
+  UpdatePublishQuestionUseCase,
+  CreateOrConnectQuizUseCase,
+  CreateAnswerUseCase,
+];
 
 const blogsUseCases = [UpdateBlogUseCase, DeleteBlogUseCase, CreateBlogUseCase];
 
@@ -132,6 +160,10 @@ const repositoriesProviders = [
   CommentsRepository,
   LikesCommentsRepository,
   LikesPostsRepository,
+  QuestionsRepository,
+  QuizzesRepository,
+  PlayersSessionsRepository,
+  AnswersRepository,
 ];
 
 const queryRepositoriesProviders = [
@@ -140,6 +172,9 @@ const queryRepositoriesProviders = [
   UsersQueryRepository,
   PostsQueryRepository,
   DevicesQueryRepository,
+  QuestionsQueryRepository,
+  QuizzesQueryRepository,
+  PlayersSessionsQueryRepository,
 ];
 
 const emailsProviders = [EmailsManager, EmailsAdapter];
@@ -164,9 +199,23 @@ const controllers = [
   CommentsController,
   UsersController,
   TestController,
+  QuizSAController,
+  QuizPublicController,
 ];
 
-const entities = [User, Device, Blog, Post, LikePost, Comment, LikeComment];
+const entities = [
+  User,
+  Device,
+  Blog,
+  Post,
+  LikePost,
+  Comment,
+  LikeComment,
+  Question,
+  Answer,
+  Quiz,
+  PlayerSession,
+];
 
 const options: TypeOrmModuleOptions = {
   type: 'postgres',
@@ -205,6 +254,7 @@ const options: TypeOrmModuleOptions = {
     ...postsUseCases,
     ...devicesUseCases,
     ...usersUseCases,
+    ...quizzesUseCases,
     ...servicesProviders,
     ...repositoriesProviders,
     ...queryRepositoriesProviders,

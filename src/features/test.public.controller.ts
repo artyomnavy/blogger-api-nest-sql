@@ -9,6 +9,10 @@ import { Post } from './posts/domain/post.entity';
 import { LikePost } from './likes/domain/like-post.entity';
 import { Comment } from './comments/domain/comment.entity';
 import { LikeComment } from './likes/domain/like-comment.entity';
+import { Quiz } from './quiz/domain/quiz.entity';
+import { Question } from './quiz/domain/question.entity';
+import { Answer } from './quiz/domain/answer.entity';
+import { PlayerSession } from './quiz/domain/player-session.entity';
 
 @Controller('testing')
 export class TestController {
@@ -28,6 +32,14 @@ export class TestController {
     private readonly usersRepository: Repository<User>,
     @InjectRepository(Device)
     private readonly devicesRepository: Repository<Device>,
+    @InjectRepository(Quiz)
+    private readonly quizzesRepository: Repository<Quiz>,
+    @InjectRepository(Question)
+    private readonly questionsRepository: Repository<Question>,
+    @InjectRepository(Answer)
+    private readonly answersRepository: Repository<Answer>,
+    @InjectRepository(PlayerSession)
+    private readonly playersSessionsRepository: Repository<PlayerSession>,
   ) {}
 
   @Delete('all-data')
@@ -67,6 +79,26 @@ export class TestController {
       .createQueryBuilder()
       .delete()
       .from(User)
+      .execute();
+    await this.quizzesRepository
+      .createQueryBuilder()
+      .delete()
+      .from(Quiz)
+      .execute();
+    await this.questionsRepository
+      .createQueryBuilder()
+      .delete()
+      .from(Question)
+      .execute();
+    await this.answersRepository
+      .createQueryBuilder()
+      .delete()
+      .from(Answer)
+      .execute();
+    await this.playersSessionsRepository
+      .createQueryBuilder()
+      .delete()
+      .from(PlayerSession)
       .execute();
     return;
   }

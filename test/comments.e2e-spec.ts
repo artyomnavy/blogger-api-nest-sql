@@ -2,7 +2,7 @@ import { INestApplication } from '@nestjs/common';
 import { Test, TestingModule } from '@nestjs/testing';
 import { AppModule } from '../src/app.module';
 import request from 'supertest';
-import { HTTP_STATUSES, likesStatuses } from '../src/utils';
+import { HTTP_STATUSES, LikeStatuses } from '../src/utils';
 import { BlogOutputModel } from '../src/features/blogs/api/models/blog.output.model';
 import { PostOutputModel } from '../src/features/posts/api/models/post.output.model';
 import { appSettings } from '../src/app.settings';
@@ -189,7 +189,7 @@ describe('Comments testing (e2e)', () => {
       extendedLikesInfo: {
         likesCount: 0,
         dislikesCount: 0,
-        myStatus: likesStatuses.none,
+        myStatus: LikeStatuses.NONE,
         newestLikes: [],
       },
     });
@@ -305,7 +305,7 @@ describe('Comments testing (e2e)', () => {
       likesInfo: {
         likesCount: 0,
         dislikesCount: 0,
-        myStatus: likesStatuses.none,
+        myStatus: LikeStatuses.NONE,
       },
     });
 

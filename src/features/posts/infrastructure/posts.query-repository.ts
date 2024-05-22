@@ -5,7 +5,7 @@ import {
 } from '../api/models/post.output.model';
 import { PaginatorModel } from '../../../common/models/paginator.input.model';
 import { PaginatorOutputModel } from '../../../common/models/paginator.output.model';
-import { likesStatuses } from '../../../utils';
+import { LikeStatuses } from '../../../utils';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { Post } from '../domain/post.entity';
@@ -54,7 +54,7 @@ export class PostsQueryRepository {
           .select('COUNT(lp.id)')
           .from(LikePost, 'lp')
           .where('lp.postId = p.id AND lp.status = :like', {
-            like: likesStatuses.like,
+            like: LikeStatuses.LIKE,
           });
       }, 'likesCount')
       // Подзапрос количества дизлайков поста
@@ -63,7 +63,7 @@ export class PostsQueryRepository {
           .select('COUNT(lp.id)')
           .from(LikePost, 'lp')
           .where('lp.postId = p.id AND lp.status = :dislike', {
-            dislike: likesStatuses.dislike,
+            dislike: LikeStatuses.DISLIKE,
           });
       }, 'dislikesCount')
       // Подзапрос статуса пользователя (лайк или дизлайк) для поста
@@ -92,7 +92,7 @@ export class PostsQueryRepository {
                 .from(LikePost, 'lp')
                 .leftJoin('lp.user', 'u')
                 .where('lp.postId = p.id AND lp.status = :status', {
-                  status: likesStatuses.like,
+                  status: LikeStatuses.LIKE,
                 })
                 .orderBy('lp.addedAt', 'DESC')
                 .limit(3),
@@ -144,7 +144,7 @@ export class PostsQueryRepository {
           .from(LikePost, 'lp')
           .where('lp.postId = :id AND lp.status = :like', {
             id,
-            like: likesStatuses.like,
+            like: LikeStatuses.LIKE,
           });
       }, 'likesCount')
       // Подзапрос количества дизлайков поста
@@ -154,7 +154,7 @@ export class PostsQueryRepository {
           .from(LikePost, 'lp')
           .where('lp.postId = :id AND lp.status = :dislike', {
             id,
-            dislike: likesStatuses.dislike,
+            dislike: LikeStatuses.DISLIKE,
           });
       }, 'dislikesCount')
       // Подзапрос статуса пользователя (лайк или дизлайк) для поста
@@ -185,7 +185,7 @@ export class PostsQueryRepository {
                 .leftJoin('lp.user', 'u')
                 .where('lp.postId = :id AND lp.status = :status', {
                   id,
-                  status: likesStatuses.like,
+                  status: LikeStatuses.LIKE,
                 })
                 .orderBy('lp.addedAt', 'DESC')
                 .limit(3),
@@ -239,7 +239,7 @@ export class PostsQueryRepository {
           .select('COUNT(lp.id)')
           .from(LikePost, 'lp')
           .where('lp.postId = p.id AND lp.status = :like', {
-            like: likesStatuses.like,
+            like: LikeStatuses.LIKE,
           });
       }, 'likesCount')
       // Подзапрос количества дизлайков поста
@@ -248,7 +248,7 @@ export class PostsQueryRepository {
           .select('COUNT(lp.id)')
           .from(LikePost, 'lp')
           .where('lp.postId = p.id AND lp.status = :dislike', {
-            dislike: likesStatuses.dislike,
+            dislike: LikeStatuses.DISLIKE,
           });
       }, 'dislikesCount')
       // Подзапрос статуса пользователя (лайк или дизлайк) для поста
@@ -277,7 +277,7 @@ export class PostsQueryRepository {
                 .from(LikePost, 'lp')
                 .leftJoin('lp.user', 'u')
                 .where('lp.postId = p.id AND lp.status = :status', {
-                  status: likesStatuses.like,
+                  status: LikeStatuses.LIKE,
                 })
                 .orderBy('lp.addedAt', 'DESC')
                 .limit(3),
@@ -322,7 +322,7 @@ export class PostsQueryRepository {
       extendedLikesInfo: {
         likesCount: +post.likesCount,
         dislikesCount: +post.dislikesCount,
-        myStatus: post.myStatus || likesStatuses.none,
+        myStatus: post.myStatus || LikeStatuses.NONE,
         newestLikes:
           post.newestLikes && post.newestLikes.length > 0
             ? post.newestLikes.map((like) => {

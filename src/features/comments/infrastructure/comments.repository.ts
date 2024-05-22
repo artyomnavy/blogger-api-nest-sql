@@ -6,7 +6,7 @@ import {
 import { CreateAndUpdateCommentModel } from '../api/models/comment.input.model';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
-import { likesStatuses } from '../../../utils';
+import { LikeStatuses } from '../../../utils';
 import { Comment } from '../domain/comment.entity';
 
 @Injectable()
@@ -39,7 +39,7 @@ export class CommentsRepository {
       likesInfo: {
         likesCount: 0,
         dislikesCount: 0,
-        myStatus: likesStatuses.none,
+        myStatus: LikeStatuses.NONE,
       },
     };
   }
