@@ -552,7 +552,38 @@ describe('Quiz testing (e2e)', () => {
       .auth(accessTokenTwo, { type: 'bearer' })
       .expect(HTTP_STATUSES.OK_200);
 
-    expect(foundQuiz.body).toStrictEqual(quiz);
+    expect(foundQuiz.body).toStrictEqual({
+      id: quiz.id,
+      firstPlayerProgress: {
+        answers: [],
+        player: {
+          id: playerOne.id,
+          login: playerOne.login,
+        },
+        score: 0,
+      },
+      secondPlayerProgress: {
+        answers: [],
+        player: {
+          id: playerTwo.id,
+          login: playerTwo.login,
+        },
+        score: 0,
+      },
+      questions: [
+        { id: expect.any(String), body: expect.any(String) },
+        { id: expect.any(String), body: expect.any(String) },
+        { id: expect.any(String), body: expect.any(String) },
+        { id: expect.any(String), body: expect.any(String) },
+        { id: expect.any(String), body: expect.any(String) },
+      ],
+      status: QuizStatuses.ACTIVE,
+      pairCreatedDate: expect.any(String),
+      startGameDate: expect.any(String),
+      finishGameDate: null,
+    });
+
+    quiz = foundQuiz.body;
   });
 
   it('+ GET found unfinished quiz', async () => {
@@ -567,7 +598,7 @@ describe('Quiz testing (e2e)', () => {
   // Create answers for quiz questions
   it('+ POST create answers for quiz', async () => {
     // Found questions for current quiz
-    const questionsCurrentQuiz = await quizEntity
+    const currentQuizWithQuestions = await quizEntity
       .createQueryBuilder('qz')
       .select([
         'qz.id',
@@ -580,25 +611,26 @@ describe('Quiz testing (e2e)', () => {
       ])
       .leftJoinAndSelect('qz.questions', 'q')
       .where('qz.id = :id', { id: quiz.id })
+      .orderBy('q.createdAt', 'DESC')
       .getOne();
 
     const incorrectAnswer = {
       answer: 'incorrect',
     };
 
-    const answerOneForPlayerOne = {
-      answer: questionsCurrentQuiz!.questions[0].correctAnswers[0],
+    const correctAnswerOne = {
+      answer: currentQuizWithQuestions!.questions[0].correctAnswers[0],
     };
 
     // First answers players
     const createAnswerOneByPlayerOne = await request(server)
       .post(`${Paths.quiz}/my-current/answers`)
       .auth(accessTokenOne, { type: 'bearer' })
-      .send(answerOneForPlayerOne)
+      .send(correctAnswerOne)
       .expect(HTTP_STATUSES.OK_200);
 
     expect(createAnswerOneByPlayerOne.body).toStrictEqual({
-      questionId: questionsCurrentQuiz!.questions[0].id,
+      questionId: currentQuizWithQuestions!.questions[0].id,
       answerStatus: AnswerStatuses.CORRECT,
       addedAt: expect.any(String),
     });
@@ -610,7 +642,7 @@ describe('Quiz testing (e2e)', () => {
       .expect(HTTP_STATUSES.OK_200);
 
     expect(createAnswerOneByPlayerTwo.body).toStrictEqual({
-      questionId: questionsCurrentQuiz!.questions[0].id,
+      questionId: currentQuizWithQuestions!.questions[0].id,
       answerStatus: AnswerStatuses.INCORRECT,
       addedAt: expect.any(String),
     });
@@ -623,7 +655,7 @@ describe('Quiz testing (e2e)', () => {
       .expect(HTTP_STATUSES.OK_200);
 
     expect(createAnswerTwoByPlayerOne.body).toStrictEqual({
-      questionId: questionsCurrentQuiz!.questions[1].id,
+      questionId: currentQuizWithQuestions!.questions[1].id,
       answerStatus: AnswerStatuses.INCORRECT,
       addedAt: expect.any(String),
     });
@@ -635,7 +667,7 @@ describe('Quiz testing (e2e)', () => {
       .expect(HTTP_STATUSES.OK_200);
 
     expect(createAnswerTwoByPlayerTwo.body).toStrictEqual({
-      questionId: questionsCurrentQuiz!.questions[1].id,
+      questionId: currentQuizWithQuestions!.questions[1].id,
       answerStatus: AnswerStatuses.INCORRECT,
       addedAt: expect.any(String),
     });
@@ -648,7 +680,7 @@ describe('Quiz testing (e2e)', () => {
       .expect(HTTP_STATUSES.OK_200);
 
     expect(createAnswerThreeByPlayerOne.body).toStrictEqual({
-      questionId: questionsCurrentQuiz!.questions[2].id,
+      questionId: currentQuizWithQuestions!.questions[2].id,
       answerStatus: AnswerStatuses.INCORRECT,
       addedAt: expect.any(String),
     });
@@ -660,7 +692,7 @@ describe('Quiz testing (e2e)', () => {
       .expect(HTTP_STATUSES.OK_200);
 
     expect(createAnswerThreeByPlayerTwo.body).toStrictEqual({
-      questionId: questionsCurrentQuiz!.questions[2].id,
+      questionId: currentQuizWithQuestions!.questions[2].id,
       answerStatus: AnswerStatuses.INCORRECT,
       addedAt: expect.any(String),
     });
@@ -673,7 +705,7 @@ describe('Quiz testing (e2e)', () => {
       .expect(HTTP_STATUSES.OK_200);
 
     expect(createAnswerFourByPlayerOne.body).toStrictEqual({
-      questionId: questionsCurrentQuiz!.questions[3].id,
+      questionId: currentQuizWithQuestions!.questions[3].id,
       answerStatus: AnswerStatuses.INCORRECT,
       addedAt: expect.any(String),
     });
@@ -685,7 +717,7 @@ describe('Quiz testing (e2e)', () => {
       .expect(HTTP_STATUSES.OK_200);
 
     expect(createAnswerFourByPlayerTwo.body).toStrictEqual({
-      questionId: questionsCurrentQuiz!.questions[3].id,
+      questionId: currentQuizWithQuestions!.questions[3].id,
       answerStatus: AnswerStatuses.INCORRECT,
       addedAt: expect.any(String),
     });
@@ -698,7 +730,7 @@ describe('Quiz testing (e2e)', () => {
       .expect(HTTP_STATUSES.OK_200);
 
     expect(createAnswerFiveByPlayerOne.body).toStrictEqual({
-      questionId: questionsCurrentQuiz!.questions[4].id,
+      questionId: currentQuizWithQuestions!.questions[4].id,
       answerStatus: AnswerStatuses.INCORRECT,
       addedAt: expect.any(String),
     });
@@ -710,7 +742,7 @@ describe('Quiz testing (e2e)', () => {
       .expect(HTTP_STATUSES.OK_200);
 
     expect(createAnswerFiveByPlayerTwo.body).toStrictEqual({
-      questionId: questionsCurrentQuiz!.questions[4].id,
+      questionId: currentQuizWithQuestions!.questions[4].id,
       answerStatus: AnswerStatuses.INCORRECT,
       addedAt: expect.any(String),
     });
@@ -724,32 +756,32 @@ describe('Quiz testing (e2e)', () => {
     quiz = foundQuiz.body;
 
     expect(quiz).toStrictEqual({
-      id: questionsCurrentQuiz!.id,
+      id: currentQuizWithQuestions!.id,
       firstPlayerProgress: {
         answers: [
           {
-            questionId: questionsCurrentQuiz!.questions[0].id,
+            questionId: currentQuizWithQuestions!.questions[4].id,
+            answerStatus: AnswerStatuses.INCORRECT,
+            addedAt: expect.any(String),
+          },
+          {
+            questionId: currentQuizWithQuestions!.questions[3].id,
+            answerStatus: AnswerStatuses.INCORRECT,
+            addedAt: expect.any(String),
+          },
+          {
+            questionId: currentQuizWithQuestions!.questions[2].id,
+            answerStatus: AnswerStatuses.INCORRECT,
+            addedAt: expect.any(String),
+          },
+          {
+            questionId: currentQuizWithQuestions!.questions[1].id,
+            answerStatus: AnswerStatuses.INCORRECT,
+            addedAt: expect.any(String),
+          },
+          {
+            questionId: currentQuizWithQuestions!.questions[0].id,
             answerStatus: AnswerStatuses.CORRECT,
-            addedAt: expect.any(String),
-          },
-          {
-            questionId: questionsCurrentQuiz!.questions[1].id,
-            answerStatus: AnswerStatuses.INCORRECT,
-            addedAt: expect.any(String),
-          },
-          {
-            questionId: questionsCurrentQuiz!.questions[2].id,
-            answerStatus: AnswerStatuses.INCORRECT,
-            addedAt: expect.any(String),
-          },
-          {
-            questionId: questionsCurrentQuiz!.questions[3].id,
-            answerStatus: AnswerStatuses.INCORRECT,
-            addedAt: expect.any(String),
-          },
-          {
-            questionId: questionsCurrentQuiz!.questions[4].id,
-            answerStatus: AnswerStatuses.INCORRECT,
             addedAt: expect.any(String),
           },
         ],
@@ -762,27 +794,27 @@ describe('Quiz testing (e2e)', () => {
       secondPlayerProgress: {
         answers: [
           {
-            questionId: questionsCurrentQuiz!.questions[0].id,
+            questionId: currentQuizWithQuestions!.questions[4].id,
             answerStatus: AnswerStatuses.INCORRECT,
             addedAt: expect.any(String),
           },
           {
-            questionId: questionsCurrentQuiz!.questions[1].id,
+            questionId: currentQuizWithQuestions!.questions[3].id,
             answerStatus: AnswerStatuses.INCORRECT,
             addedAt: expect.any(String),
           },
           {
-            questionId: questionsCurrentQuiz!.questions[2].id,
+            questionId: currentQuizWithQuestions!.questions[2].id,
             answerStatus: AnswerStatuses.INCORRECT,
             addedAt: expect.any(String),
           },
           {
-            questionId: questionsCurrentQuiz!.questions[3].id,
+            questionId: currentQuizWithQuestions!.questions[1].id,
             answerStatus: AnswerStatuses.INCORRECT,
             addedAt: expect.any(String),
           },
           {
-            questionId: questionsCurrentQuiz!.questions[4].id,
+            questionId: currentQuizWithQuestions!.questions[0].id,
             answerStatus: AnswerStatuses.INCORRECT,
             addedAt: expect.any(String),
           },

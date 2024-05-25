@@ -63,6 +63,9 @@ export class QuizzesQueryRepository {
       .leftJoin('qz.questions', 'qzq')
       .where('qz.status = :status', { status: QuizStatuses.ACTIVE })
       .andWhere('fpu.id = :id OR spu.id = :id', { id: id })
+      .orderBy('qzq.createdAt', 'DESC')
+      .addOrderBy('fpa.addedAt', 'DESC')
+      .addOrderBy('spa.addedAt', 'DESC')
       .getOne();
 
     if (!quiz) {
@@ -89,6 +92,7 @@ export class QuizzesQueryRepository {
       .leftJoinAndSelect('sps.player', 'spsu')
       .leftJoinAndSelect('qz.questions', 'q')
       .where('qz.status = :status', { status: pendingStatus })
+      .orderBy('q.createdAt', 'DESC')
       .getOne();
 
     if (!quiz) {
@@ -127,6 +131,9 @@ export class QuizzesQueryRepository {
       .andWhere('fpu.id = :playerId OR spu.id = :playerId', {
         playerId: playerId,
       })
+      .orderBy('qzq.createdAt', 'DESC')
+      .addOrderBy('fpa.addedAt', 'DESC')
+      .addOrderBy('spa.addedAt', 'DESC')
       .getOne();
 
     if (!quiz) {
@@ -155,6 +162,9 @@ export class QuizzesQueryRepository {
       .leftJoinAndSelect('spa.question', 'spaq')
       .leftJoinAndSelect('qz.questions', 'qzq')
       .where('qz.id = :id', { id: quizId })
+      .orderBy('qzq.createdAt', 'DESC')
+      .addOrderBy('fpa.addedAt', 'DESC')
+      .addOrderBy('spa.addedAt', 'DESC')
       .getOne();
 
     if (!quiz) {
