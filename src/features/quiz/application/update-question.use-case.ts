@@ -15,12 +15,10 @@ export class UpdateQuestionUseCase
   constructor(private readonly questionsRepository: QuestionsRepository) {}
 
   async execute(command: UpdateQuestionCommand): Promise<boolean> {
-    const updatedAt = new Date();
-
     return await this.questionsRepository.updateQuestion(
       command.id,
       command.updateData,
-      updatedAt,
+      new Date(),
     );
   }
 }

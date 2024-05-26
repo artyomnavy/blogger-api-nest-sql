@@ -170,7 +170,7 @@ export class QuestionsQueryRepository {
       correctAnswers: [...question.correctAnswers],
       published: question.published,
       createdAt: question.createdAt.toISOString(),
-      updatedAt: question.updatedAt ? question.updatedAt.toISOString() : 'null',
+      updatedAt: question.updatedAt ? question.updatedAt.toISOString() : null,
     };
   }
 }

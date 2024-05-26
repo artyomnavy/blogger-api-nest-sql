@@ -87,7 +87,7 @@ describe('Quiz testing (e2e)', () => {
       correctAnswers: createData.correctAnswers,
       published: false,
       createdAt: expect.any(String),
-      updatedAt: expect.any(String),
+      updatedAt: null,
     });
 
     const foundQuestions = await request(server)
@@ -215,7 +215,7 @@ describe('Quiz testing (e2e)', () => {
       correctAnswers: questionOneData.correctAnswers,
       published: false,
       createdAt: expect.any(String),
-      updatedAt: expect.any(String),
+      updatedAt: null,
     });
 
     const createQuestionTwo = await createEntitiesTestManager.createQuestion(
@@ -231,7 +231,7 @@ describe('Quiz testing (e2e)', () => {
       correctAnswers: questionTwoData.correctAnswers,
       published: false,
       createdAt: expect.any(String),
-      updatedAt: expect.any(String),
+      updatedAt: null,
     });
 
     const createQuestionThree = await createEntitiesTestManager.createQuestion(
@@ -247,7 +247,7 @@ describe('Quiz testing (e2e)', () => {
       correctAnswers: questionThreeData.correctAnswers,
       published: false,
       createdAt: expect.any(String),
-      updatedAt: expect.any(String),
+      updatedAt: null,
     });
 
     const createQuestionFour = await createEntitiesTestManager.createQuestion(
@@ -263,7 +263,7 @@ describe('Quiz testing (e2e)', () => {
       correctAnswers: questionFourData.correctAnswers,
       published: false,
       createdAt: expect.any(String),
-      updatedAt: expect.any(String),
+      updatedAt: null,
     });
 
     const createQuestionFive = await createEntitiesTestManager.createQuestion(
@@ -279,7 +279,7 @@ describe('Quiz testing (e2e)', () => {
       correctAnswers: questionFiveData.correctAnswers,
       published: false,
       createdAt: expect.any(String),
-      updatedAt: expect.any(String),
+      updatedAt: null,
     });
 
     const createQuestionSix = await createEntitiesTestManager.createQuestion(
@@ -295,7 +295,7 @@ describe('Quiz testing (e2e)', () => {
       correctAnswers: questionSixData.correctAnswers,
       published: false,
       createdAt: expect.any(String),
-      updatedAt: expect.any(String),
+      updatedAt: null,
     });
 
     // Published 6 questions

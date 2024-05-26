@@ -75,7 +75,9 @@ export class QuizPublicController {
     @CurrentUserId() playerId: string,
   ): Promise<QuizOutputModel> {
     const quiz =
-      await this.quizzesQueryRepository.getQuizByPlayerIdInActivePair(playerId);
+      await this.quizzesQueryRepository.getQuizByPlayerIdForConnection(
+        playerId,
+      );
 
     if (quiz) {
       throw new ForbiddenException(
@@ -102,7 +104,7 @@ export class QuizPublicController {
     @Body() createModel: CreateAnswerModel,
   ): Promise<AnswerOutputModel> {
     const quiz =
-      await this.quizzesQueryRepository.getQuizByPlayerIdInActivePair(playerId);
+      await this.quizzesQueryRepository.getQuizByPlayerIdForAnswer(playerId);
 
     if (
       !quiz ||

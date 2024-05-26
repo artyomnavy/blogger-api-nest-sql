@@ -11,7 +11,7 @@ export class QuizzesQueryRepository {
     @InjectRepository(Quiz)
     private readonly quizQueryRepository: Repository<Quiz>,
   ) {}
-  async getQuizByPlayerIdInActivePair(id: string): Promise<Quiz | null> {
+  async getQuizByPlayerIdForConnection(id: string): Promise<Quiz | null> {
     const quiz = await this.quizQueryRepository
       .createQueryBuilder('qz')
       .select([
@@ -56,13 +56,54 @@ export class QuizzesQueryRepository {
       .leftJoin('fps.player', 'fpu')
       .leftJoin('fps.answers', 'fpa')
       .leftJoin('fpa.question', 'fpaq')
-      .leftJoin('qz.secondPlayerSession', 'sps')
-      .leftJoin('sps.player', 'spu')
-      .leftJoin('sps.answers', 'spa')
-      .leftJoin('spa.question', 'spaq')
+      .leftJoin('qz.secondPlayerSession', 'sps', 'sps.id IS NOT NULL')
+      .leftJoin('sps.player', 'spu', 'sps.id IS NOT NULL')
+      .leftJoin('sps.answers', 'spa', 'sps.id IS NOT NULL')
+      .leftJoin('spa.question', 'spaq', 'sps.id IS NOT NULL')
       .leftJoin('qz.questions', 'qzq')
-      .where('qz.status = :status', { status: QuizStatuses.ACTIVE })
-      .andWhere('fpu.id = :id OR spu.id = :id', { id: id })
+      .where('fpu.id = :id OR (spu.id = :id AND sps.id IS NOT NULL)', {
+        id: id,
+      })
+      .andWhere('qz.status = :pending OR qz.status = :active', {
+        pending: QuizStatuses.PENDING_SECOND_PLAYER,
+        active: QuizStatuses.ACTIVE,
+      })
+      .orderBy('qzq.createdAt', 'DESC')
+      .addOrderBy('fpa.addedAt', 'DESC')
+      .addOrderBy('spa.addedAt', 'DESC')
+      .getOne();
+
+    if (!quiz) {
+      return null;
+    } else {
+      return quiz;
+    }
+  }
+  async getQuizByPlayerIdForAnswer(id: string): Promise<Quiz | null> {
+    const quiz = await this.quizQueryRepository
+      .createQueryBuilder('qz')
+      .select([
+        'qz.id',
+        'qz.status',
+        'qz.pairCreatedDate',
+        'qz.startGameDate',
+        'qz.finishGameDate',
+      ])
+      .leftJoinAndSelect('qz.firstPlayerSession', 'fps')
+      .leftJoinAndSelect('fps.player', 'fpu')
+      .leftJoinAndSelect('fps.answers', 'fpa')
+      .leftJoinAndSelect('fpa.question', 'fpaq')
+      .leftJoinAndSelect('qz.secondPlayerSession', 'sps')
+      .leftJoinAndSelect('sps.player', 'spu')
+      .leftJoinAndSelect('sps.answers', 'spa')
+      .leftJoinAndSelect('spa.question', 'spaq')
+      .leftJoinAndSelect('qz.questions', 'qzq')
+      .where('qz.status = :status', {
+        status: QuizStatuses.ACTIVE,
+      })
+      .andWhere('fpu.id = :playerId OR spu.id = :playerId', {
+        playerId: id,
+      })
       .orderBy('qzq.createdAt', 'DESC')
       .addOrderBy('fpa.addedAt', 'DESC')
       .addOrderBy('spa.addedAt', 'DESC')
