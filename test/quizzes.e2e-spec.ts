@@ -477,7 +477,7 @@ describe('Quiz testing (e2e)', () => {
     const createNewPairForQuiz = await request(server)
       .post(`${Paths.quiz}/connection`)
       .auth(accessTokenOne, { type: 'bearer' })
-      .expect(HTTP_STATUSES.CREATED_201);
+      .expect(HTTP_STATUSES.OK_200);
 
     quiz = createNewPairForQuiz.body;
 
@@ -491,15 +491,8 @@ describe('Quiz testing (e2e)', () => {
         },
         score: 0,
       },
-      secondPlayerProgress: {
-        answers: [],
-        player: {
-          id: null,
-          login: null,
-        },
-        score: 0,
-      },
-      questions: [],
+      secondPlayerProgress: null,
+      questions: null,
       status: QuizStatuses.PENDING_SECOND_PLAYER,
       pairCreatedDate: expect.any(String),
       startGameDate: null,
@@ -510,7 +503,7 @@ describe('Quiz testing (e2e)', () => {
     const connectQuiz = await request(server)
       .post(`${Paths.quiz}/connection`)
       .auth(accessTokenTwo, { type: 'bearer' })
-      .expect(HTTP_STATUSES.CREATED_201);
+      .expect(HTTP_STATUSES.OK_200);
 
     quiz = connectQuiz.body;
 

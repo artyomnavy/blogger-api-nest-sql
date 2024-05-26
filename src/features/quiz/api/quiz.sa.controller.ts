@@ -48,7 +48,9 @@ export class QuizSAController {
   @Post()
   @UseGuards(BasicAuthGuard)
   @HttpCode(HTTP_STATUSES.CREATED_201)
-  async createQuestion(@Body() createModel: CreateAndUpdateQuestionModel) {
+  async createQuestion(
+    @Body() createModel: CreateAndUpdateQuestionModel,
+  ): Promise<QuestionOutputModel> {
     const newQuestion = await this.commandBus.execute(
       new CreateQuestionCommand(createModel),
     );

@@ -32,14 +32,11 @@ export class CreateOrConnectQuizUseCase
     }
 
     // Для существующего пользователя (игрока) создаем сессию игры
-    const playerSessionId = uuidv4();
-    const score = 0;
-
     const newPlayerSession =
       await this.playersSessionsRepository.createPlayerSession({
-        id: playerSessionId,
+        id: uuidv4(),
         player,
-        score: score,
+        score: 0,
       });
 
     // Проверяем есть ли игра, ожидающая второго игрока
@@ -68,13 +65,11 @@ export class CreateOrConnectQuizUseCase
     const randomQuestions =
       await this.questionsQueryRepository.getFiveRandomQuestions();
 
-    const startGameDate = new Date();
-
     const connectQuiz = await this.quizzesRepository.connectingToQuiz(quiz, {
       secondPlayerSession: newPlayerSession,
       status: QuizStatuses.ACTIVE,
       questions: randomQuestions,
-      startGameDate: startGameDate,
+      startGameDate: new Date(),
     });
 
     return connectQuiz;

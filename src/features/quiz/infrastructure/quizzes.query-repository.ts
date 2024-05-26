@@ -218,52 +218,47 @@ export class QuizzesQueryRepository {
     return {
       id: quiz.id,
       firstPlayerProgress: {
-        answers:
-          quiz.firstPlayerSession && quiz.firstPlayerSession.answers
-            ? quiz.firstPlayerSession.answers.map((answer) => {
-                return {
-                  questionId: answer.question.id,
-                  answerStatus: answer.answerStatus,
-                  addedAt: answer.addedAt.toISOString(),
-                };
-              })
-            : [],
+        answers: quiz.firstPlayerSession.answers
+          ? quiz.firstPlayerSession.answers.map((answer) => {
+              return {
+                questionId: answer.question.id,
+                answerStatus: answer.answerStatus,
+                addedAt: answer.addedAt.toISOString(),
+              };
+            })
+          : [],
         player: {
           id: quiz.firstPlayerSession.player.id,
           login: quiz.firstPlayerSession.player.login,
         },
         score: quiz.firstPlayerSession.score,
       },
-      secondPlayerProgress: {
-        answers:
-          quiz.secondPlayerSession && quiz.secondPlayerSession.answers
-            ? quiz.secondPlayerSession.answers.map((answer) => {
-                return {
-                  questionId: answer.question.id,
-                  answerStatus: answer.answerStatus,
-                  addedAt: answer.addedAt.toISOString(),
-                };
-              })
-            : [],
-        player: quiz.secondPlayerSession
-          ? {
+      secondPlayerProgress: quiz.secondPlayerSession
+        ? {
+            answers: quiz.secondPlayerSession.answers
+              ? quiz.secondPlayerSession.answers.map((answer) => {
+                  return {
+                    questionId: answer.question.id,
+                    answerStatus: answer.answerStatus,
+                    addedAt: answer.addedAt.toISOString(),
+                  };
+                })
+              : [],
+            player: {
               id: quiz.secondPlayerSession.player.id,
               login: quiz.secondPlayerSession.player.login,
-            }
-          : {
-              id: null,
-              login: null,
             },
-        score: quiz.secondPlayerSession ? quiz.secondPlayerSession.score : 0,
-      },
-      questions: quiz.questions
+            score: quiz.secondPlayerSession.score,
+          }
+        : null,
+      questions: quiz.secondPlayerSession
         ? quiz.questions.map((question) => {
             return {
               id: question.id,
               body: question.body,
             };
           })
-        : [],
+        : null,
       status: quiz.status,
       pairCreatedDate: quiz.pairCreatedDate.toISOString(),
       startGameDate: quiz.startGameDate

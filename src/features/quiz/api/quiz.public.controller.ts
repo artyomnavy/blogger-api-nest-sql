@@ -38,8 +38,8 @@ export class QuizPublicController {
       QuizStatuses.PENDING_SECOND_PLAYER,
     );
 
-    if (!quiz) {
-      throw new NotFoundException(`Quiz not found`);
+    if (!quiz || quiz.status === QuizStatuses.FINISHED) {
+      throw new NotFoundException(`Player not found in active quiz`);
     }
 
     return quiz;
@@ -58,8 +58,11 @@ export class QuizPublicController {
     }
 
     if (
-      quiz.firstPlayerProgress.player.id !== playerId &&
-      quiz.secondPlayerProgress.player.id !== playerId
+      (quiz.firstPlayerProgress.player.id !== playerId &&
+        !quiz.secondPlayerProgress) ||
+      (quiz.firstPlayerProgress.player.id !== playerId &&
+        quiz.secondPlayerProgress !== null &&
+        quiz.secondPlayerProgress.player.id !== playerId)
     ) {
       throw new ForbiddenException(
         'Player tries to get pair in which he is not participant',
@@ -71,6 +74,7 @@ export class QuizPublicController {
 
   @Post('connection')
   @UseGuards(JwtBearerAuthGuard)
+  @HttpCode(HTTP_STATUSES.OK_200)
   async createOrConnectQuiz(
     @CurrentUserId() playerId: string,
   ): Promise<QuizOutputModel> {

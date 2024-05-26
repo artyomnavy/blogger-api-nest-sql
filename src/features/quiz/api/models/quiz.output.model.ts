@@ -5,8 +5,8 @@ import { QuestionOutputQuizModel } from './question.output.model';
 export class QuizOutputModel {
   id: string;
   firstPlayerProgress: PlayerSessionOutputQuizModel;
-  secondPlayerProgress: PlayerSessionOutputQuizModel;
-  questions: QuestionOutputQuizModel[] | [];
+  secondPlayerProgress: PlayerSessionOutputQuizModel | null;
+  questions: QuestionOutputQuizModel[] | null;
   status: QuizStatuses;
   pairCreatedDate: string;
   startGameDate: string | null;

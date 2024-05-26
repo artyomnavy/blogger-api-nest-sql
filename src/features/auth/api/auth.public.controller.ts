@@ -45,7 +45,7 @@ export class AuthController {
   ) {}
 
   @Post('login')
-  @UseGuards(ThrottlerGuard, LocalAuthGuard)
+  @UseGuards(/*ThrottlerGuard,*/ LocalAuthGuard)
   @HttpCode(HTTP_STATUSES.OK_200)
   async loginUser(
     @Body() authModel: AuthLoginModel,
@@ -71,7 +71,7 @@ export class AuthController {
   }
 
   @Post('password-recovery')
-  @UseGuards(ThrottlerGuard)
+  // @UseGuards(ThrottlerGuard)
   @HttpCode(HTTP_STATUSES.NO_CONTENT_204)
   async sendEmailForRecoveryPassword(
     @Body() recoveryModel: PasswordRecoveryModel,
@@ -97,7 +97,7 @@ export class AuthController {
   }
 
   @Post('new-password')
-  @UseGuards(ThrottlerGuard, RecoveryPasswordAuthGuard)
+  @UseGuards(/*ThrottlerGuard,*/ RecoveryPasswordAuthGuard)
   @HttpCode(HTTP_STATUSES.NO_CONTENT_204)
   async changePasswordForRecovery(
     @Body() recoveryModel: NewPasswordRecoveryModel,
@@ -156,7 +156,7 @@ export class AuthController {
     }
   }
   @Post('registration')
-  @UseGuards(ThrottlerGuard)
+  // @UseGuards(ThrottlerGuard)
   @HttpCode(HTTP_STATUSES.NO_CONTENT_204)
   async createUserByRegistration(@Body() createModel: CreateUserModel) {
     const user = await this.commandBus.execute(
@@ -172,7 +172,7 @@ export class AuthController {
     return;
   }
   @Post('registration-confirmation')
-  @UseGuards(ThrottlerGuard)
+  // @UseGuards(ThrottlerGuard)
   @HttpCode(HTTP_STATUSES.NO_CONTENT_204)
   async sendEmailForConfirmRegistration(
     @Body() confirmModel: ConfirmCodeModel,
@@ -182,7 +182,7 @@ export class AuthController {
     return;
   }
   @Post('registration-email-resending')
-  @UseGuards(ThrottlerGuard)
+  // @UseGuards(ThrottlerGuard)
   @HttpCode(HTTP_STATUSES.NO_CONTENT_204)
   async resendEmailForConfirmRegistration(
     @Body() confirmModel: RegistrationEmailResendModel,
