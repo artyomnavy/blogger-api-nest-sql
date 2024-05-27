@@ -98,11 +98,11 @@ export class QuizzesQueryRepository {
       .leftJoinAndSelect('sps.answers', 'spa')
       .leftJoinAndSelect('spa.question', 'spaq')
       .leftJoinAndSelect('qz.questions', 'qzq')
-      .where('qz.status = :status', {
-        status: QuizStatuses.ACTIVE,
-      })
-      .andWhere('fpu.id = :playerId OR spu.id = :playerId', {
+      .where('fpu.id = :playerId OR spu.id = :playerId', {
         playerId: id,
+      })
+      .andWhere('qz.status = :status', {
+        status: QuizStatuses.ACTIVE,
       })
       .orderBy('qzq.createdAt', 'DESC')
       .addOrderBy('fpa.addedAt', 'DESC')
@@ -144,8 +144,6 @@ export class QuizzesQueryRepository {
   }
   async getCurrentQuizForPlayer(
     playerId: string,
-    activeStatus: QuizStatuses,
-    pendingStatus: QuizStatuses,
   ): Promise<QuizOutputModel | null> {
     const quiz = await this.quizQueryRepository
       .createQueryBuilder('qz')
@@ -165,17 +163,19 @@ export class QuizzesQueryRepository {
       .leftJoinAndSelect('sps.answers', 'spa')
       .leftJoinAndSelect('spa.question', 'spaq')
       .leftJoinAndSelect('qz.questions', 'qzq')
-      .where('qz.status = :active OR qz.status = :pending', {
-        active: activeStatus,
-        pending: pendingStatus,
+      .where('fpu.id = :playerId OR spu.id = :playerId', {
+        playerId,
       })
-      .andWhere('fpu.id = :playerId OR spu.id = :playerId', {
-        playerId: playerId,
+      .andWhere('qz.status = :active OR qz.status = :pending', {
+        active: QuizStatuses.ACTIVE,
+        pending: QuizStatuses.PENDING_SECOND_PLAYER,
       })
       .orderBy('qzq.createdAt', 'DESC')
       .addOrderBy('fpa.addedAt', 'DESC')
       .addOrderBy('spa.addedAt', 'DESC')
       .getOne();
+
+    // console.log(quiz, 'quiz in repo');
 
     if (!quiz) {
       return null;

@@ -32,13 +32,10 @@ export class QuizPublicController {
   async getCurrentQuiz(
     @CurrentUserId() playerId: string,
   ): Promise<QuizOutputModel> {
-    const quiz = await this.quizzesQueryRepository.getCurrentQuizForPlayer(
-      playerId,
-      QuizStatuses.ACTIVE,
-      QuizStatuses.PENDING_SECOND_PLAYER,
-    );
+    const quiz =
+      await this.quizzesQueryRepository.getCurrentQuizForPlayer(playerId);
 
-    if (!quiz || quiz.status === QuizStatuses.FINISHED) {
+    if (!quiz) {
       throw new NotFoundException(`Player not found in active quiz`);
     }
 
