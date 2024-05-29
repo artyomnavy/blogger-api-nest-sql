@@ -33,13 +33,13 @@ export class CreateAnswerUseCase
     command: CreateAnswerCommand,
   ): Promise<AnswerOutputModel | null> {
     // Находим сессию игры и ответы для текущего игрока
-    let currentPlayerSessionId: string;
-    let currentAnswers: Answer[];
+    // Присваиваем currentPlayerSessionId и currentAnswers значения по умолчанию
+    let currentPlayerSessionId = command.quiz.firstPlayerSession.id;
+    let currentAnswers = command.quiz.firstPlayerSession.answers;
 
-    if (command.playerId === command.quiz.firstPlayerSession.player.id) {
-      currentPlayerSessionId = command.quiz.firstPlayerSession.id;
-      currentAnswers = command.quiz.firstPlayerSession.answers;
-    } else {
+    // Если id игрока принадлежит второму игроку, то меняем значения переменных
+    // currentPlayerSessionId и currentAnswers
+    if (command.playerId === command.quiz.secondPlayerSession.player.id) {
       currentPlayerSessionId = command.quiz.secondPlayerSession.id;
       currentAnswers = command.quiz.secondPlayerSession.answers;
     }

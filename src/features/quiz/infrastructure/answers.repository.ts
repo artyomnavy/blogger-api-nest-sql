@@ -20,12 +20,18 @@ export class AnswersRepository {
     newAnswer.playerSession = answer.playerSession;
     newAnswer.question = answer.question;
 
-    const createAnswer = await this.answersRepository.save(newAnswer);
+    await this.answersRepository
+      .createQueryBuilder()
+      .setLock('pessimistic_write')
+      .insert()
+      .into(Answer)
+      .values(newAnswer)
+      .execute();
 
     return {
-      questionId: createAnswer!.question.id,
-      answerStatus: createAnswer!.answerStatus,
-      addedAt: createAnswer!.addedAt.toISOString(),
+      questionId: answer.question.id,
+      answerStatus: answer.answerStatus,
+      addedAt: answer.addedAt.toISOString(),
     };
   }
 }

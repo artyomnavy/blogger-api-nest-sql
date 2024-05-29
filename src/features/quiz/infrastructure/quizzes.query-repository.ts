@@ -11,7 +11,9 @@ export class QuizzesQueryRepository {
     @InjectRepository(Quiz)
     private readonly quizQueryRepository: Repository<Quiz>,
   ) {}
-  async getQuizByPlayerIdForConnection(id: string): Promise<Quiz | null> {
+  async getQuizByPlayerIdAndPendingOrActiveStatusForConnection(
+    id: string,
+  ): Promise<Quiz | null> {
     const quiz = await this.quizQueryRepository
       .createQueryBuilder('qz')
       .select([
@@ -79,7 +81,9 @@ export class QuizzesQueryRepository {
       return quiz;
     }
   }
-  async getQuizByPlayerIdForAnswer(id: string): Promise<Quiz | null> {
+  async getQuizByPlayerIdAndActiveStatusForAnswer(
+    id: string,
+  ): Promise<Quiz | null> {
     const quiz = await this.quizQueryRepository
       .createQueryBuilder('qz')
       .select([
@@ -174,8 +178,6 @@ export class QuizzesQueryRepository {
       .addOrderBy('fpa.addedAt', 'DESC')
       .addOrderBy('spa.addedAt', 'DESC')
       .getOne();
-
-    // console.log(quiz, 'quiz in repo');
 
     if (!quiz) {
       return null;

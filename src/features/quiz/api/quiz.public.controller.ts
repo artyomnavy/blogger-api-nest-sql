@@ -76,7 +76,7 @@ export class QuizPublicController {
     @CurrentUserId() playerId: string,
   ): Promise<QuizOutputModel> {
     const quiz =
-      await this.quizzesQueryRepository.getQuizByPlayerIdForConnection(
+      await this.quizzesQueryRepository.getQuizByPlayerIdAndPendingOrActiveStatusForConnection(
         playerId,
       );
 
@@ -105,10 +105,13 @@ export class QuizPublicController {
     @Body() createModel: CreateAnswerModel,
   ): Promise<AnswerOutputModel> {
     const quiz =
-      await this.quizzesQueryRepository.getQuizByPlayerIdForAnswer(playerId);
+      await this.quizzesQueryRepository.getQuizByPlayerIdAndActiveStatusForAnswer(
+        playerId,
+      );
 
     if (
       !quiz ||
+      !quiz.startGameDate ||
       (playerId === quiz.firstPlayerSession.player.id &&
         quiz.firstPlayerSession.answers.length === 5) ||
       (playerId === quiz.secondPlayerSession.player.id &&
