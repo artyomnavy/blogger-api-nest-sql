@@ -1,6 +1,5 @@
 import { Quiz } from '../domain/quiz.entity';
 import { CommandHandler, ICommandHandler } from '@nestjs/cqrs';
-import { Answer } from '../domain/answer.entity';
 import { AnswerStatuses, QuizStatuses } from '../../../utils';
 import { PlayersSessionsQueryRepository } from '../infrastructure/players-sessions.query-repository';
 import { QuestionsQueryRepository } from '../infrastructure/questions.query-repository';
