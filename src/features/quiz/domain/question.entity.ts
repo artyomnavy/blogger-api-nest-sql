@@ -1,12 +1,12 @@
 import {
   Column,
   Entity,
-  ManyToMany,
+  JoinColumn,
   OneToMany,
   PrimaryGeneratedColumn,
 } from 'typeorm';
-import { Quiz } from './quiz.entity';
 import { Answer } from './answer.entity';
+import { QuizQuestion } from './quiz-question.entity';
 
 @Entity({ name: 'questions' })
 export class Question {
@@ -40,6 +40,12 @@ export class Question {
   @OneToMany(() => Answer, (a) => a.question)
   answers: Answer[];
 
-  @ManyToMany(() => Quiz, (qz) => qz.questions)
-  quizzes: Quiz[];
+  @OneToMany(() => QuizQuestion, (qq) => qq.question)
+  @JoinColumn({ name: 'quiz_question_id' })
+  quizQuestion: QuizQuestion[];
+
+  // Вариант реализации связи многие-ко-многим при которой typeorm автоматически создает
+  // промежуточную таблицу
+  // @ManyToMany(() => Quiz, (qz) => qz.questions)
+  // quizzes: Quiz[];
 }

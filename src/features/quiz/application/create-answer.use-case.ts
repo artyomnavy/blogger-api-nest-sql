@@ -1,8 +1,6 @@
 import { Quiz } from '../domain/quiz.entity';
 import { CommandHandler, ICommandHandler } from '@nestjs/cqrs';
 import { AnswerStatuses, QuizStatuses } from '../../../utils';
-import { PlayersSessionsQueryRepository } from '../infrastructure/players-sessions.query-repository';
-import { QuestionsQueryRepository } from '../infrastructure/questions.query-repository';
 import { v4 as uuidv4 } from 'uuid';
 import { PlayersSessionsRepository } from '../infrastructure/players-sessions.repository';
 import { AnswersRepository } from '../infrastructure/answers.repository';
@@ -23,8 +21,6 @@ export class CreateAnswerUseCase
   constructor(
     private readonly answersRepository: AnswersRepository,
     private readonly playersSessionsRepository: PlayersSessionsRepository,
-    private readonly playersSessionsQueryRepository: PlayersSessionsQueryRepository,
-    private readonly questionsQueryRepository: QuestionsQueryRepository,
     private readonly quizzesRepository: QuizzesRepository,
   ) {}
 
@@ -32,45 +28,29 @@ export class CreateAnswerUseCase
     command: CreateAnswerCommand,
   ): Promise<AnswerOutputModel | null> {
     // Находим сессию игры и ответы для текущего игрока
-    // Присваиваем currentPlayerSessionId и currentAnswers значения по умолчанию
-    let currentPlayerSessionId = command.quiz.firstPlayerSession.id;
+    // Присваиваем currentPlayerSession и currentAnswers значения по умолчанию
+    let currentPlayerSession = command.quiz.firstPlayerSession;
     let currentAnswers = command.quiz.firstPlayerSession.answers;
 
     // Если id игрока принадлежит второму игроку, то меняем значения переменных
-    // currentPlayerSessionId и currentAnswers
+    // currentPlayerSession и currentAnswers
     if (command.playerId === command.quiz.secondPlayerSession.player.id) {
-      currentPlayerSessionId = command.quiz.secondPlayerSession.id;
+      currentPlayerSession = command.quiz.secondPlayerSession;
       currentAnswers = command.quiz.secondPlayerSession.answers;
     }
 
-    // Находим сессию и вопрос для текущего игрока (для дальнейшего обновления, при
-    // необходимости, и добавления для создания текущего ответа)
-    let currentPlayerSession =
-      await this.playersSessionsQueryRepository.getPlayerSessionById(
-        currentPlayerSessionId,
-      );
-
-    if (!currentPlayerSession) {
-      return null;
-    }
-
+    // Находим текущий вопрос для создания текущего ответа игрока
     const currentQuestion =
-      await this.questionsQueryRepository.getQuestionByIdForQuiz(
-        command.quiz.questions[currentAnswers.length].id,
-      );
-
-    if (!currentQuestion) {
-      return null;
-    }
+      command.quiz.quizQuestion[currentAnswers.length].question;
 
     // Присваиваем статусу текущего ответа значение по умолчанию
     let answerStatus = AnswerStatuses.INCORRECT;
 
     // Проверяем есть ли ответ текущего игрока в массиве правильных ответов вопроса
     // Текущий вопрос определяем по количеству уже имеющихся ответов для текущего игрока
-    const isCorrectAnswer = command.quiz.questions[
+    const isCorrectAnswer = command.quiz.quizQuestion[
       currentAnswers.length ? currentAnswers.length : 0
-    ].correctAnswers.includes(command.bodyAnswer);
+    ].question.correctAnswers.includes(command.bodyAnswer);
 
     // Если текущий ответ правильный, то меняем ему статус и увеличиваем счет текущего игрока
     if (isCorrectAnswer) {

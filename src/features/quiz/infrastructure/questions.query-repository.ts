@@ -152,17 +152,6 @@ export class QuestionsQueryRepository {
 
     return randomQuestions;
   }
-  async getQuestionByIdForQuiz(questionId: string): Promise<Question | null> {
-    const question = await this.questionsQueryRepository.findOneBy({
-      id: questionId,
-    });
-
-    if (!question) {
-      return null;
-    } else {
-      return question;
-    }
-  }
   async questionMapper(question: QuestionModel): Promise<QuestionOutputModel> {
     return {
       id: question.id,

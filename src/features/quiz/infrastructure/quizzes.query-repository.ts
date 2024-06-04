@@ -49,10 +49,13 @@ export class QuizzesQueryRepository {
         'spa.addedAt',
         // question for second player
         'spaq.id AS questionId',
-        // questions for quiz
+        // quizzes and questions for quiz
         'qzq.id',
-        'qzq.body',
-        'qzq.correctAnswers',
+        'qzq.index',
+        // questions for quiz
+        'q.id',
+        'q.body',
+        'q.correctAnswers',
       ])
       .leftJoin('qz.firstPlayerSession', 'fps')
       .leftJoin('fps.player', 'fpu')
@@ -62,17 +65,18 @@ export class QuizzesQueryRepository {
       .leftJoin('sps.player', 'spu', 'sps.id IS NOT NULL')
       .leftJoin('sps.answers', 'spa', 'sps.id IS NOT NULL')
       .leftJoin('spa.question', 'spaq', 'sps.id IS NOT NULL')
-      .leftJoin('qz.questions', 'qzq')
-      .where('fpu.id = :id OR (spu.id = :id AND sps.id IS NOT NULL)', {
+      .leftJoin('qz.quizQuestion', 'qzq')
+      .leftJoin('qzq.question', 'q')
+      .where('(fpu.id = :id OR (spu.id = :id AND sps.id IS NOT NULL))', {
         id: id,
       })
-      .andWhere('qz.status = :pending OR qz.status = :active', {
+      .andWhere('(qz.status = :pending OR qz.status = :active)', {
         pending: QuizStatuses.PENDING_SECOND_PLAYER,
         active: QuizStatuses.ACTIVE,
       })
-      .orderBy('qzq.createdAt', 'DESC')
-      .addOrderBy('fpa.addedAt', 'DESC')
-      .addOrderBy('spa.addedAt', 'DESC')
+      .orderBy('qzq.index', 'ASC')
+      .addOrderBy('fpa.addedAt', 'ASC')
+      .addOrderBy('spa.addedAt', 'ASC')
       .getOne();
 
     if (!quiz) {
@@ -101,16 +105,17 @@ export class QuizzesQueryRepository {
       .leftJoinAndSelect('sps.player', 'spu')
       .leftJoinAndSelect('sps.answers', 'spa')
       .leftJoinAndSelect('spa.question', 'spaq')
-      .leftJoinAndSelect('qz.questions', 'qzq')
-      .where('fpu.id = :playerId OR spu.id = :playerId', {
+      .leftJoinAndSelect('qz.quizQuestion', 'qzq')
+      .leftJoinAndSelect('qzq.question', 'q')
+      .where('(fpu.id = :playerId OR spu.id = :playerId)', {
         playerId: id,
       })
       .andWhere('qz.status = :status', {
         status: QuizStatuses.ACTIVE,
       })
-      .orderBy('qzq.createdAt', 'DESC')
-      .addOrderBy('fpa.addedAt', 'DESC')
-      .addOrderBy('spa.addedAt', 'DESC')
+      .orderBy('qzq.index', 'ASC')
+      .addOrderBy('fpa.addedAt', 'ASC')
+      .addOrderBy('spa.addedAt', 'ASC')
       .getOne();
 
     if (!quiz) {
@@ -135,9 +140,10 @@ export class QuizzesQueryRepository {
       .leftJoinAndSelect('fps.player', 'fpsu')
       .leftJoinAndSelect('qz.secondPlayerSession', 'sps')
       .leftJoinAndSelect('sps.player', 'spsu')
-      .leftJoinAndSelect('qz.questions', 'q')
+      .leftJoinAndSelect('qz.quizQuestion', 'qzq')
+      .leftJoinAndSelect('qzq.question', 'q')
       .where('qz.status = :status', { status: pendingStatus })
-      .orderBy('q.createdAt', 'DESC')
+      .orderBy('qzq.index', 'ASC')
       .getOne();
 
     if (!quiz) {
@@ -166,17 +172,37 @@ export class QuizzesQueryRepository {
       .leftJoinAndSelect('sps.player', 'spu')
       .leftJoinAndSelect('sps.answers', 'spa')
       .leftJoinAndSelect('spa.question', 'spaq')
-      .leftJoinAndSelect('qz.questions', 'qzq')
-      .where('fpu.id = :playerId OR spu.id = :playerId', {
+      .leftJoinAndSelect('qz.quizQuestion', 'qzq')
+      .leftJoinAndSelect('qzq.question', 'q')
+      // Вариант записи условий typeorm, т.к. при записи .where и за ним .orWhere
+      // и далее .andWhere записываются последовательно без отделения "условие OR условие AND условие",
+      // а нужно "(условие OR условие) AND условие"
+      // .where(
+      //   new Brackets((qb) =>
+      //     qb
+      //       .where('fpu.id = :playerId', { playerId })
+      //       .orWhere('spu.id = :playerId', { playerId }),
+      //   ),
+      // )
+      // .andWhere(
+      //   new Brackets((qb) =>
+      //     qb
+      //       .where('qz.status = :active', { active: QuizStatuses.ACTIVE })
+      //       .orWhere('qz.status = :pending', {
+      //         pending: QuizStatuses.PENDING_SECOND_PLAYER,
+      //       }),
+      //   ),
+      // )
+      .where('(fpu.id = :playerId OR spu.id = :playerId)', {
         playerId,
       })
-      .andWhere('qz.status = :active OR qz.status = :pending', {
+      .andWhere('(qz.status = :active OR qz.status = :pending)', {
         active: QuizStatuses.ACTIVE,
         pending: QuizStatuses.PENDING_SECOND_PLAYER,
       })
-      .orderBy('qzq.createdAt', 'DESC')
-      .addOrderBy('fpa.addedAt', 'DESC')
-      .addOrderBy('spa.addedAt', 'DESC')
+      .orderBy('qzq.index', 'ASC')
+      .addOrderBy('fpa.addedAt', 'ASC')
+      .addOrderBy('spa.addedAt', 'ASC')
       .getOne();
 
     if (!quiz) {
@@ -203,11 +229,12 @@ export class QuizzesQueryRepository {
       .leftJoinAndSelect('sps.player', 'spu')
       .leftJoinAndSelect('sps.answers', 'spa')
       .leftJoinAndSelect('spa.question', 'spaq')
-      .leftJoinAndSelect('qz.questions', 'qzq')
+      .leftJoinAndSelect('qz.quizQuestion', 'qzq')
+      .leftJoinAndSelect('qzq.question', 'q')
       .where('qz.id = :id', { id: quizId })
-      .orderBy('qzq.createdAt', 'DESC')
-      .addOrderBy('fpa.addedAt', 'DESC')
-      .addOrderBy('spa.addedAt', 'DESC')
+      .orderBy('qzq.index', 'ASC')
+      .addOrderBy('fpa.addedAt', 'ASC')
+      .addOrderBy('spa.addedAt', 'ASC')
       .getOne();
 
     if (!quiz) {
@@ -254,10 +281,10 @@ export class QuizzesQueryRepository {
           }
         : null,
       questions: quiz.secondPlayerSession
-        ? quiz.questions.map((question) => {
+        ? quiz.quizQuestion.map((quizQuestion) => {
             return {
-              id: question.id,
-              body: question.body,
+              id: quizQuestion.question.id,
+              body: quizQuestion.question.body,
             };
           })
         : null,

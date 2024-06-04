@@ -2,14 +2,13 @@ import {
   Column,
   Entity,
   JoinColumn,
-  JoinTable,
-  ManyToMany,
+  OneToMany,
   OneToOne,
   PrimaryGeneratedColumn,
 } from 'typeorm';
 import { QuizStatuses } from '../../../utils';
 import { PlayerSession } from './player-session.entity';
-import { Question } from './question.entity';
+import { QuizQuestion } from './quiz-question.entity';
 
 @Entity({ name: 'quizzes' })
 export class Quiz {
@@ -45,11 +44,17 @@ export class Quiz {
   })
   finishGameDate: Date;
 
-  @ManyToMany(() => Question, (q) => q.quizzes)
-  @JoinTable({
-    name: 'quizzes_questions',
-    joinColumn: { name: 'quiz_id' },
-    inverseJoinColumn: { name: 'question_id' },
-  })
-  questions: Question[];
+  @OneToMany(() => QuizQuestion, (qq) => qq.quiz, { cascade: ['insert'] })
+  @JoinColumn({ name: 'quiz_question_id' })
+  quizQuestion: QuizQuestion[];
+
+  // Вариант реализации связи многие-ко-многим при которой typeorm автоматически создает
+  // промежуточную таблицу
+  // @ManyToMany(() => Question, (q) => q.quizzes)
+  // @JoinTable({
+  //   name: 'quizzes_questions',
+  //   joinColumn: { name: 'quiz_id' },
+  //   inverseJoinColumn: { name: 'question_id' },
+  // })
+  // questions: Question[];
 }

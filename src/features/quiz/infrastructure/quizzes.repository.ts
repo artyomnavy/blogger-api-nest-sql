@@ -7,6 +7,7 @@ import { QuizStatuses } from '../../../utils';
 import { Question } from '../domain/question.entity';
 import { QuizOutputModel } from '../api/models/quiz.output.model';
 import { QuizzesQueryRepository } from './quizzes.query-repository';
+import { QuizQuestion } from '../domain/quiz-question.entity';
 
 @Injectable()
 export class QuizzesRepository {
@@ -43,7 +44,17 @@ export class QuizzesRepository {
   ): Promise<QuizOutputModel> {
     quiz.secondPlayerSession = updateData.secondPlayerSession;
     quiz.status = updateData.status;
-    quiz.questions = updateData.questions;
+
+    quiz.quizQuestion = [];
+
+    updateData.questions.forEach((question, index) => {
+      const quizQuestion = new QuizQuestion();
+      quizQuestion.quiz = quiz;
+      quizQuestion.question = question;
+      quizQuestion.index = index + 1;
+      quiz.quizQuestion.push(quizQuestion);
+    });
+
     quiz.startGameDate = updateData.startGameDate;
 
     const updateQuiz = await this.quizzesRepository.save(quiz);

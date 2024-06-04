@@ -65,10 +65,6 @@ export class CreateOrConnectQuizUseCase
     const randomQuestions =
       await this.questionsQueryRepository.getFiveRandomQuestions();
 
-    // randomQuestions = randomQuestions.sort(
-    //   (a, b) => b.createdAt.getTime() - a.createdAt.getTime(),
-    // );
-
     const connectQuiz = await this.quizzesRepository.connectingToQuiz(quiz, {
       secondPlayerSession: newPlayerSession,
       status: QuizStatuses.ACTIVE,

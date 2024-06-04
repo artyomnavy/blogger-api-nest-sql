@@ -20,6 +20,12 @@ export class AnswersRepository {
     newAnswer.playerSession = answer.playerSession;
     newAnswer.question = answer.question;
 
+    // Создание ответа на вопрос игры в базе данных (обычным способом)
+    // await this.answersRepository.save(newAnswer);
+
+    // Создание ответа на вопрос игры в базе данных с блокировкой 'pessimistic_write'
+    // 'pessimistic_write' - блокировка для исключения одновременной записи ответов игры
+    // при конкуренции (гонке) за данными
     await this.answersRepository
       .createQueryBuilder()
       .setLock('pessimistic_write')

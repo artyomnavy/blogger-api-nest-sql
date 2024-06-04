@@ -96,7 +96,7 @@ import { PlayersSessionsRepository } from './features/quiz/infrastructure/player
 import { AnswersRepository } from './features/quiz/infrastructure/answers.repository';
 import { QuizzesQueryRepository } from './features/quiz/infrastructure/quizzes.query-repository';
 import { QuizPublicController } from './features/quiz/api/quiz.public.controller';
-import { PlayersSessionsQueryRepository } from './features/quiz/infrastructure/players-sessions.query-repository';
+import { QuizQuestion } from './features/quiz/domain/quiz-question.entity';
 
 config();
 
@@ -174,7 +174,6 @@ const queryRepositoriesProviders = [
   DevicesQueryRepository,
   QuestionsQueryRepository,
   QuizzesQueryRepository,
-  PlayersSessionsQueryRepository,
 ];
 
 const emailsProviders = [EmailsManager, EmailsAdapter];
@@ -215,6 +214,7 @@ const entities = [
   Answer,
   Quiz,
   PlayerSession,
+  QuizQuestion,
 ];
 
 const options: TypeOrmModuleOptions = {

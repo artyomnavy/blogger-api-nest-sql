@@ -13,6 +13,7 @@ import { Quiz } from './quiz/domain/quiz.entity';
 import { Question } from './quiz/domain/question.entity';
 import { Answer } from './quiz/domain/answer.entity';
 import { PlayerSession } from './quiz/domain/player-session.entity';
+import { QuizQuestion } from './quiz/domain/quiz-question.entity';
 
 @Controller('testing')
 export class TestController {
@@ -40,6 +41,8 @@ export class TestController {
     private readonly answersRepository: Repository<Answer>,
     @InjectRepository(PlayerSession)
     private readonly playersSessionsRepository: Repository<PlayerSession>,
+    @InjectRepository(QuizQuestion)
+    private readonly quizzesQuestionsRepository: Repository<QuizQuestion>,
   ) {}
 
   @Delete('all-data')
@@ -95,10 +98,10 @@ export class TestController {
       .delete()
       .from(Answer)
       .execute();
-    await this.playersSessionsRepository
+    await this.quizzesQuestionsRepository
       .createQueryBuilder()
       .delete()
-      .from(PlayerSession)
+      .from(QuizQuestion)
       .execute();
     return;
   }
