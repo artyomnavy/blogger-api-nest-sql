@@ -6,6 +6,7 @@ import { PlayersSessionsRepository } from '../infrastructure/players-sessions.re
 import { AnswersRepository } from '../infrastructure/answers.repository';
 import { AnswerOutputModel } from '../api/models/answer.output.model';
 import { QuizzesRepository } from '../infrastructure/quizzes.repository';
+import { PlayerSession } from '../domain/player-session.entity';
 
 export class CreateAnswerCommand {
   constructor(
@@ -75,31 +76,33 @@ export class CreateAnswerUseCase
 
     // Проверяем необходимость завершения текущей игры путем сверки количества ответов
     // игроков игры до добавления текущего ответа
+    const firstPlayerAnswers = command.quiz.firstPlayerSession.answers;
+    const secondPlayerAnswers = command.quiz.secondPlayerSession.answers;
+
     if (
-      (command.quiz.firstPlayerSession.answers.length === 4 &&
-        command.quiz.secondPlayerSession.answers.length === 5) ||
-      (command.quiz.firstPlayerSession.answers.length === 5 &&
-        command.quiz.secondPlayerSession.answers.length === 4)
+      (firstPlayerAnswers.length === 4 && secondPlayerAnswers.length === 5) ||
+      (firstPlayerAnswers.length === 5 && secondPlayerAnswers.length === 4)
     ) {
-      // Проверка игрока, первым завершившим игру, для начисления дополнительного
-      // балла к счету при условии, что есть хотя бы 1 правильный ответ на вопрос
+      // Определение игрока, первым завершившим игру
+      const fastResponder =
+        firstPlayerAnswers.length > secondPlayerAnswers.length
+          ? command.quiz.firstPlayerSession
+          : command.quiz.secondPlayerSession;
+
+      // Начисление дополнительного балла игроку, первым завершившим игру, при условии,
+      // что есть хотя бы 1 правильный ответ на вопрос
       if (
-        command.quiz.firstPlayerSession.answers.length === 5 &&
-        command.quiz.firstPlayerSession.answers.some(
+        fastResponder.answers.some(
           (a) => a.answerStatus === AnswerStatuses.CORRECT,
         )
       ) {
         await this.playersSessionsRepository.updateScoreForPlayerSession(
-          command.quiz.firstPlayerSession,
-          ++command.quiz.firstPlayerSession.score,
-        );
-      } else {
-        await this.playersSessionsRepository.updateScoreForPlayerSession(
-          command.quiz.secondPlayerSession,
-          ++command.quiz.secondPlayerSession.score,
+          fastResponder,
+          ++fastResponder.score,
         );
       }
 
+      // Завершение игры
       await this.quizzesRepository.finishQuiz(command.quiz, {
         finishDate: new Date(),
         status: QuizStatuses.FINISHED,
