@@ -6,7 +6,6 @@ import { PlayersSessionsRepository } from '../infrastructure/players-sessions.re
 import { AnswersRepository } from '../infrastructure/answers.repository';
 import { AnswerOutputModel } from '../api/models/answer.output.model';
 import { QuizzesRepository } from '../infrastructure/quizzes.repository';
-import { PlayerSession } from '../domain/player-session.entity';
 
 export class CreateAnswerCommand {
   constructor(
