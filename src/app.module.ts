@@ -239,12 +239,12 @@ const options: TypeOrmModuleOptions = {
       secret: jwtSecret,
       signOptions: { expiresIn: '10m' },
     }),
-    // ThrottlerModule.forRoot([
-    //   {
-    //     ttl: 10000,
-    //     limit: 5,
-    //   },
-    // ]),
+    ThrottlerModule.forRoot([
+      {
+        ttl: 10000,
+        limit: 5,
+      },
+    ]),
   ],
   controllers: [...controllers],
   providers: [
