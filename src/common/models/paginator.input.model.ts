@@ -1,4 +1,4 @@
-import { PublishedStatuses } from '../../utils';
+import { PublishedStatuses } from '../utils';
 
 export class PaginatorModel {
   bodySearchTerm?: string;

@@ -7,7 +7,7 @@ import {
   QuestionOutputModel,
 } from '../api/models/question.output.model';
 import { Question } from '../domain/question.entity';
-import { PublishedStatuses } from '../../../utils';
+import { PublishedStatuses } from '../../../common/utils';
 
 @Injectable()
 export class QuestionsQueryRepository {

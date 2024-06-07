@@ -9,7 +9,7 @@ import {
   UseGuards,
 } from '@nestjs/common';
 import { Request } from 'express';
-import { HTTP_STATUSES } from '../../../utils';
+import { HTTP_STATUSES } from '../../../common/utils';
 import { TerminateDeviceSessionByIdCommand } from '../application/use-cases/terminate-device-by-id.use-case';
 import { CommandBus } from '@nestjs/cqrs';
 import { TerminateAllOthersDevicesSessionsCommand } from '../application/use-cases/terminate-all-other-devices.use-case';

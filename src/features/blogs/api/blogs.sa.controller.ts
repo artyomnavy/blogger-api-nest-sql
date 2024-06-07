@@ -19,7 +19,7 @@ import { CreateAndUpdatePostModel } from '../../posts/api/models/post.input.mode
 import { PostOutputModel } from '../../posts/api/models/post.output.model';
 import { PaginatorModel } from '../../../common/models/paginator.input.model';
 import { PaginatorOutputModel } from '../../../common/models/paginator.output.model';
-import { HTTP_STATUSES } from '../../../utils';
+import { HTTP_STATUSES } from '../../../common/utils';
 import { BasicAuthGuard } from '../../../common/guards/basic-auth.guard';
 import { CreateBlogCommand } from '../application/use-cases/create-blog.use-case';
 import { CommandBus } from '@nestjs/cqrs';

@@ -1,7 +1,7 @@
 import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { PlayerSession } from '../domain/player-session.entity';
-import { Repository } from 'typeorm';
+import { EntityManager, Repository } from 'typeorm';
 import { User } from '../../users/domain/user.entity';
 
 @Injectable()
@@ -27,11 +27,12 @@ export class PlayersSessionsRepository {
     return createPlayerSession;
   }
   async updateScoreForPlayerSession(
+    manager: EntityManager,
     playerSession: PlayerSession,
     score: number,
   ): Promise<PlayerSession> {
     playerSession.score = score;
 
-    return await this.playersSessionsRepository.save(playerSession);
+    return await manager.save(playerSession);
   }
 }

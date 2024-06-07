@@ -1,4 +1,4 @@
-import { AnswerStatuses } from '../../../../utils';
+import { AnswerStatuses } from '../../../../common/utils';
 
 export class Answer {
   constructor(

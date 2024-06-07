@@ -3,7 +3,7 @@ import { INestApplication } from '@nestjs/common';
 import request from 'supertest';
 import { AppModule } from '../src/app.module';
 import { BlogOutputModel } from '../src/features/blogs/api/models/blog.output.model';
-import { HTTP_STATUSES } from '../src/utils';
+import { HTTP_STATUSES } from '../src/common/utils';
 import { appSettings } from '../src/app.settings';
 import { badId, Paths, responseNullData } from './utils/test-constants';
 import { CreateAndUpdateBlogModel } from '../src/features/blogs/api/models/blog.input.model';

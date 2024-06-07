@@ -6,7 +6,7 @@ import {
 import { CreateAndUpdateCommentModel } from '../api/models/comment.input.model';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
-import { LikeStatuses } from '../../../utils';
+import { LikeStatuses } from '../../../common/utils';
 import { Comment } from '../domain/comment.entity';
 
 @Injectable()

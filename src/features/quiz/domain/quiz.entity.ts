@@ -6,7 +6,7 @@ import {
   OneToOne,
   PrimaryGeneratedColumn,
 } from 'typeorm';
-import { QuizStatuses } from '../../../utils';
+import { QuizStatuses } from '../../../common/utils';
 import { PlayerSession } from './player-session.entity';
 import { QuizQuestion } from './quiz-question.entity';
 

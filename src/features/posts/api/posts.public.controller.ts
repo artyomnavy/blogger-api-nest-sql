@@ -17,7 +17,7 @@ import { PostOutputModel } from './models/post.output.model';
 import { PaginatorModel } from '../../../common/models/paginator.input.model';
 import { PaginatorOutputModel } from '../../../common/models/paginator.output.model';
 import { CommentOutputModel } from '../../comments/api/models/comment.output.model';
-import { HTTP_STATUSES } from '../../../utils';
+import { HTTP_STATUSES } from '../../../common/utils';
 import { CreateAndUpdateCommentModel } from '../../comments/api/models/comment.input.model';
 import { UpdateLikeModel } from '../../likes/api/models/like.input.model';
 import { JwtBearerAuthGuard } from '../../../common/guards/jwt-bearer-auth-guard.service';

@@ -2,7 +2,7 @@ import { CommandHandler, ICommandHandler } from '@nestjs/cqrs';
 import { QuestionsQueryRepository } from '../infrastructure/questions.query-repository';
 import { v4 as uuidv4 } from 'uuid';
 import { QuizzesQueryRepository } from '../infrastructure/quizzes.query-repository';
-import { QuizStatuses } from '../../../utils';
+import { QuizStatuses } from '../../../common/utils';
 import { UsersQueryRepository } from '../../users/infrastructure/users.query-repository';
 import { QuizzesRepository } from '../infrastructure/quizzes.repository';
 import { PlayersSessionsRepository } from '../infrastructure/players-sessions.repository';

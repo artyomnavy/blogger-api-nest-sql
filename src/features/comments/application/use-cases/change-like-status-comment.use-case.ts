@@ -1,6 +1,6 @@
 import { CommandHandler, ICommandHandler } from '@nestjs/cqrs';
 import { CommentOutputModel } from '../../api/models/comment.output.model';
-import { LikeStatuses } from '../../../../utils';
+import { LikeStatuses } from '../../../../common/utils';
 import { LikesCommentsRepository } from '../../../likes/infrastructure/likes-comments.repository';
 import { LikeComment } from '../../../likes/api/models/like-comment.output.model';
 import { v4 as uuidv4 } from 'uuid';

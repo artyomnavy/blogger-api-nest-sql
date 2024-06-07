@@ -2,7 +2,7 @@ import { INestApplication } from '@nestjs/common';
 import { Test, TestingModule } from '@nestjs/testing';
 import { AppModule } from '../src/app.module';
 import request from 'supertest';
-import { HTTP_STATUSES } from '../src/utils';
+import { HTTP_STATUSES } from '../src/common/utils';
 import { appSettings } from '../src/app.settings';
 import { Paths } from './utils/test-constants';
 import { CreateEntitiesTestManager } from './utils/test-manager';

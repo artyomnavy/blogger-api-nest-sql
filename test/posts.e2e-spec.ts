@@ -4,7 +4,7 @@ import request from 'supertest';
 import { AppModule } from '../src/app.module';
 import { PostOutputModel } from '../src/features/posts/api/models/post.output.model';
 import { BlogOutputModel } from '../src/features/blogs/api/models/blog.output.model';
-import { HTTP_STATUSES, LikeStatuses } from '../src/utils';
+import { HTTP_STATUSES, LikeStatuses } from '../src/common/utils';
 import { appSettings } from '../src/app.settings';
 import { badId, Paths, responseNullData } from './utils/test-constants';
 import { CreateEntitiesTestManager } from './utils/test-manager';

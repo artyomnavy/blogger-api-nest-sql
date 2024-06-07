@@ -18,7 +18,7 @@ import { QuizzesQueryRepository } from '../infrastructure/quizzes.query-reposito
 import { CreateOrConnectQuizCommand } from '../application/create-or-connect-quiz.use-case';
 import { QuizOutputModel } from './models/quiz.output.model';
 import { CreateAnswerCommand } from '../application/create-answer.use-case';
-import { HTTP_STATUSES } from '../../../utils';
+import { HTTP_STATUSES } from '../../../common/utils';
 import { AnswerOutputModel } from './models/answer.output.model';
 
 @Controller('pair-game-quiz/pairs')

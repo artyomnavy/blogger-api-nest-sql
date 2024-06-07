@@ -15,7 +15,7 @@ import { CreateUserModel } from './models/user.input.model';
 import { PaginatorModel } from '../../../common/models/paginator.input.model';
 import { PaginatorOutputModel } from '../../../common/models/paginator.output.model';
 import { UserOutputModel } from './models/user.output.model';
-import { HTTP_STATUSES } from '../../../utils';
+import { HTTP_STATUSES } from '../../../common/utils';
 import { BasicAuthGuard } from '../../../common/guards/basic-auth.guard';
 import { DeleteUserCommand } from '../application/use-cases/delete-user.use-case';
 import { CommandBus } from '@nestjs/cqrs';

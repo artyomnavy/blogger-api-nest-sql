@@ -1,7 +1,7 @@
 import { Controller, Delete, HttpCode } from '@nestjs/common';
 import { InjectDataSource, InjectRepository } from '@nestjs/typeorm';
 import { DataSource, Repository } from 'typeorm';
-import { HTTP_STATUSES } from '../utils';
+import { HTTP_STATUSES } from '../common/utils';
 import { User } from './users/domain/user.entity';
 import { Device } from './devices/domain/device.entity';
 import { Blog } from './blogs/domain/blog.entity';

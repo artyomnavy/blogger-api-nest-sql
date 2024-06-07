@@ -1,9 +1,9 @@
 import { Injectable } from '@nestjs/common';
 import { Quiz } from '../domain/quiz.entity';
-import { Repository } from 'typeorm';
+import { EntityManager, Repository } from 'typeorm';
 import { InjectRepository } from '@nestjs/typeorm';
 import { PlayerSession } from '../domain/player-session.entity';
-import { QuizStatuses } from '../../../utils';
+import { QuizStatuses } from '../../../common/utils';
 import { Question } from '../domain/question.entity';
 import { QuizOutputModel } from '../api/models/quiz.output.model';
 import { QuizzesQueryRepository } from './quizzes.query-repository';
@@ -62,12 +62,13 @@ export class QuizzesRepository {
     return await this.quizzesQueryRepository.quizMapper(updateQuiz);
   }
   async finishQuiz(
+    manager: EntityManager,
     quiz: Quiz,
     updateData: { finishDate: Date; status: QuizStatuses },
   ): Promise<Quiz> {
     quiz.finishGameDate = updateData.finishDate;
     quiz.status = updateData.status;
 
-    return await this.quizzesRepository.save(quiz);
+    return await manager.save(quiz);
   }
 }

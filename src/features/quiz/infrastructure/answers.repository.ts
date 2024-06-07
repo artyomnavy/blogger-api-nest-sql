@@ -1,7 +1,7 @@
 import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Answer } from '../domain/answer.entity';
-import { Repository } from 'typeorm';
+import { EntityManager, Repository } from 'typeorm';
 import { AnswerOutputModel } from '../api/models/answer.output.model';
 
 @Injectable()
@@ -10,7 +10,10 @@ export class AnswersRepository {
     @InjectRepository(Answer)
     private readonly answersRepository: Repository<Answer>,
   ) {}
-  async createAnswer(answer: Answer): Promise<AnswerOutputModel> {
+  async createAnswer(
+    manager: EntityManager,
+    answer: Answer,
+  ): Promise<AnswerOutputModel> {
     const newAnswer = new Answer();
 
     newAnswer.id = answer.id;
@@ -26,7 +29,7 @@ export class AnswersRepository {
     // Создание ответа на вопрос игры в базе данных с блокировкой 'pessimistic_write'
     // 'pessimistic_write' - блокировка для исключения одновременной записи ответов игры
     // при конкуренции (гонке) за данными
-    await this.answersRepository
+    await manager
       .createQueryBuilder()
       .setLock('pessimistic_write')
       .insert()

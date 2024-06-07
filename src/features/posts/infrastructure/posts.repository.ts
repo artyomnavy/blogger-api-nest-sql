@@ -4,7 +4,7 @@ import { CreateAndUpdatePostModel } from '../api/models/post.input.model';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { Post } from '../domain/post.entity';
-import { LikeStatuses } from '../../../utils';
+import { LikeStatuses } from '../../../common/utils';
 
 @Injectable()
 export class PostsRepository {

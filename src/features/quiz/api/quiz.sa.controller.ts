@@ -15,7 +15,7 @@ import { BasicAuthGuard } from '../../../common/guards/basic-auth.guard';
 import { PaginatorModel } from '../../../common/models/paginator.input.model';
 import { PaginatorOutputModel } from '../../../common/models/paginator.output.model';
 import { QuestionOutputModel } from './models/question.output.model';
-import { HTTP_STATUSES } from '../../../utils';
+import { HTTP_STATUSES } from '../../../common/utils';
 import { QuestionsQueryRepository } from '../infrastructure/questions.query-repository';
 import {
   CreateAndUpdateQuestionModel,

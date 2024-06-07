@@ -2,7 +2,7 @@ import { INestApplication } from '@nestjs/common';
 import { Test, TestingModule } from '@nestjs/testing';
 import { AppModule } from '../src/app.module';
 import request from 'supertest';
-import { HTTP_STATUSES, LikeStatuses } from '../src/utils';
+import { HTTP_STATUSES, LikeStatuses } from '../src/common/utils';
 import { BlogOutputModel } from '../src/features/blogs/api/models/blog.output.model';
 import { PostOutputModel } from '../src/features/posts/api/models/post.output.model';
 import { appSettings } from '../src/app.settings';

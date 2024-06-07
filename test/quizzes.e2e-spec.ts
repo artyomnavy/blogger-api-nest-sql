@@ -6,7 +6,11 @@ import { AppModule } from '../src/app.module';
 import { appSettings } from '../src/app.settings';
 import request from 'supertest';
 import { Paths, responseNullData } from './utils/test-constants';
-import { AnswerStatuses, HTTP_STATUSES, QuizStatuses } from '../src/utils';
+import {
+  AnswerStatuses,
+  HTTP_STATUSES,
+  QuizStatuses,
+} from '../src/common/utils';
 import {
   basicLogin,
   basicPassword,

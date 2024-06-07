@@ -5,7 +5,7 @@ import {
   ManyToOne,
   PrimaryGeneratedColumn,
 } from 'typeorm';
-import { AnswerStatuses } from '../../../utils';
+import { AnswerStatuses } from '../../../common/utils';
 import { PlayerSession } from './player-session.entity';
 import { Question } from './question.entity';
 

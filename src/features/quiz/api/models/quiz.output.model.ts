@@ -1,4 +1,4 @@
-import { QuizStatuses } from '../../../../utils';
+import { QuizStatuses } from '../../../../common/utils';
 import { PlayerSessionOutputQuizModel } from './player-session.output.model';
 import { QuestionOutputQuizModel } from './question.output.model';
 

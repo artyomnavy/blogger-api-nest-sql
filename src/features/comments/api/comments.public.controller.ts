@@ -13,7 +13,7 @@ import {
 } from '@nestjs/common';
 import { CommentsQueryRepository } from '../infrastructure/comments.query-repository';
 import { UpdateLikeModel } from '../../likes/api/models/like.input.model';
-import { HTTP_STATUSES } from '../../../utils';
+import { HTTP_STATUSES } from '../../../common/utils';
 import { CreateAndUpdateCommentModel } from './models/comment.input.model';
 import { JwtBearerAuthGuard } from '../../../common/guards/jwt-bearer-auth-guard.service';
 import { CurrentUserId } from '../../../common/decorators/current-user-id.param.decorator';

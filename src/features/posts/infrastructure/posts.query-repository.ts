@@ -5,7 +5,7 @@ import {
 } from '../api/models/post.output.model';
 import { PaginatorModel } from '../../../common/models/paginator.input.model';
 import { PaginatorOutputModel } from '../../../common/models/paginator.output.model';
-import { LikeStatuses } from '../../../utils';
+import { LikeStatuses } from '../../../common/utils';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { Post } from '../domain/post.entity';
