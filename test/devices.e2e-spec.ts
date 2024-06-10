@@ -1,9 +1,6 @@
 import { INestApplication } from '@nestjs/common';
-import { Test, TestingModule } from '@nestjs/testing';
-import { AppModule } from '../src/app.module';
 import request from 'supertest';
 import { HTTP_STATUSES } from '../src/common/utils';
-import { appSettings } from '../src/app.settings';
 import { Paths } from './utils/test-constants';
 import { CreateEntitiesTestManager } from './utils/test-manager';
 import { UserOutputModel } from '../src/features/users/api/models/user.output.model';
@@ -13,6 +10,7 @@ import {
 } from '../src/features/auth/api/auth.constants';
 import jwt from 'jsonwebtoken';
 import { v4 as uuidv4 } from 'uuid';
+import { initSettings } from './utils/init-settings';
 
 describe('Devices testing (e2e)', () => {
   let app: INestApplication;
@@ -20,21 +18,11 @@ describe('Devices testing (e2e)', () => {
   let createEntitiesTestManager: CreateEntitiesTestManager;
 
   beforeAll(async () => {
-    const moduleFixture: TestingModule = await Test.createTestingModule({
-      imports: [AppModule],
-    }).compile();
+    const testSettings = await initSettings();
 
-    app = moduleFixture.createNestApplication();
-    appSettings(app);
-    await app.init();
-
-    server = app.getHttpServer();
-
-    createEntitiesTestManager = new CreateEntitiesTestManager(app);
-
-    await request(server)
-      .delete(`${Paths.testing}/all-data`)
-      .expect(HTTP_STATUSES.NO_CONTENT_204);
+    app = testSettings.app;
+    server = testSettings.server;
+    createEntitiesTestManager = testSettings.createEntitiesTestManager;
   });
 
   const createUserData = [

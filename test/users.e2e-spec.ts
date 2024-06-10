@@ -1,16 +1,14 @@
 import { INestApplication } from '@nestjs/common';
-import { Test, TestingModule } from '@nestjs/testing';
-import { AppModule } from '../src/app.module';
 import request from 'supertest';
 import { HTTP_STATUSES } from '../src/common/utils';
 import { UserOutputModel } from '../src/features/users/api/models/user.output.model';
-import { appSettings } from '../src/app.settings';
 import { badUuid, Paths, responseNullData } from './utils/test-constants';
 import { CreateEntitiesTestManager } from './utils/test-manager';
 import {
   basicLogin,
   basicPassword,
 } from '../src/features/auth/api/auth.constants';
+import { initSettings } from './utils/init-settings';
 
 describe('Users testing (e2e)', () => {
   let app: INestApplication;
@@ -18,21 +16,11 @@ describe('Users testing (e2e)', () => {
   let createEntitiesTestManager: CreateEntitiesTestManager;
 
   beforeAll(async () => {
-    const moduleFixture: TestingModule = await Test.createTestingModule({
-      imports: [AppModule],
-    }).compile();
+    const testSettings = await initSettings();
 
-    app = moduleFixture.createNestApplication();
-    appSettings(app);
-    await app.init();
-
-    server = app.getHttpServer();
-
-    createEntitiesTestManager = new CreateEntitiesTestManager(app);
-
-    await request(server)
-      .delete(`${Paths.testing}/all-data`)
-      .expect(HTTP_STATUSES.NO_CONTENT_204);
+    app = testSettings.app;
+    server = testSettings.server;
+    createEntitiesTestManager = testSettings.createEntitiesTestManager;
   });
 
   let newUser: UserOutputModel | null = null;

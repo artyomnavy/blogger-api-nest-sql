@@ -1,9 +1,6 @@
 import { INestApplication } from '@nestjs/common';
 import { CreateEntitiesTestManager } from './utils/test-manager';
 import { UserOutputModel } from '../src/features/users/api/models/user.output.model';
-import { Test, TestingModule } from '@nestjs/testing';
-import { AppModule } from '../src/app.module';
-import { appSettings } from '../src/app.settings';
 import request from 'supertest';
 import { Paths, responseNullData } from './utils/test-constants';
 import {
@@ -20,6 +17,7 @@ import { QuizOutputModel } from '../src/features/quiz/api/models/quiz.output.mod
 import { Repository } from 'typeorm';
 import { Quiz } from '../src/features/quiz/domain/quiz.entity';
 import { getRepositoryToken } from '@nestjs/typeorm';
+import { initSettings } from './utils/init-settings';
 
 describe('Quiz testing (e2e)', () => {
   let app: INestApplication;
@@ -35,23 +33,13 @@ describe('Quiz testing (e2e)', () => {
   let testQuestion: QuestionOutputModel;
 
   beforeAll(async () => {
-    const moduleFixture: TestingModule = await Test.createTestingModule({
-      imports: [AppModule],
-    }).compile();
+    const testSettings = await initSettings();
 
-    app = moduleFixture.createNestApplication();
-    appSettings(app);
-    await app.init();
-
-    server = app.getHttpServer();
-
-    createEntitiesTestManager = new CreateEntitiesTestManager(app);
+    app = testSettings.app;
+    server = testSettings.server;
+    createEntitiesTestManager = testSettings.createEntitiesTestManager;
 
     quizEntity = app.get(getRepositoryToken(Quiz));
-
-    await request(server)
-      .delete(`${Paths.testing}/all-data`)
-      .expect(HTTP_STATUSES.NO_CONTENT_204);
   });
 
   // Check questions

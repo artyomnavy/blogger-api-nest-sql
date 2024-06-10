@@ -1,10 +1,7 @@
-import { Test, TestingModule } from '@nestjs/testing';
 import { INestApplication } from '@nestjs/common';
 import request from 'supertest';
-import { AppModule } from '../src/app.module';
 import { BlogOutputModel } from '../src/features/blogs/api/models/blog.output.model';
 import { HTTP_STATUSES } from '../src/common/utils';
-import { appSettings } from '../src/app.settings';
 import { badId, Paths, responseNullData } from './utils/test-constants';
 import { CreateAndUpdateBlogModel } from '../src/features/blogs/api/models/blog.input.model';
 import { CreateEntitiesTestManager } from './utils/test-manager';
@@ -12,6 +9,7 @@ import {
   basicLogin,
   basicPassword,
 } from '../src/features/auth/api/auth.constants';
+import { initSettings } from './utils/init-settings';
 
 describe('Blogs testing (e2e)', () => {
   let app: INestApplication;
@@ -19,21 +17,11 @@ describe('Blogs testing (e2e)', () => {
   let createEntitiesTestManager: CreateEntitiesTestManager;
 
   beforeAll(async () => {
-    const moduleFixture: TestingModule = await Test.createTestingModule({
-      imports: [AppModule],
-    }).compile();
+    const testSettings = await initSettings();
 
-    app = moduleFixture.createNestApplication();
-    appSettings(app);
-    await app.init();
-
-    server = app.getHttpServer();
-
-    createEntitiesTestManager = new CreateEntitiesTestManager(app);
-
-    await request(server)
-      .delete(`${Paths.testing}/all-data`)
-      .expect(HTTP_STATUSES.NO_CONTENT_204);
+    app = testSettings.app;
+    server = testSettings.server;
+    createEntitiesTestManager = testSettings.createEntitiesTestManager;
   });
 
   let newBlog: BlogOutputModel | null = null;

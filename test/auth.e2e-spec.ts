@@ -1,13 +1,11 @@
 import { INestApplication } from '@nestjs/common';
-import { Test, TestingModule } from '@nestjs/testing';
-import { AppModule } from '../src/app.module';
+import { TestingModuleBuilder } from '@nestjs/testing';
 import request from 'supertest';
 import { HTTP_STATUSES } from '../src/common/utils';
 import {
   userMapper,
   UserOutputModel,
 } from '../src/features/users/api/models/user.output.model';
-import { appSettings } from '../src/app.settings';
 import { Paths } from './utils/test-constants';
 import jwt from 'jsonwebtoken';
 import { CreateEntitiesTestManager } from './utils/test-manager';
@@ -21,6 +19,7 @@ import { EmailsAdapterMock } from './mock/emails-adapter.mock';
 import { Repository } from 'typeorm';
 import { User } from '../src/features/users/domain/user.entity';
 import { getRepositoryToken } from '@nestjs/typeorm';
+import { initSettings } from './utils/init-settings';
 
 describe('Auth testing (e2e)', () => {
   let app: INestApplication;
@@ -36,36 +35,19 @@ describe('Auth testing (e2e)', () => {
   let recoveryCode: string | null = null;
 
   beforeAll(async () => {
-    const moduleFixture: TestingModule = await Test.createTestingModule({
-      imports: [AppModule],
-      providers: [
-        {
-          provide: getRepositoryToken(User),
-          useClass: Repository,
-        },
-      ],
-    })
-      .overrideProvider(EmailsAdapter)
-      .useClass(EmailsAdapterMock)
-      .compile();
+    const testSettings = await initSettings(
+      (moduleBuilder: TestingModuleBuilder) => {
+        moduleBuilder
+          .overrideProvider(EmailsAdapter)
+          .useClass(EmailsAdapterMock);
+      },
+    );
 
-    app = moduleFixture.createNestApplication();
-
-    appSettings(app);
-
-    await app.init();
-
-    server = app.getHttpServer();
-
-    createEntitiesTestManager = new CreateEntitiesTestManager(app);
+    app = testSettings.app;
+    server = testSettings.server;
+    createEntitiesTestManager = testSettings.createEntitiesTestManager;
 
     userEntity = app.get(getRepositoryToken(User));
-
-    // moduleFixture.get<User>(User);
-
-    await request(server)
-      .delete(`${Paths.testing}/all-data`)
-      .expect(HTTP_STATUSES.NO_CONTENT_204);
   });
 
   // CHECK LOGIN USER BY ADMIN, CREATE NEW USER BY ADMIN, RESEND CODE FOR CONFIRMED EMAIL
