@@ -6,7 +6,8 @@ import { PlayersSessionsRepository } from '../infrastructure/players-sessions.re
 import { AnswersRepository } from '../infrastructure/answers.repository';
 import { AnswerOutputModel } from '../api/models/answer.output.model';
 import { QuizzesRepository } from '../infrastructure/quizzes.repository';
-import { DataSource } from 'typeorm';
+import { DataSource, EntityManager } from 'typeorm';
+import { TransactionManagerUseCase } from '../../../common/use-cases/transaction.use-case';
 
 export class CreateAnswerCommand {
   constructor(
@@ -15,124 +16,111 @@ export class CreateAnswerCommand {
     public readonly bodyAnswer: string,
   ) {}
 }
+
 @CommandHandler(CreateAnswerCommand)
 export class CreateAnswerUseCase
+  extends TransactionManagerUseCase<
+    CreateAnswerCommand,
+    AnswerOutputModel | null
+  >
   implements ICommandHandler<CreateAnswerCommand>
 {
   constructor(
     private readonly answersRepository: AnswersRepository,
     private readonly playersSessionsRepository: PlayersSessionsRepository,
     private readonly quizzesRepository: QuizzesRepository,
-    private readonly dataSource: DataSource,
-  ) {}
+    protected readonly dataSource: DataSource,
+  ) {
+    super(dataSource);
+  }
 
-  async execute(
+  async doLogic(
     command: CreateAnswerCommand,
+    manager: EntityManager,
   ): Promise<AnswerOutputModel | null> {
-    const queryRunner = this.dataSource.createQueryRunner();
-    await queryRunner.connect();
-    await queryRunner.startTransaction();
+    // Находим сессию игры и ответы для текущего игрока
+    // Присваиваем currentPlayerSession и currentAnswers значения по умолчанию
+    let currentPlayerSession = command.quiz.firstPlayerSession;
+    let currentAnswers = command.quiz.firstPlayerSession.answers;
 
-    try {
-      // Находим сессию игры и ответы для текущего игрока
-      // Присваиваем currentPlayerSession и currentAnswers значения по умолчанию
-      let currentPlayerSession = command.quiz.firstPlayerSession;
-      let currentAnswers = command.quiz.firstPlayerSession.answers;
+    // Если id игрока принадлежит второму игроку, то меняем значения переменных
+    // currentPlayerSession и currentAnswers
+    if (command.playerId === command.quiz.secondPlayerSession.player.id) {
+      currentPlayerSession = command.quiz.secondPlayerSession;
+      currentAnswers = command.quiz.secondPlayerSession.answers;
+    }
 
-      // Если id игрока принадлежит второму игроку, то меняем значения переменных
-      // currentPlayerSession и currentAnswers
-      if (command.playerId === command.quiz.secondPlayerSession.player.id) {
-        currentPlayerSession = command.quiz.secondPlayerSession;
-        currentAnswers = command.quiz.secondPlayerSession.answers;
-      }
+    // Находим текущий вопрос для создания текущего ответа игрока
+    const currentQuestion =
+      command.quiz.quizQuestion[currentAnswers.length].question;
 
-      // Находим текущий вопрос для создания текущего ответа игрока
-      const currentQuestion =
-        command.quiz.quizQuestion[currentAnswers.length].question;
+    // Присваиваем статусу текущего ответа значение по умолчанию
+    let answerStatus = AnswerStatuses.INCORRECT;
 
-      // Присваиваем статусу текущего ответа значение по умолчанию
-      let answerStatus = AnswerStatuses.INCORRECT;
+    // Проверяем есть ли ответ текущего игрока в массиве правильных ответов вопроса
+    // Текущий вопрос определяем по количеству уже имеющихся ответов для текущего игрока
+    const isCorrectAnswer = command.quiz.quizQuestion[
+      currentAnswers.length ? currentAnswers.length : 0
+    ].question.correctAnswers.includes(command.bodyAnswer);
 
-      // Проверяем есть ли ответ текущего игрока в массиве правильных ответов вопроса
-      // Текущий вопрос определяем по количеству уже имеющихся ответов для текущего игрока
-      const isCorrectAnswer = command.quiz.quizQuestion[
-        currentAnswers.length ? currentAnswers.length : 0
-      ].question.correctAnswers.includes(command.bodyAnswer);
+    // Если текущий ответ правильный, то меняем ему статус и увеличиваем счет текущего игрока
+    if (isCorrectAnswer) {
+      answerStatus = AnswerStatuses.CORRECT;
 
-      // Если текущий ответ правильный, то меняем ему статус и увеличиваем счет текущего игрока
-      if (isCorrectAnswer) {
-        answerStatus = AnswerStatuses.CORRECT;
+      currentPlayerSession =
+        await this.playersSessionsRepository.updateScoreForPlayerSession(
+          manager,
+          currentPlayerSession,
+          ++currentPlayerSession.score,
+        );
+    }
 
-        currentPlayerSession =
-          await this.playersSessionsRepository.updateScoreForPlayerSession(
-            queryRunner.manager,
-            currentPlayerSession,
-            ++currentPlayerSession.score,
-          );
-      }
+    // Создаем текущий ответ в базе данных
+    const createAnswer = await this.answersRepository.createAnswer(manager, {
+      id: uuidv4(),
+      body: command.bodyAnswer,
+      answerStatus: answerStatus,
+      addedAt: new Date(),
+      playerSession: currentPlayerSession,
+      question: currentQuestion,
+    });
 
-      // Создаем текущий ответ в базе данных
-      const createAnswer = await this.answersRepository.createAnswer(
-        queryRunner.manager,
-        {
-          id: uuidv4(),
-          body: command.bodyAnswer,
-          answerStatus: answerStatus,
-          addedAt: new Date(),
-          playerSession: currentPlayerSession,
-          question: currentQuestion,
-        },
-      );
+    // Проверяем необходимость завершения текущей игры путем сверки количества ответов
+    // игроков игры до добавления текущего ответа
+    const firstPlayerAnswers = command.quiz.firstPlayerSession.answers;
+    const secondPlayerAnswers = command.quiz.secondPlayerSession.answers;
 
-      // Проверяем необходимость завершения текущей игры путем сверки количества ответов
-      // игроков игры до добавления текущего ответа
-      const firstPlayerAnswers = command.quiz.firstPlayerSession.answers;
-      const secondPlayerAnswers = command.quiz.secondPlayerSession.answers;
+    if (
+      (firstPlayerAnswers.length === 4 && secondPlayerAnswers.length === 5) ||
+      (firstPlayerAnswers.length === 5 && secondPlayerAnswers.length === 4)
+    ) {
+      // Определение игрока, первым завершившим игру
+      const fastResponder =
+        firstPlayerAnswers.length > secondPlayerAnswers.length
+          ? command.quiz.firstPlayerSession
+          : command.quiz.secondPlayerSession;
 
+      // Начисление дополнительного балла игроку, первым завершившим игру, при условии,
+      // что есть хотя бы 1 правильный ответ на вопрос
       if (
-        (firstPlayerAnswers.length === 4 && secondPlayerAnswers.length === 5) ||
-        (firstPlayerAnswers.length === 5 && secondPlayerAnswers.length === 4)
+        fastResponder.answers.some(
+          (a) => a.answerStatus === AnswerStatuses.CORRECT,
+        )
       ) {
-        // Определение игрока, первым завершившим игру
-        const fastResponder =
-          firstPlayerAnswers.length > secondPlayerAnswers.length
-            ? command.quiz.firstPlayerSession
-            : command.quiz.secondPlayerSession;
-
-        // Начисление дополнительного балла игроку, первым завершившим игру, при условии,
-        // что есть хотя бы 1 правильный ответ на вопрос
-        if (
-          fastResponder.answers.some(
-            (a) => a.answerStatus === AnswerStatuses.CORRECT,
-          )
-        ) {
-          await this.playersSessionsRepository.updateScoreForPlayerSession(
-            queryRunner.manager,
-            fastResponder,
-            ++fastResponder.score,
-          );
-        }
-
-        // Завершение игры
-        await this.quizzesRepository.finishQuiz(
-          queryRunner.manager,
-          command.quiz,
-          {
-            finishDate: new Date(),
-            status: QuizStatuses.FINISHED,
-          },
+        await this.playersSessionsRepository.updateScoreForPlayerSession(
+          manager,
+          fastResponder,
+          ++fastResponder.score,
         );
       }
 
-      await queryRunner.commitTransaction();
-
-      return createAnswer;
-    } catch (error) {
-      await queryRunner.rollbackTransaction();
-      console.log('Transaction rollback: ', error);
-      return null;
-    } finally {
-      await queryRunner.release();
+      // Завершение игры
+      await this.quizzesRepository.finishQuiz(manager, command.quiz, {
+        finishDate: new Date(),
+        status: QuizStatuses.FINISHED,
+      });
     }
+
+    return createAnswer;
   }
 }

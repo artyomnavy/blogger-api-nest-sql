@@ -35,6 +35,10 @@ export class UsersController {
   ): Promise<PaginatorOutputModel<UserOutputModel>> {
     const users = await this.usersQueryRepository.getAllUsers(query);
 
+    if (!users) {
+      throw new Error('Query all users to database is failed');
+    }
+
     return users;
   }
   @Post()

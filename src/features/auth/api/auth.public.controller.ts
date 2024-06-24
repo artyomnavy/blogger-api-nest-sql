@@ -205,6 +205,10 @@ export class AuthController {
     const authMe =
       await this.usersQueryRepository.getUserByIdForAuthMe(currentUserId);
 
+    if (!authMe) {
+      throw new Error('Info not belong yours account');
+    }
+
     return authMe;
   }
 }
