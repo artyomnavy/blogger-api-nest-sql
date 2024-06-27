@@ -9,7 +9,7 @@ export const Paths = {
   auth: '/auth',
   security: '/security',
   questions: '/sa/quiz/questions',
-  quiz: '/pair-game-quiz/pairs',
+  quiz: '/pair-game-quiz',
   testing: '/testing',
 };
 

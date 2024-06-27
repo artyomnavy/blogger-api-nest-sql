@@ -29,7 +29,7 @@ export class Quiz {
   })
   status: QuizStatuses;
 
-  @Column('timestamp with time zone', { name: 'pair_create_date' })
+  @Column('timestamp with time zone', { name: 'pair_created_date' })
   pairCreatedDate: Date;
 
   @Column('timestamp with time zone', {

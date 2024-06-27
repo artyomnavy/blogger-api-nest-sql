@@ -467,7 +467,7 @@ describe('Quiz testing (e2e)', () => {
   it('+ POST create new pair for quiz and connect player to existing quiz', async () => {
     // Create new pair quiz with playerOne
     const createNewPairForQuiz = await request(server)
-      .post(`${Paths.quiz}/connection`)
+      .post(`${Paths.quiz}/pairs/connection`)
       .auth(accessTokenOne, { type: 'bearer' })
       .expect(HTTP_STATUSES.OK_200);
 
@@ -493,7 +493,7 @@ describe('Quiz testing (e2e)', () => {
 
     // Connect to existing quiz with playerTwo
     const connectQuiz = await request(server)
-      .post(`${Paths.quiz}/connection`)
+      .post(`${Paths.quiz}/pairs/connection`)
       .auth(accessTokenTwo, { type: 'bearer' })
       .expect(HTTP_STATUSES.OK_200);
 
@@ -533,7 +533,7 @@ describe('Quiz testing (e2e)', () => {
 
   it('+ GET found quiz by id', async () => {
     const foundQuiz = await request(server)
-      .get(`${Paths.quiz}/${quiz.id}`)
+      .get(`${Paths.quiz}/pairs/${quiz.id}`)
       .auth(accessTokenTwo, { type: 'bearer' })
       .expect(HTTP_STATUSES.OK_200);
 
@@ -573,7 +573,7 @@ describe('Quiz testing (e2e)', () => {
 
   it('+ GET found unfinished quiz', async () => {
     const foundQuiz = await request(server)
-      .get(`${Paths.quiz}/my-current`)
+      .get(`${Paths.quiz}/pairs/my-current`)
       .auth(accessTokenTwo, { type: 'bearer' })
       .expect(HTTP_STATUSES.OK_200);
 
@@ -611,7 +611,7 @@ describe('Quiz testing (e2e)', () => {
 
     // First answers players
     const createAnswerOneByPlayerOne = await request(server)
-      .post(`${Paths.quiz}/my-current/answers`)
+      .post(`${Paths.quiz}/pairs/my-current/answers`)
       .auth(accessTokenOne, { type: 'bearer' })
       .send(incorrectAnswer)
       .expect(HTTP_STATUSES.OK_200);
@@ -623,7 +623,7 @@ describe('Quiz testing (e2e)', () => {
     });
 
     const createAnswerOneByPlayerTwo = await request(server)
-      .post(`${Paths.quiz}/my-current/answers`)
+      .post(`${Paths.quiz}/pairs/my-current/answers`)
       .auth(accessTokenTwo, { type: 'bearer' })
       .send(incorrectAnswer)
       .expect(HTTP_STATUSES.OK_200);
@@ -636,7 +636,7 @@ describe('Quiz testing (e2e)', () => {
 
     // Second answers players
     const createAnswerTwoByPlayerOne = await request(server)
-      .post(`${Paths.quiz}/my-current/answers`)
+      .post(`${Paths.quiz}/pairs/my-current/answers`)
       .auth(accessTokenOne, { type: 'bearer' })
       .send(incorrectAnswer)
       .expect(HTTP_STATUSES.OK_200);
@@ -648,7 +648,7 @@ describe('Quiz testing (e2e)', () => {
     });
 
     const createAnswerTwoByPlayerTwo = await request(server)
-      .post(`${Paths.quiz}/my-current/answers`)
+      .post(`${Paths.quiz}/pairs/my-current/answers`)
       .auth(accessTokenTwo, { type: 'bearer' })
       .send(incorrectAnswer)
       .expect(HTTP_STATUSES.OK_200);
@@ -661,7 +661,7 @@ describe('Quiz testing (e2e)', () => {
 
     // Third answers players
     const createAnswerThreeByPlayerOne = await request(server)
-      .post(`${Paths.quiz}/my-current/answers`)
+      .post(`${Paths.quiz}/pairs/my-current/answers`)
       .auth(accessTokenOne, { type: 'bearer' })
       .send(incorrectAnswer)
       .expect(HTTP_STATUSES.OK_200);
@@ -673,7 +673,7 @@ describe('Quiz testing (e2e)', () => {
     });
 
     const createAnswerThreeByPlayerTwo = await request(server)
-      .post(`${Paths.quiz}/my-current/answers`)
+      .post(`${Paths.quiz}/pairs/my-current/answers`)
       .auth(accessTokenTwo, { type: 'bearer' })
       .send(incorrectAnswer)
       .expect(HTTP_STATUSES.OK_200);
@@ -686,7 +686,7 @@ describe('Quiz testing (e2e)', () => {
 
     // Fourth answers players
     const createAnswerFourByPlayerOne = await request(server)
-      .post(`${Paths.quiz}/my-current/answers`)
+      .post(`${Paths.quiz}/pairs/my-current/answers`)
       .auth(accessTokenOne, { type: 'bearer' })
       .send(incorrectAnswer)
       .expect(HTTP_STATUSES.OK_200);
@@ -698,7 +698,7 @@ describe('Quiz testing (e2e)', () => {
     });
 
     const createAnswerFourByPlayerTwo = await request(server)
-      .post(`${Paths.quiz}/my-current/answers`)
+      .post(`${Paths.quiz}/pairs/my-current/answers`)
       .auth(accessTokenTwo, { type: 'bearer' })
       .send(incorrectAnswer)
       .expect(HTTP_STATUSES.OK_200);
@@ -711,7 +711,7 @@ describe('Quiz testing (e2e)', () => {
 
     // Fifth answers players
     const createAnswerFiveByPlayerOne = await request(server)
-      .post(`${Paths.quiz}/my-current/answers`)
+      .post(`${Paths.quiz}/pairs/my-current/answers`)
       .auth(accessTokenOne, { type: 'bearer' })
       .send(correctAnswerOne)
       .expect(HTTP_STATUSES.OK_200);
@@ -723,7 +723,7 @@ describe('Quiz testing (e2e)', () => {
     });
 
     const createAnswerFiveByPlayerTwo = await request(server)
-      .post(`${Paths.quiz}/my-current/answers`)
+      .post(`${Paths.quiz}/pairs/my-current/answers`)
       .auth(accessTokenTwo, { type: 'bearer' })
       .send(incorrectAnswer)
       .expect(HTTP_STATUSES.OK_200);
@@ -736,7 +736,7 @@ describe('Quiz testing (e2e)', () => {
 
     // Check results quiz after answers players
     const foundQuiz = await request(server)
-      .get(`${Paths.quiz}/${quiz.id}`)
+      .get(`${Paths.quiz}/pairs/${quiz.id}`)
       .auth(accessTokenOne, { type: 'bearer' })
       .expect(HTTP_STATUSES.OK_200);
 
@@ -823,6 +823,21 @@ describe('Quiz testing (e2e)', () => {
       pairCreatedDate: expect.any(String),
       startGameDate: expect.any(String),
       finishGameDate: expect.any(String),
+    });
+  });
+
+  it('+ GET all quizzes for player', async () => {
+    const foundQuizzes = await request(server)
+      .get(`${Paths.quiz}/pairs/my`)
+      .auth(accessTokenTwo, { type: 'bearer' })
+      .expect(HTTP_STATUSES.OK_200);
+
+    expect(foundQuizzes.body).toStrictEqual({
+      pagesCount: 1,
+      page: 1,
+      pageSize: 10,
+      totalCount: 1,
+      items: [quiz],
     });
   });
 

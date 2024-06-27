@@ -4,6 +4,7 @@ import { Repository } from 'typeorm';
 import { Quiz } from '../domain/quiz.entity';
 import { QuizStatuses } from '../../../common/utils';
 import { QuizOutputModel } from '../api/models/quiz.output.model';
+import { PaginatorModel } from '../../../common/models/paginator.input.model';
 
 @Injectable()
 export class QuizzesQueryRepository {
@@ -11,6 +12,109 @@ export class QuizzesQueryRepository {
     @InjectRepository(Quiz)
     private readonly quizQueryRepository: Repository<Quiz>,
   ) {}
+  async getAllQuizzes(
+    playerId: string,
+    queryData: Omit<
+      PaginatorModel,
+      | 'bodySearchTerm'
+      | 'publishedStatus'
+      | 'searchNameTerm'
+      | 'searchLoginTerm'
+      | 'searchEmailTerm'
+    >,
+  ) {
+    const pageNumber = queryData.pageNumber ? +queryData.pageNumber : 1;
+    const pageSize = queryData.pageSize ? +queryData.pageSize : 10;
+    const sortBy = queryData.sortBy ? queryData.sortBy : 'pairCreatedDate';
+    const sortDirection = queryData.sortDirection
+      ? (queryData.sortDirection.toUpperCase() as 'ASC' | 'DESC')
+      : 'DESC';
+
+    // TO DO: fix query (why incorrect response questions[] and answers[])
+    const quizzes = await this.quizQueryRepository
+      .createQueryBuilder('qz')
+      .select([
+        // quiz
+        'qz.id',
+        'qz.status',
+        'qz.pairCreatedDate',
+        'qz.startGameDate',
+        'qz.finishGameDate',
+        // playerSession for first player
+        'fps.id',
+        'fps.score',
+        // user info for first player
+        'fpu.id',
+        'fpu.login',
+        // answers for first player
+        'fpa.id',
+        'fpa.body',
+        'fpa.answerStatus',
+        'fpa.addedAt',
+        // question for first player
+        'fpaq.id AS questionId',
+        // playerSession for second player
+        'sps.id',
+        'sps.score',
+        // user info for second player
+        'spu.id',
+        'spu.login',
+        // answers for second player
+        'spa.id',
+        'spa.body',
+        'spa.answerStatus',
+        'spa.addedAt',
+        // question for second player
+        'spaq.id AS questionId',
+        // quizzes and questions for quiz
+        'qzq.id',
+        'qzq.index',
+        // questions for quiz
+        'q.id',
+        'q.body',
+        'q.correctAnswers',
+      ])
+      .leftJoin('qz.firstPlayerSession', 'fps')
+      .leftJoin('fps.player', 'fpu')
+      .leftJoin('fps.answers', 'fpa')
+      .leftJoin('fpa.question', 'fpaq')
+      .leftJoin('qz.secondPlayerSession', 'sps')
+      .leftJoin('sps.player', 'spu')
+      .leftJoin('sps.answers', 'spa')
+      .leftJoin('spa.question', 'spaq')
+      .leftJoin('qz.quizQuestion', 'qzq')
+      .leftJoin('qzq.question', 'q')
+      .where('(fpu.id = :playerId OR spu.id = :playerId)', {
+        playerId,
+      })
+      .orderBy(`qz.${sortBy}`, sortDirection)
+      .addOrderBy('qz.pairCreatedDate', 'DESC')
+      .offset((pageNumber - 1) * pageSize)
+      .limit(pageSize)
+      .getMany();
+
+    const totalCount: number = await this.quizQueryRepository
+      .createQueryBuilder('qz')
+      .select('COUNT(qz.id)')
+      .leftJoin('qz.firstPlayerSession', 'fps')
+      .leftJoin('fps.player', 'fpu')
+      .leftJoin('qz.secondPlayerSession', 'sps')
+      .leftJoin('sps.player', 'spu')
+      .where('(fpu.id = :playerId OR spu.id = :playerId)', {
+        playerId,
+      })
+      .getCount();
+
+    const pagesCount = Math.ceil(totalCount / pageSize);
+
+    return {
+      pagesCount: pagesCount,
+      page: pageNumber,
+      pageSize: pageSize,
+      totalCount: totalCount,
+      items: await Promise.all(quizzes.map((quiz) => this.quizMapper(quiz))),
+    };
+  }
   async getQuizByPlayerIdAndPendingOrActiveStatusForConnection(
     id: string,
   ): Promise<Quiz | null> {

@@ -8,6 +8,7 @@ import {
   Param,
   ParseUUIDPipe,
   Post,
+  Query,
   UseGuards,
 } from '@nestjs/common';
 import { CommandBus } from '@nestjs/cqrs';
@@ -20,14 +21,30 @@ import { QuizOutputModel } from './models/quiz.output.model';
 import { CreateAnswerCommand } from '../application/create-answer.use-case';
 import { HTTP_STATUSES } from '../../../common/utils';
 import { AnswerOutputModel } from './models/answer.output.model';
+import { PaginatorModel } from '../../../common/models/paginator.input.model';
+import { PaginatorOutputModel } from '../../../common/models/paginator.output.model';
 
-@Controller('pair-game-quiz/pairs')
+@Controller('pair-game-quiz')
 export class QuizPublicController {
   constructor(
     private readonly quizzesQueryRepository: QuizzesQueryRepository,
     private readonly commandBus: CommandBus,
   ) {}
-  @Get('my-current')
+  @Get('pairs/my')
+  @UseGuards(JwtBearerAuthGuard)
+  async getAllQuizzes(
+    @Query() query: PaginatorModel,
+    @CurrentUserId() playerId: string,
+  ): Promise<PaginatorOutputModel<QuizOutputModel>> {
+    const quizzes = await this.quizzesQueryRepository.getAllQuizzes(
+      playerId,
+      query,
+    );
+
+    return quizzes;
+  }
+
+  @Get('pairs/my-current')
   @UseGuards(JwtBearerAuthGuard)
   async getCurrentQuiz(
     @CurrentUserId() playerId: string,
@@ -42,7 +59,7 @@ export class QuizPublicController {
     return quiz;
   }
 
-  @Get(':quizId')
+  @Get('pairs/:quizId')
   @UseGuards(JwtBearerAuthGuard)
   async getQuizById(
     @Param('quizId', ParseUUIDPipe) quizId: string,
@@ -69,7 +86,7 @@ export class QuizPublicController {
     return quiz;
   }
 
-  @Post('connection')
+  @Post('pairs/connection')
   @UseGuards(JwtBearerAuthGuard)
   @HttpCode(HTTP_STATUSES.OK_200)
   async createOrConnectQuiz(
@@ -97,7 +114,7 @@ export class QuizPublicController {
     return newQuiz;
   }
 
-  @Post('my-current/answers')
+  @Post('pairs/my-current/answers')
   @UseGuards(JwtBearerAuthGuard)
   @HttpCode(HTTP_STATUSES.OK_200)
   async createAnswer(
