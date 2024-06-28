@@ -59,7 +59,9 @@ export class QuizzesQueryRepository {
       // Подзапрос массива вопросов игры
       .addSelect((subQuery) => {
         return subQuery
-          .select("json_agg(json_build_object('id', q.id, 'body', q.body))")
+          .select(
+            "json_agg(json_build_object('id', q.id, 'body', q.body) ORDER BY qzq.index ASC)",
+          )
           .from('quizzes_questions', 'qzq')
           .leftJoin('questions', 'q', 'qzq.question_id = q.id')
           .where('qzq.quiz_id = qz.id');
