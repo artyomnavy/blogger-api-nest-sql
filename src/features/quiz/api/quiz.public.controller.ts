@@ -17,7 +17,10 @@ import { CreateAnswerModel } from './models/answer.input.model';
 import { CurrentUserId } from '../../../common/decorators/current-user-id.param.decorator';
 import { QuizzesQueryRepository } from '../infrastructure/quizzes.query-repository';
 import { CreateOrConnectQuizCommand } from '../application/create-or-connect-quiz.use-case';
-import { QuizOutputModel } from './models/quiz.output.model';
+import {
+  QuizOutputModel,
+  StatisticOutputModel,
+} from './models/quiz.output.model';
 import { CreateAnswerCommand } from '../application/create-answer.use-case';
 import { HTTP_STATUSES } from '../../../common/utils';
 import { AnswerOutputModel } from './models/answer.output.model';
@@ -42,6 +45,17 @@ export class QuizPublicController {
     );
 
     return quizzes;
+  }
+
+  @Get('users/my-statistic')
+  @UseGuards(JwtBearerAuthGuard)
+  async getStatisticPlayer(
+    @CurrentUserId() playerId: string,
+  ): Promise<StatisticOutputModel> {
+    const statistic =
+      await this.quizzesQueryRepository.getStatisticPlayer(playerId);
+
+    return statistic;
   }
 
   @Get('pairs/my-current')

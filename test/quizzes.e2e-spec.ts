@@ -826,7 +826,7 @@ describe('Quiz testing (e2e)', () => {
     });
   });
 
-  it('+ GET all quizzes for player', async () => {
+  it('+ GET all quizzes for player 2', async () => {
     const foundQuizzes = await request(server)
       .get(`${Paths.quiz}/pairs/my`)
       .auth(accessTokenTwo, { type: 'bearer' })
@@ -838,6 +838,22 @@ describe('Quiz testing (e2e)', () => {
       pageSize: 10,
       totalCount: 1,
       items: [quiz],
+    });
+  });
+
+  it('+ GET statistics for player 1', async () => {
+    const statistics = await request(server)
+      .get(`${Paths.quiz}/users/my-statistic`)
+      .auth(accessTokenOne, { type: 'bearer' })
+      .expect(HTTP_STATUSES.OK_200);
+
+    expect(statistics.body).toStrictEqual({
+      sumScore: 2,
+      avgScores: 2,
+      gamesCount: 1,
+      winsCount: 1,
+      lossesCount: 0,
+      drawsCount: 0,
     });
   });
 

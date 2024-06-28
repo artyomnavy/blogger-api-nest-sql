@@ -42,3 +42,12 @@ export class QuizMapperModel {
     addedAt: Date;
   }[];
 }
+
+export class StatisticOutputModel {
+  sumScore: number;
+  avgScores: number;
+  gamesCount: number;
+  winsCount: number;
+  lossesCount: number;
+  drawsCount: number;
+}
