@@ -9,12 +9,15 @@ import {
 } from '../api/models/quiz.output.model';
 import { PaginatorModel } from '../../../common/models/paginator.input.model';
 import { PaginatorOutputModel } from '../../../common/models/paginator.output.model';
+import { PlayerSession } from '../domain/player-session.entity';
 
 @Injectable()
 export class QuizzesQueryRepository {
   constructor(
     @InjectRepository(Quiz)
     private readonly quizQueryRepository: Repository<Quiz>,
+    @InjectRepository(PlayerSession)
+    private readonly playersSessionsQueryRepository: Repository<PlayerSession>,
   ) {}
   async getStatisticPlayer(playerId: string) {
     // Количество игр
@@ -106,7 +109,7 @@ export class QuizzesQueryRepository {
         `AVG(CASE
         WHEN (fpu.id = :playerId) THEN fps.score
         WHEN (spu.id = :playerId) THEN sps.score
-        ELSE 0 END)`,
+        ELSE NULL END)`,
         'result',
       )
       .setParameter('playerId', playerId)
