@@ -25,10 +25,8 @@ export class QuizzesQueryRepository {
       .createQueryBuilder('qz')
       .select('COUNT(qz.id)')
       .leftJoin('qz.firstPlayerSession', 'fps')
-      .leftJoin('fps.player', 'fpu')
       .leftJoin('qz.secondPlayerSession', 'sps')
-      .leftJoin('sps.player', 'spu')
-      .where('(fpu.id = :playerId OR spu.id = :playerId)', {
+      .where('(fps.player = :playerId OR sps.player = :playerId)', {
         playerId,
       })
       .getCount();
@@ -38,13 +36,11 @@ export class QuizzesQueryRepository {
       .createQueryBuilder('qz')
       .select('COUNT(qz.id)')
       .leftJoin('qz.firstPlayerSession', 'fps')
-      .leftJoin('fps.player', 'fpu')
       .leftJoin('qz.secondPlayerSession', 'sps')
-      .leftJoin('sps.player', 'spu')
-      .where('(fpu.id = :playerId AND fps.score > sps.score)', {
+      .where('(fps.player = :playerId AND fps.score > sps.score)', {
         playerId,
       })
-      .orWhere('(spu.id = :playerId AND sps.score > fps.score)', {
+      .orWhere('(sps.player = :playerId AND sps.score > fps.score)', {
         playerId,
       })
       .getCount();
@@ -54,13 +50,11 @@ export class QuizzesQueryRepository {
       .createQueryBuilder('qz')
       .select('COUNT(qz.id)')
       .leftJoin('qz.firstPlayerSession', 'fps')
-      .leftJoin('fps.player', 'fpu')
       .leftJoin('qz.secondPlayerSession', 'sps')
-      .leftJoin('sps.player', 'spu')
-      .where('(fpu.id = :playerId AND fps.score < sps.score)', {
+      .where('(fps.player = :playerId AND fps.score < sps.score)', {
         playerId,
       })
-      .orWhere('(spu.id = :playerId AND sps.score < fps.score)', {
+      .orWhere('(sps.player = :playerId AND sps.score < fps.score)', {
         playerId,
       })
       .getCount();
@@ -70,49 +64,27 @@ export class QuizzesQueryRepository {
       .createQueryBuilder('qz')
       .select('COUNT(qz.id)')
       .leftJoin('qz.firstPlayerSession', 'fps')
-      .leftJoin('fps.player', 'fpu')
       .leftJoin('qz.secondPlayerSession', 'sps')
-      .leftJoin('sps.player', 'spu')
-      .where('(fpu.id = :playerId AND fps.score = sps.score)', {
+      .where('(fps.player = :playerId AND fps.score = sps.score)', {
         playerId,
       })
-      .orWhere('(spu.id = :playerId AND sps.score = fps.score)', {
+      .orWhere('(sps.player = :playerId AND sps.score = fps.score)', {
         playerId,
       })
       .getCount();
 
     // Сумма очков
-    const sumScore = await this.quizQueryRepository
-      .createQueryBuilder('qz')
-      .leftJoin('qz.firstPlayerSession', 'fps')
-      .leftJoin('fps.player', 'fpu')
-      .leftJoin('qz.secondPlayerSession', 'sps')
-      .leftJoin('sps.player', 'spu')
-      .select(
-        `SUM(CASE
-        WHEN (fpu.id = :playerId) THEN fps.score
-        WHEN (spu.id = :playerId) THEN sps.score
-        ELSE 0 END)`,
-        'result',
-      )
-      .setParameter('playerId', playerId)
+    const sumScore = await this.playersSessionsQueryRepository
+      .createQueryBuilder('ps')
+      .select('SUM(ps.score)', 'result')
+      .where('ps.player = :playerId', { playerId })
       .getRawOne();
 
     // Среднее количество очков
-    const avgScores = await this.quizQueryRepository
-      .createQueryBuilder('qz')
-      .leftJoin('qz.firstPlayerSession', 'fps')
-      .leftJoin('fps.player', 'fpu')
-      .leftJoin('qz.secondPlayerSession', 'sps')
-      .leftJoin('sps.player', 'spu')
-      .select(
-        `AVG(CASE
-        WHEN (fpu.id = :playerId) THEN fps.score
-        WHEN (spu.id = :playerId) THEN sps.score
-        ELSE NULL END)`,
-        'result',
-      )
-      .setParameter('playerId', playerId)
+    const avgScores = await this.playersSessionsQueryRepository
+      .createQueryBuilder('ps')
+      .select('AVG(ps.score)', 'result')
+      .where('ps.player = :playerId', { playerId })
       .getRawOne();
 
     return {
