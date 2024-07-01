@@ -10,93 +10,98 @@ import {
 import { PaginatorModel } from '../../../common/models/paginator.input.model';
 import { PaginatorOutputModel } from '../../../common/models/paginator.output.model';
 import { PlayerSession } from '../domain/player-session.entity';
+import { QuizQuestion } from '../domain/quiz-question.entity';
+import { Answer } from '../domain/answer.entity';
 
 @Injectable()
 export class QuizzesQueryRepository {
   constructor(
     @InjectRepository(Quiz)
     private readonly quizQueryRepository: Repository<Quiz>,
-    @InjectRepository(PlayerSession)
-    private readonly playersSessionsQueryRepository: Repository<PlayerSession>,
   ) {}
   async getStatisticPlayer(playerId: string) {
-    // Количество игр
-    const gamesCount: number = await this.quizQueryRepository
+    const statistic = await this.quizQueryRepository
       .createQueryBuilder('qz')
-      .select('COUNT(qz.id)')
-      .leftJoin('qz.firstPlayerSession', 'fps')
-      .leftJoin('qz.secondPlayerSession', 'sps')
-      .where('(fps.player = :playerId OR sps.player = :playerId)', {
-        playerId,
+      .select([])
+      // Количество игр
+      .addSelect((subQuery) => {
+        return subQuery
+          .select('COUNT(qz.id)', 'gamesCount')
+          .from(Quiz, 'qz')
+          .leftJoin('qz.firstPlayerSession', 'fps')
+          .leftJoin('qz.secondPlayerSession', 'sps')
+          .where('(fps.player = :playerId OR sps.player = :playerId)', {
+            playerId,
+          });
       })
-      .getCount();
-
-    // Количество выигранных игр
-    const winsCount: number = await this.quizQueryRepository
-      .createQueryBuilder('qz')
-      .select('COUNT(qz.id)')
-      .leftJoin('qz.firstPlayerSession', 'fps')
-      .leftJoin('qz.secondPlayerSession', 'sps')
-      .where('(fps.player = :playerId AND fps.score > sps.score)', {
-        playerId,
+      // Количество игр с победой
+      .addSelect((subQuery) => {
+        return subQuery
+          .select('COUNT(qz.id)', 'winsCount')
+          .from(Quiz, 'qz')
+          .leftJoin('qz.firstPlayerSession', 'fps')
+          .leftJoin('qz.secondPlayerSession', 'sps')
+          .where('(fps.player = :playerId AND fps.score > sps.score)', {
+            playerId,
+          })
+          .orWhere('(sps.player = :playerId AND sps.score > fps.score)', {
+            playerId,
+          });
       })
-      .orWhere('(sps.player = :playerId AND sps.score > fps.score)', {
-        playerId,
+      // Количество игр с поражением
+      .addSelect((subQuery) => {
+        return subQuery
+          .select('COUNT(qz.id)', 'lossesCount')
+          .from(Quiz, 'qz')
+          .leftJoin('qz.firstPlayerSession', 'fps')
+          .leftJoin('qz.secondPlayerSession', 'sps')
+          .where('(fps.player = :playerId AND fps.score < sps.score)', {
+            playerId,
+          })
+          .orWhere('(sps.player = :playerId AND sps.score < fps.score)', {
+            playerId,
+          });
       })
-      .getCount();
-
-    // Количество проигранных игр
-    const lossesCount: number = await this.quizQueryRepository
-      .createQueryBuilder('qz')
-      .select('COUNT(qz.id)')
-      .leftJoin('qz.firstPlayerSession', 'fps')
-      .leftJoin('qz.secondPlayerSession', 'sps')
-      .where('(fps.player = :playerId AND fps.score < sps.score)', {
-        playerId,
+      // Количество игр в ничью
+      .addSelect((subQuery) => {
+        return subQuery
+          .select('COUNT(qz.id)', 'drawsCount')
+          .from(Quiz, 'qz')
+          .leftJoin('qz.firstPlayerSession', 'fps')
+          .leftJoin('qz.secondPlayerSession', 'sps')
+          .where('(fps.player = :playerId AND fps.score = sps.score)', {
+            playerId,
+          })
+          .orWhere('(sps.player = :playerId AND sps.score = fps.score)', {
+            playerId,
+          });
       })
-      .orWhere('(sps.player = :playerId AND sps.score < fps.score)', {
-        playerId,
+      // Сумма очков
+      .addSelect((subQuery) => {
+        return subQuery
+          .select('SUM(ps.score)', 'sumScore')
+          .from(PlayerSession, 'ps')
+          .where('ps.player = :playerId', { playerId });
       })
-      .getCount();
-
-    // Количество игр в ничью
-    const drawsCount: number = await this.quizQueryRepository
-      .createQueryBuilder('qz')
-      .select('COUNT(qz.id)')
-      .leftJoin('qz.firstPlayerSession', 'fps')
-      .leftJoin('qz.secondPlayerSession', 'sps')
-      .where('(fps.player = :playerId AND fps.score = sps.score)', {
-        playerId,
+      // Среднее количество очков
+      .addSelect((subQuery) => {
+        return subQuery
+          .select('AVG(ps.score)', 'avgScores')
+          .from(PlayerSession, 'ps')
+          .where('ps.player = :playerId', { playerId });
       })
-      .orWhere('(sps.player = :playerId AND sps.score = fps.score)', {
-        playerId,
-      })
-      .getCount();
-
-    // Сумма очков
-    const sumScore = await this.playersSessionsQueryRepository
-      .createQueryBuilder('ps')
-      .select('SUM(ps.score)', 'result')
-      .where('ps.player = :playerId', { playerId })
-      .getRawOne();
-
-    // Среднее количество очков
-    const avgScores = await this.playersSessionsQueryRepository
-      .createQueryBuilder('ps')
-      .select('AVG(ps.score)', 'result')
-      .where('ps.player = :playerId', { playerId })
       .getRawOne();
 
     return {
-      sumScore: +sumScore.result,
+      sumScore: +statistic.sumScore,
       avgScores:
-        +avgScores.result % 1 === 0
-          ? +avgScores.result
-          : Math.round(+avgScores.result * 100) / 100,
-      gamesCount: gamesCount,
-      winsCount: winsCount,
-      lossesCount: lossesCount,
-      drawsCount: drawsCount,
+        +statistic.avgScores % 1 === 0
+          ? +statistic.avgScores
+          : Math.round(+statistic.avgScores * 100) / 100,
+      gamesCount: +statistic.gamesCount,
+      winsCount: +statistic.winsCount,
+      lossesCount: +statistic.lossesCount,
+      drawsCount: +statistic.drawsCount,
     };
   }
   async getAllQuizzes(
@@ -145,9 +150,9 @@ export class QuizzesQueryRepository {
           .select(
             "json_agg(json_build_object('id', q.id, 'body', q.body) ORDER BY qzq.index ASC)",
           )
-          .from('quizzes_questions', 'qzq')
+          .from(QuizQuestion, 'qzq')
           .leftJoin('questions', 'q', 'qzq.question_id = q.id')
-          .where('qzq.quiz_id = qz.id');
+          .where('qzq.quiz = qz.id');
       }, 'questions')
       // Подзапрос массива ответов первого игрока
       .addSelect((subQuery) => {
@@ -155,9 +160,9 @@ export class QuizzesQueryRepository {
           .select(
             "json_agg(json_build_object('questionId', q.id, 'answerStatus', a.answerStatus, 'addedAt', a.addedAt) ORDER BY a.addedAt ASC)",
           )
-          .from('answers', 'a')
+          .from(Answer, 'a')
           .leftJoin('questions', 'q', 'a.question_id = q.id')
-          .where('a.player_session_id = fps.id');
+          .where('a.playerSession = fps.id');
       }, 'answersPlayer1')
       // Подзапрос массива ответов второго игрока
       .addSelect((subQuery) => {
@@ -165,9 +170,9 @@ export class QuizzesQueryRepository {
           .select(
             "json_agg(json_build_object('questionId', q.id, 'answerStatus', a.answerStatus, 'addedAt', a.addedAt) ORDER BY a.addedAt ASC)",
           )
-          .from('answers', 'a')
+          .from(Answer, 'a')
           .leftJoin('questions', 'q', 'a.question_id = q.id')
-          .where('a.player_session_id = sps.id');
+          .where('a.playerSession = sps.id');
       }, 'answersPlayer2')
       // Продолжение основного запроса
       .leftJoin('qz.firstPlayerSession', 'fps')
@@ -187,10 +192,8 @@ export class QuizzesQueryRepository {
       .createQueryBuilder('qz')
       .select('COUNT(qz.id)')
       .leftJoin('qz.firstPlayerSession', 'fps')
-      .leftJoin('fps.player', 'fpu')
       .leftJoin('qz.secondPlayerSession', 'sps')
-      .leftJoin('sps.player', 'spu')
-      .where('(fpu.id = :playerId OR spu.id = :playerId)', {
+      .where('(fps.player = :playerId OR sps.player = :playerId)', {
         playerId,
       })
       .getCount();
