@@ -6,12 +6,14 @@ import { QuizStatuses } from '../../../common/utils';
 import {
   QuizOutputModel,
   QuizMapperModel,
+  StatisticOutputModel,
 } from '../api/models/quiz.output.model';
 import { PaginatorModel } from '../../../common/models/paginator.input.model';
 import { PaginatorOutputModel } from '../../../common/models/paginator.output.model';
 import { PlayerSession } from '../domain/player-session.entity';
 import { QuizQuestion } from '../domain/quiz-question.entity';
 import { Answer } from '../domain/answer.entity';
+import { PlayerOutputQuizModel } from '../api/models/player-session.output.model';
 
 @Injectable()
 export class QuizzesQueryRepository {
@@ -19,6 +21,46 @@ export class QuizzesQueryRepository {
     @InjectRepository(Quiz)
     private readonly quizQueryRepository: Repository<Quiz>,
   ) {}
+  async getTopPlayers(
+    queryData: Omit<
+      PaginatorModel,
+      | 'bodySearchTerm'
+      | 'publishedStatus'
+      | 'searchNameTerm'
+      | 'searchLoginTerm'
+      | 'searchEmailTerm'
+      | 'sortBy'
+      | 'sortDirection'
+    >,
+  ): Promise<
+    PaginatorOutputModel<
+      StatisticOutputModel & { player: PlayerOutputQuizModel }
+    >
+  > {
+    const pageNumber = queryData.pageNumber ? +queryData.pageNumber : 1;
+    const pageSize = queryData.pageSize ? +queryData.pageSize : 10;
+    const rawSort = queryData.sort
+      ? queryData.sort
+      : '?sort=avgScores desc&sort=sumScore desc';
+
+    const sort = rawSort
+      .trim()
+      .slice(1)
+      .split('&')
+      .map((value) => value.replace('sort=', ''));
+
+    // TO DO: queries top players
+    //const top = await this.quizQueryRepository.createQueryBuilder('qz');
+
+    return {
+      pagesCount: 0,
+      page: 0,
+      pageSize: 0,
+      totalCount: 0,
+      items: [],
+    };
+  }
+
   async getStatisticPlayer(playerId: string) {
     const statistic = await this.quizQueryRepository
       .createQueryBuilder('qz')
@@ -113,6 +155,7 @@ export class QuizzesQueryRepository {
       | 'searchNameTerm'
       | 'searchLoginTerm'
       | 'searchEmailTerm'
+      | 'sort'
     >,
   ): Promise<PaginatorOutputModel<QuizOutputModel>> {
     const pageNumber = queryData.pageNumber ? +queryData.pageNumber : 1;

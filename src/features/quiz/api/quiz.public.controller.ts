@@ -26,6 +26,7 @@ import { HTTP_STATUSES } from '../../../common/utils';
 import { AnswerOutputModel } from './models/answer.output.model';
 import { PaginatorModel } from '../../../common/models/paginator.input.model';
 import { PaginatorOutputModel } from '../../../common/models/paginator.output.model';
+import { PlayerOutputQuizModel } from './models/player-session.output.model';
 
 @Controller('pair-game-quiz')
 export class QuizPublicController {
@@ -36,7 +37,16 @@ export class QuizPublicController {
   @Get('pairs/my')
   @UseGuards(JwtBearerAuthGuard)
   async getAllQuizzes(
-    @Query() query: PaginatorModel,
+    @Query()
+    query: Omit<
+      PaginatorModel,
+      | 'bodySearchTerm'
+      | 'publishedStatus'
+      | 'searchNameTerm'
+      | 'searchLoginTerm'
+      | 'searchEmailTerm'
+      | 'sort'
+    >,
     @CurrentUserId() playerId: string,
   ): Promise<PaginatorOutputModel<QuizOutputModel>> {
     const quizzes = await this.quizzesQueryRepository.getAllQuizzes(
@@ -56,6 +66,29 @@ export class QuizPublicController {
       await this.quizzesQueryRepository.getStatisticPlayer(playerId);
 
     return statistic;
+  }
+
+  @Get('users/top')
+  async getTopPlayers(
+    @Query()
+    query: Omit<
+      PaginatorModel,
+      | 'bodySearchTerm'
+      | 'publishedStatus'
+      | 'searchNameTerm'
+      | 'searchLoginTerm'
+      | 'searchEmailTerm'
+      | 'sortBy'
+      | 'sortDirection'
+    >,
+  ): Promise<
+    PaginatorOutputModel<
+      StatisticOutputModel & { player: PlayerOutputQuizModel }
+    >
+  > {
+    const top = await this.quizzesQueryRepository.getTopPlayers(query);
+
+    return top;
   }
 
   @Get('pairs/my-current')
