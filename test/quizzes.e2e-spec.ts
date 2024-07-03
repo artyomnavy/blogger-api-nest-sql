@@ -857,6 +857,11 @@ describe('Quiz testing (e2e)', () => {
     });
   });
 
+  it('+ GET top players', async () => {
+    // TO DO: finish write this test (add expect and query params)
+    const top = await request(server).get(`${Paths.quiz}/users/top`);
+  });
+
   afterAll(async () => {
     await request(server)
       .delete(`${Paths.testing}/all-data`)

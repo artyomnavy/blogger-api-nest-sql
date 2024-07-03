@@ -20,6 +20,8 @@ export class QuizzesQueryRepository {
   constructor(
     @InjectRepository(Quiz)
     private readonly quizQueryRepository: Repository<Quiz>,
+    @InjectRepository(PlayerSession)
+    private readonly playersSessionQueryRepository: Repository<PlayerSession>,
   ) {}
   async getTopPlayers(
     queryData: Omit<
@@ -49,8 +51,67 @@ export class QuizzesQueryRepository {
       .split('&')
       .map((value) => value.replace('sort=', ''));
 
-    // TO DO: queries top players
-    //const top = await this.quizQueryRepository.createQueryBuilder('qz');
+    // TO DO: sort (ORDER BY) for top query and write query totalCount
+    const top = await this.playersSessionQueryRepository
+      .createQueryBuilder('ps')
+      .select(['u.id AS userId', 'u.login AS userLogin'])
+      .leftJoin('ps.player', 'u')
+      // Количество игр
+      .addSelect((subQuery) => {
+        return subQuery
+          .select('COUNT(qz.id)', 'gamesCount')
+          .from(Quiz, 'qz')
+          .leftJoin('qz.firstPlayerSession', 'fps')
+          .leftJoin('qz.secondPlayerSession', 'sps')
+          .where('(fps.player = u.id OR sps.player = u.id)');
+      })
+      // Количество игр с победой
+      .addSelect((subQuery) => {
+        return subQuery
+          .select('COUNT(qz.id)', 'winsCount')
+          .from(Quiz, 'qz')
+          .leftJoin('qz.firstPlayerSession', 'fps')
+          .leftJoin('qz.secondPlayerSession', 'sps')
+          .where('(fps.player = u.id AND fps.score > sps.score)')
+          .orWhere('(sps.player = u.id AND sps.score > fps.score)');
+      })
+      // Количество игр с поражением
+      .addSelect((subQuery) => {
+        return subQuery
+          .select('COUNT(qz.id)', 'lossesCount')
+          .from(Quiz, 'qz')
+          .leftJoin('qz.firstPlayerSession', 'fps')
+          .leftJoin('qz.secondPlayerSession', 'sps')
+          .where('(fps.player = u.id AND fps.score < sps.score)')
+          .orWhere('(sps.player = u.id AND sps.score < fps.score)');
+      })
+      // Количество игр в ничью
+      .addSelect((subQuery) => {
+        return subQuery
+          .select('COUNT(qz.id)', 'drawsCount')
+          .from(Quiz, 'qz')
+          .leftJoin('qz.firstPlayerSession', 'fps')
+          .leftJoin('qz.secondPlayerSession', 'sps')
+          .where('(fps.player = u.id AND fps.score = sps.score)')
+          .orWhere('(sps.player = u.id AND sps.score = fps.score)');
+      })
+      // Сумма очков
+      .addSelect((subQuery) => {
+        return subQuery
+          .select('SUM(ps.score)', 'sumScore')
+          .from(PlayerSession, 'ps')
+          .where('ps.player = u.id');
+      })
+      // Среднее количество очков
+      .addSelect((subQuery) => {
+        return subQuery
+          .select('AVG(ps.score)', 'avgScores')
+          .from(PlayerSession, 'ps')
+          .where('ps.player = u.id');
+      })
+      .groupBy('userId')
+      .addGroupBy('userLogin')
+      .getRawMany();
 
     return {
       pagesCount: 0,
