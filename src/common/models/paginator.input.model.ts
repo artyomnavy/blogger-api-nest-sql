@@ -17,7 +17,7 @@ export class PaginatorModel {
 
   sortBy?: string;
 
-  sort?: string;
+  sort?: string | string[];
 
   sortDirection?: 'ASC' | 'DESC';
 }

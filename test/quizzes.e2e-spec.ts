@@ -858,8 +858,43 @@ describe('Quiz testing (e2e)', () => {
   });
 
   it('+ GET top players', async () => {
-    // TO DO: finish write this test (add expect and query params)
-    const top = await request(server).get(`${Paths.quiz}/users/top`);
+    const top = await request(server)
+      .get(`${Paths.quiz}/users/top`)
+      .query('sort=avgScores desc')
+      .expect(HTTP_STATUSES.OK_200);
+
+    expect(top.body).toStrictEqual({
+      pagesCount: 1,
+      page: 1,
+      pageSize: 10,
+      totalCount: 2,
+      items: [
+        {
+          sumScore: 2,
+          avgScores: 2,
+          gamesCount: 1,
+          winsCount: 1,
+          lossesCount: 0,
+          drawsCount: 0,
+          player: {
+            id: playerOne.id,
+            login: playerOne.login,
+          },
+        },
+        {
+          sumScore: 0,
+          avgScores: 0,
+          gamesCount: 1,
+          winsCount: 0,
+          lossesCount: 1,
+          drawsCount: 0,
+          player: {
+            id: playerTwo.id,
+            login: playerTwo.login,
+          },
+        },
+      ],
+    });
   });
 
   afterAll(async () => {

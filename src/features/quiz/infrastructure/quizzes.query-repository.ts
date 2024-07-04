@@ -43,18 +43,11 @@ export class QuizzesQueryRepository {
     const pageSize = queryData.pageSize ? +queryData.pageSize : 10;
     const rawSort = queryData.sort
       ? queryData.sort
-      : '?sort=avgScores desc&sort=sumScore desc';
+      : ['avgScores desc', 'sumScore desc'];
 
-    const sort = rawSort
-      .trim()
-      .slice(1)
-      .split('&')
-      .map((value) => value.replace('sort=', ''));
-
-    // TO DO: sort (ORDER BY) for top query and write query totalCount
-    const top = await this.playersSessionQueryRepository
+    const queryBuilder = this.playersSessionQueryRepository
       .createQueryBuilder('ps')
-      .select(['u.id AS userId', 'u.login AS userLogin'])
+      .select(['u.id AS "userId"', 'u.login AS "userLogin"'])
       .leftJoin('ps.player', 'u')
       // Количество игр
       .addSelect((subQuery) => {
@@ -109,16 +102,54 @@ export class QuizzesQueryRepository {
           .from(PlayerSession, 'ps')
           .where('ps.player = u.id');
       })
-      .groupBy('userId')
-      .addGroupBy('userLogin')
+      .groupBy('"userId"')
+      .addGroupBy('"userLogin"');
+
+    const sort = typeof rawSort === 'string' ? [rawSort] : rawSort;
+
+    sort.forEach((order) => {
+      const [fieldName, sortDirection] = order.split(' ');
+      queryBuilder.addOrderBy(
+        `"${fieldName}"`,
+        sortDirection.toUpperCase() as 'ASC' | 'DESC',
+      );
+    });
+
+    const top = await queryBuilder
+      .limit(pageSize)
+      .offset((pageNumber - 1) * pageSize)
       .getRawMany();
 
+    const totalCount = await this.playersSessionQueryRepository
+      .createQueryBuilder('ps')
+      .leftJoin('ps.player', 'u')
+      .select('COUNT(DISTINCT u.id) AS result')
+      .getRawOne(); //.getCount() не учитывает DISTINCT
+
+    const pagesCount = Math.ceil(+totalCount.result / pageSize);
+
     return {
-      pagesCount: 0,
-      page: 0,
-      pageSize: 0,
-      totalCount: 0,
-      items: [],
+      pagesCount: pagesCount,
+      page: pageNumber,
+      pageSize: pageSize,
+      totalCount: +totalCount.result,
+      items: top.map((player) => {
+        return {
+          sumScore: +player.sumScore,
+          avgScores:
+            +player.avgScores % 1 === 0
+              ? +player.avgScores
+              : Math.round(+player.avgScores * 100) / 100,
+          gamesCount: +player.gamesCount,
+          winsCount: +player.winsCount,
+          lossesCount: +player.lossesCount,
+          drawsCount: +player.drawsCount,
+          player: {
+            id: player.userId,
+            login: player.userLogin,
+          },
+        };
+      }),
     };
   }
 
