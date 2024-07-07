@@ -8,6 +8,7 @@ import { AnswerOutputModel } from '../api/models/answer.output.model';
 import { QuizzesRepository } from '../infrastructure/quizzes.repository';
 import { DataSource, EntityManager } from 'typeorm';
 import { TransactionManagerUseCase } from '../../../common/use-cases/transaction.use-case';
+import { SchedulerRegistry } from '@nestjs/schedule';
 
 export class CreateAnswerCommand {
   constructor(
@@ -30,6 +31,7 @@ export class CreateAnswerUseCase
     private readonly playersSessionsRepository: PlayersSessionsRepository,
     private readonly quizzesRepository: QuizzesRepository,
     protected readonly dataSource: DataSource,
+    private readonly schedulerRegistry: SchedulerRegistry,
   ) {
     super(dataSource);
   }
@@ -85,11 +87,49 @@ export class CreateAnswerUseCase
       question: currentQuestion,
     });
 
-    // Проверяем необходимость завершения текущей игры путем сверки количества ответов
-    // игроков игры до добавления текущего ответа
+    // Ответы игроков до добавления текущего ответа
     const firstPlayerAnswers = command.quiz.firstPlayerSession.answers;
     const secondPlayerAnswers = command.quiz.secondPlayerSession.answers;
 
+    // TO DO: not added points for fastResponder after timeout?
+    // Проверяем, что если какой-либо игрок ответил на все вопросы (до добавления текущего ответа),
+    // то другому игроку дается 10 секунд для ответа на оставшиеся вопросы,
+    // либо игра завершается по истечении отведенного времени на ответы
+    if (
+      (currentAnswers.length === 4 &&
+        command.playerId === command.quiz.firstPlayerSession.player.id &&
+        secondPlayerAnswers.length !== 5) ||
+      (currentAnswers.length === 4 &&
+        command.playerId === command.quiz.secondPlayerSession.player.id &&
+        firstPlayerAnswers.length !== 5)
+    ) {
+      // Меняем свойство-флаг (таймаут добавлен)
+      this.timeoutAdded = true;
+
+      // Устанавливаем имя динамического таймаута
+      const timeoutName = `Timeout finish quiz with id ${command.quiz.id} executing after 10 seconds`;
+
+      // Устанавливаем динамический таймаут
+      const timeout = setTimeout(async () => {
+        // Завершение игры
+        await this.quizzesRepository.finishQuiz(manager, command.quiz, {
+          finishDate: new Date(),
+          status: QuizStatuses.FINISHED,
+        });
+
+        // Удаляем таймаут
+        this.schedulerRegistry.deleteTimeout(timeoutName);
+
+        // Меняем свойство-флаг (таймаут удален)
+        this.timeoutAdded = false;
+      }, 10000);
+
+      // Добавляем таймаут
+      this.schedulerRegistry.addTimeout(timeoutName, timeout);
+    }
+
+    // Проверяем необходимость завершения текущей игры путем сверки количества ответов
+    // игроков игры до добавления текущего ответа
     if (
       (firstPlayerAnswers.length === 4 && secondPlayerAnswers.length === 5) ||
       (firstPlayerAnswers.length === 5 && secondPlayerAnswers.length === 4)

@@ -1,6 +1,9 @@
 import { DataSource, EntityManager } from 'typeorm';
 
 export abstract class TransactionManagerUseCase<I, O> {
+  // Свойство-флаг для отслеживания добавления таймаута
+  protected timeoutAdded = false;
+
   protected constructor(protected readonly dataSource: DataSource) {}
 
   // Абстрактный метод, который использует реализацию логики конкретного подкласса
@@ -21,7 +24,9 @@ export abstract class TransactionManagerUseCase<I, O> {
       console.error('Transaction rollback:', error);
       return null;
     } finally {
-      await queryRunner.release();
+      if (!this.timeoutAdded) {
+        await queryRunner.release();
+      }
     }
   }
 }

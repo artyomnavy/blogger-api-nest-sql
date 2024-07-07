@@ -97,6 +97,7 @@ import { AnswersRepository } from './features/quiz/infrastructure/answers.reposi
 import { QuizzesQueryRepository } from './features/quiz/infrastructure/quizzes.query-repository';
 import { QuizPublicController } from './features/quiz/api/quiz.public.controller';
 import { QuizQuestion } from './features/quiz/domain/quiz-question.entity';
+import { ScheduleModule } from '@nestjs/schedule';
 
 config();
 
@@ -231,6 +232,7 @@ const options: TypeOrmModuleOptions = {
 
 @Module({
   imports: [
+    ScheduleModule.forRoot(),
     TypeOrmModule.forFeature([...entities]),
     CqrsModule,
     PassportModule,
