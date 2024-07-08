@@ -9,6 +9,8 @@ import { QuizzesRepository } from '../infrastructure/quizzes.repository';
 import { DataSource, EntityManager } from 'typeorm';
 import { TransactionManagerUseCase } from '../../../common/use-cases/transaction.use-case';
 import { SchedulerRegistry } from '@nestjs/schedule';
+import { Answer } from '../domain/answer.entity';
+import { PlayerSession } from '../domain/player-session.entity';
 
 export class CreateAnswerCommand {
   constructor(
@@ -110,22 +112,12 @@ export class CreateAnswerUseCase
 
       // Устанавливаем динамический таймаут
       const timeout = setTimeout(async () => {
-        // Начисление дополнительного балла игроку, первым завершившим игру, при условии,
-        // что есть хотя бы 1 правильный ответ на вопрос
-        if (
-          currentAnswers.some((a) => a.answerStatus === AnswerStatuses.CORRECT)
-        ) {
-          await this.playersSessionsRepository.updateScoreForPlayerSession(
-            manager,
-            currentPlayerSession,
-            ++currentPlayerSession.score,
-          );
-        }
-        // Завершение игры
-        await this.quizzesRepository.finishQuiz(manager, command.quiz, {
-          finishDate: new Date(),
-          status: QuizStatuses.FINISHED,
-        });
+        await this.updateScoreAndFinishQuiz(
+          currentAnswers,
+          manager,
+          currentPlayerSession,
+          command.quiz,
+        );
 
         // Удаляем таймаут
         this.schedulerRegistry.deleteTimeout(timeoutName);
@@ -150,27 +142,36 @@ export class CreateAnswerUseCase
           ? command.quiz.firstPlayerSession
           : command.quiz.secondPlayerSession;
 
-      // Начисление дополнительного балла игроку, первым завершившим игру, при условии,
-      // что есть хотя бы 1 правильный ответ на вопрос
-      if (
-        fastResponder.answers.some(
-          (a) => a.answerStatus === AnswerStatuses.CORRECT,
-        )
-      ) {
-        await this.playersSessionsRepository.updateScoreForPlayerSession(
-          manager,
-          fastResponder,
-          ++fastResponder.score,
-        );
-      }
-
-      // Завершение игры
-      await this.quizzesRepository.finishQuiz(manager, command.quiz, {
-        finishDate: new Date(),
-        status: QuizStatuses.FINISHED,
-      });
+      await this.updateScoreAndFinishQuiz(
+        fastResponder.answers,
+        manager,
+        fastResponder,
+        command.quiz,
+      );
     }
 
     return createAnswer;
+  }
+  private async updateScoreAndFinishQuiz(
+    answers: Answer[],
+    manager: EntityManager,
+    playerSession: PlayerSession,
+    quiz: Quiz,
+  ) {
+    // Начисление дополнительного балла игроку, первым завершившим игру, при условии,
+    // что есть хотя бы 1 правильный ответ на вопрос
+    if (answers.some((a) => a.answerStatus === AnswerStatuses.CORRECT)) {
+      await this.playersSessionsRepository.updateScoreForPlayerSession(
+        manager,
+        playerSession,
+        ++playerSession.score,
+      );
+    }
+
+    // Завершение игры
+    await this.quizzesRepository.finishQuiz(manager, quiz, {
+      finishDate: new Date(),
+      status: QuizStatuses.FINISHED,
+    });
   }
 }
