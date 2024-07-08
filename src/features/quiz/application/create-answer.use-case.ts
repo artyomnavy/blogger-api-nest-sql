@@ -91,7 +91,6 @@ export class CreateAnswerUseCase
     const firstPlayerAnswers = command.quiz.firstPlayerSession.answers;
     const secondPlayerAnswers = command.quiz.secondPlayerSession.answers;
 
-    // TO DO: not added points for fastResponder after timeout?
     // Проверяем, что если какой-либо игрок ответил на все вопросы (до добавления текущего ответа),
     // то другому игроку дается 10 секунд для ответа на оставшиеся вопросы,
     // либо игра завершается по истечении отведенного времени на ответы
@@ -111,6 +110,17 @@ export class CreateAnswerUseCase
 
       // Устанавливаем динамический таймаут
       const timeout = setTimeout(async () => {
+        // Начисление дополнительного балла игроку, первым завершившим игру, при условии,
+        // что есть хотя бы 1 правильный ответ на вопрос
+        if (
+          currentAnswers.some((a) => a.answerStatus === AnswerStatuses.CORRECT)
+        ) {
+          await this.playersSessionsRepository.updateScoreForPlayerSession(
+            manager,
+            currentPlayerSession,
+            ++currentPlayerSession.score,
+          );
+        }
         // Завершение игры
         await this.quizzesRepository.finishQuiz(manager, command.quiz, {
           finishDate: new Date(),
