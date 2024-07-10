@@ -11,28 +11,12 @@ export class CreateEntitiesTestManager {
   async createBlog(
     uri: string,
     createData: CreateAndUpdateBlogModel,
-    login: string,
-    password: string,
+    accessToken: string,
     statusCode: HttpStatusType = HTTP_STATUSES.CREATED_201,
   ) {
     const response = await request(this.app.getHttpServer())
       .post(uri)
-      .auth(login, password)
-      .send(createData)
-      .expect(statusCode);
-
-    return response;
-  }
-  async createPostForBlog(
-    uri: string,
-    createData: CreateAndUpdatePostModel,
-    login: string,
-    password: string,
-    statusCode: HttpStatusType = HTTP_STATUSES.CREATED_201,
-  ) {
-    const response = await request(this.app.getHttpServer())
-      .post(uri)
-      .auth(login, password)
+      .auth(accessToken, { type: 'bearer' })
       .send(createData)
       .expect(statusCode);
 
@@ -41,13 +25,12 @@ export class CreateEntitiesTestManager {
   async createPost(
     uri: string,
     createData: CreateAndUpdatePostModel,
-    login: string,
-    password: string,
+    accessToken: string,
     statusCode: HttpStatusType = HTTP_STATUSES.CREATED_201,
   ) {
     const response = await request(this.app.getHttpServer())
       .post(uri)
-      .auth(login, password)
+      .auth(accessToken, { type: 'bearer' })
       .send(createData)
       .expect(statusCode);
 

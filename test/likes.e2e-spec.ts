@@ -109,8 +109,37 @@ describe('Likes testing (e2e)', () => {
     });
   });
 
+  // CHECK USER AND CREATE TOKEN (JWT)
+  it('+ POST enter to system with correct data and create token1', async () => {
+    const authData = {
+      loginOrEmail: newUser1!.email,
+      password: '123456',
+    };
+
+    const createToken = await request(server)
+      .post(`${Paths.auth}/login`)
+      .send(authData)
+      .expect(HTTP_STATUSES.OK_200);
+
+    token1 = createToken.body.accessToken;
+  });
+
+  it('+ POST enter to system with correct data and create token2', async () => {
+    const authData = {
+      loginOrEmail: newUser2!.email,
+      password: '654321',
+    };
+
+    const createToken = await request(server)
+      .post(`${Paths.auth}/login`)
+      .send(authData)
+      .expect(HTTP_STATUSES.OK_200);
+
+    token2 = createToken.body.accessToken;
+  });
+
   // CREATE NEW BLOG
-  it('+ POST create blog with correct data)', async () => {
+  it('+ POST (blogger) create blog by user1 with correct data', async () => {
     const createData = {
       name: 'New blog 1',
       description: 'New description 1',
@@ -118,10 +147,9 @@ describe('Likes testing (e2e)', () => {
     };
 
     const createBlog = await createEntitiesTestManager.createBlog(
-      Paths.blogsSA,
+      Paths.blogsBlogger,
       createData,
-      basicLogin,
-      basicPassword,
+      token1,
     );
 
     newBlog = createBlog.body;
@@ -150,7 +178,7 @@ describe('Likes testing (e2e)', () => {
   });
 
   // CREATE NEW POST
-  it('+ POST create post with correct data)', async () => {
+  it('+ POST (blogger) create post with correct data', async () => {
     const createData = {
       title: 'New post 1',
       shortDescription: 'New shortDescription 1',
@@ -158,10 +186,9 @@ describe('Likes testing (e2e)', () => {
     };
 
     const createPost = await createEntitiesTestManager.createPost(
-      `${Paths.blogsSA}/${newBlog!.id}/posts`,
+      `${Paths.blogsBlogger}/${newBlog!.id}/posts`,
       createData,
-      basicLogin,
-      basicPassword,
+      token1,
     );
 
     newPost = createPost.body;
@@ -193,35 +220,6 @@ describe('Likes testing (e2e)', () => {
       totalCount: 1,
       items: [newPost],
     });
-  });
-
-  // CHECK USER AND CREATE TOKEN (JWT)
-  it('+ POST enter to system with correct data and create token1', async () => {
-    const authData = {
-      loginOrEmail: newUser1!.email,
-      password: '123456',
-    };
-
-    const createToken = await request(server)
-      .post(`${Paths.auth}/login`)
-      .send(authData)
-      .expect(HTTP_STATUSES.OK_200);
-
-    token1 = createToken.body.accessToken;
-  });
-
-  it('+ POST enter to system with correct data and create token2', async () => {
-    const authData = {
-      loginOrEmail: newUser2!.email,
-      password: '654321',
-    };
-
-    const createToken = await request(server)
-      .post(`${Paths.auth}/login`)
-      .send(authData)
-      .expect(HTTP_STATUSES.OK_200);
-
-    token2 = createToken.body.accessToken;
   });
 
   // CREATE COMMENT FOR POST

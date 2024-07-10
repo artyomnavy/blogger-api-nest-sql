@@ -3,6 +3,7 @@ import { v4 as uuidv4 } from 'uuid';
 export const Paths = {
   blogs: '/blogs',
   blogsSA: '/sa/blogs',
+  blogsBlogger: '/blogger/blogs',
   posts: '/posts',
   comments: '/comments',
   users: '/sa/users',

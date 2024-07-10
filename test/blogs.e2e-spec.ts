@@ -10,11 +10,14 @@ import {
   basicPassword,
 } from '../src/features/auth/api/auth.constants';
 import { initSettings } from './utils/init-settings';
+import { UserOutputModel } from '../src/features/users/api/models/user.output.model';
 
 describe('Blogs testing (e2e)', () => {
   let app: INestApplication;
   let server;
   let createEntitiesTestManager: CreateEntitiesTestManager;
+  let user: UserOutputModel;
+  let accessToken: any;
 
   beforeAll(async () => {
     const testSettings = await initSettings();
@@ -44,7 +47,78 @@ describe('Blogs testing (e2e)', () => {
     expect(foundBlogs.body).toStrictEqual(responseNullData);
   });
 
-  it('- POST (superadmin) does not create blog with incorrect login and password)', async () => {
+  // Create by admin and log in user for blogger controller
+  it('+ POST create by admin and log in user for blogs', async () => {
+    // Create user
+    const userData = {
+      login: 'user',
+      password: '123456',
+      email: 'user@blog.com',
+    };
+
+    const createUserByAdmin = await createEntitiesTestManager.createUserByAdmin(
+      Paths.users,
+      userData,
+      basicLogin,
+      basicPassword,
+    );
+
+    user = createUserByAdmin.body;
+
+    expect(user).toEqual({
+      id: expect.any(String),
+      login: user.login,
+      email: user.email,
+      createdAt: expect.any(String),
+    });
+
+    const foundUsers = await request(server)
+      .get(Paths.users)
+      .auth(basicLogin, basicPassword)
+      .expect(HTTP_STATUSES.OK_200);
+
+    expect(foundUsers.body).toStrictEqual({
+      pagesCount: 1,
+      page: 1,
+      pageSize: 10,
+      totalCount: 1,
+      items: [user],
+    });
+
+    // Log in user and create tokens
+    const authUserData = {
+      loginOrEmail: user!.email,
+      password: '123456',
+    };
+
+    // Create tokens for user
+    const createAccessTokenForUser = await request(server)
+      .post(`${Paths.auth}/login`)
+      .send(authUserData)
+      .expect(HTTP_STATUSES.OK_200);
+
+    accessToken = createAccessTokenForUser.body.accessToken;
+  });
+
+  it('+ GET (blogger) all blogs database', async () => {
+    const queryData = {
+      searchNameTerm: '',
+      sortBy: '',
+      sortDirection: '',
+      pageNumber: '',
+      pageSize: '',
+    };
+
+    const foundBlogs = await request(server)
+      .get(Paths.blogsBlogger)
+      .query(queryData)
+      .auth(accessToken, { type: 'bearer' })
+      .expect(HTTP_STATUSES.OK_200);
+
+    expect(foundBlogs.body).toStrictEqual(responseNullData);
+  });
+
+  it('- POST (blogger) does not create blog with incorrect login and password)', async () => {
     const createData = {
       name: 'login',
       description: 'new blog',
@@ -52,22 +126,21 @@ describe('Blogs testing (e2e)', () => {
     };
 
     await createEntitiesTestManager.createBlog(
-      Paths.blogsSA,
+      Paths.blogsBlogger,
       createData,
-      'wrongLogin',
-      'wrongPass',
+      'wrongAccessToken.notCreate.jwt',
       HTTP_STATUSES.UNAUTHORIZED_401,
     );
 
     const foundBlogs = await request(server)
-      .get(Paths.blogsSA)
-      .auth(basicLogin, basicPassword)
+      .get(Paths.blogsBlogger)
+      .auth(accessToken, { type: 'bearer' })
       .expect(HTTP_STATUSES.OK_200);
 
     expect(foundBlogs.body).toStrictEqual(responseNullData);
   });
 
-  it('- POST (superadmin) does not create blog with incorrect name, description and websiteUrl)', async () => {
+  it('- POST (blogger) does not create blog with incorrect name, description and websiteUrl)', async () => {
     const createData = {
       name: '',
       description: '',
@@ -75,10 +148,9 @@ describe('Blogs testing (e2e)', () => {
     };
 
     const errorsCreateBlog = await createEntitiesTestManager.createBlog(
-      Paths.blogsSA,
+      Paths.blogsBlogger,
       createData,
-      basicLogin,
-      basicPassword,
+      accessToken,
       HTTP_STATUSES.BAD_REQUEST_400,
     );
 
@@ -91,14 +163,14 @@ describe('Blogs testing (e2e)', () => {
     });
 
     const foundBlogs = await request(server)
-      .get(Paths.blogsSA)
-      .auth(basicLogin, basicPassword)
+      .get(Paths.blogsBlogger)
+      .auth(accessToken, { type: 'bearer' })
       .expect(HTTP_STATUSES.OK_200);
 
     expect(foundBlogs.body).toStrictEqual(responseNullData);
   });
 
-  it('+ POST (superadmin) create blog with correct data)', async () => {
+  it('+ POST (blogger) create blog with correct data)', async () => {
     const createData: CreateAndUpdateBlogModel = {
       name: 'New blog 1',
       description: 'New description 1',
@@ -106,10 +178,9 @@ describe('Blogs testing (e2e)', () => {
     };
 
     const createBlog = await createEntitiesTestManager.createBlog(
-      Paths.blogsSA,
+      Paths.blogsBlogger,
       createData,
-      basicLogin,
-      basicPassword,
+      accessToken,
     );
 
     newBlog = createBlog.body;
@@ -132,8 +203,8 @@ describe('Blogs testing (e2e)', () => {
     };
 
     const foundBlogs = await request(server)
-      .get(Paths.blogsSA)
-      .auth(basicLogin, basicPassword)
+      .get(Paths.blogsBlogger)
+      .auth(accessToken, { type: 'bearer' })
       .query(queryData)
       .expect(HTTP_STATUSES.OK_200);
 
@@ -183,7 +254,7 @@ describe('Blogs testing (e2e)', () => {
     });
   });
 
-  it('- PUT (superadmin) blog by ID with incorrect id', async () => {
+  it('- PUT (blogger) blog by ID with incorrect id', async () => {
     const updateData = {
       name: 'Bad name',
       description: 'Bad description',
@@ -191,14 +262,14 @@ describe('Blogs testing (e2e)', () => {
     };
 
     await request(server)
-      .put(`${Paths.blogsSA}/${badId}`)
-      .auth(basicLogin, basicPassword)
+      .put(`${Paths.blogsBlogger}/${badId}`)
+      .auth(accessToken, { type: 'bearer' })
       .send(updateData)
       .expect(HTTP_STATUSES.NOT_FOUND_404);
 
     const foundBlogs = await request(server)
-      .get(Paths.blogsSA)
-      .auth(basicLogin, basicPassword)
+      .get(Paths.blogsBlogger)
+      .auth(accessToken, { type: 'bearer' })
       .expect(HTTP_STATUSES.OK_200);
 
     expect(foundBlogs.body).toStrictEqual({
@@ -210,12 +281,12 @@ describe('Blogs testing (e2e)', () => {
     });
   });
 
-  it('- PUT (superadmin) blog by ID with incorrect data', async () => {
+  it('- PUT (blogger) blog by ID with incorrect data', async () => {
     const updateData = { name: '', description: '', websiteUrl: 'bad' };
 
     const errorsUpdateBlog = await request(server)
-      .put(`${Paths.blogsSA}/${newBlog!.id}`)
-      .auth(basicLogin, basicPassword)
+      .put(`${Paths.blogsBlogger}/${newBlog!.id}`)
+      .auth(accessToken, { type: 'bearer' })
       .send(updateData)
       .expect(HTTP_STATUSES.BAD_REQUEST_400);
 
@@ -228,8 +299,8 @@ describe('Blogs testing (e2e)', () => {
     });
 
     const foundBlogs = await request(server)
-      .get(Paths.blogsSA)
-      .auth(basicLogin, basicPassword)
+      .get(Paths.blogsBlogger)
+      .auth(accessToken, { type: 'bearer' })
       .expect(HTTP_STATUSES.OK_200);
 
     expect(foundBlogs.body).toStrictEqual({
@@ -241,7 +312,7 @@ describe('Blogs testing (e2e)', () => {
     });
   });
 
-  it('+ PUT (superadmin) blog by ID with correct data', async () => {
+  it('+ PUT (blogger) blog by ID with correct data', async () => {
     const updateData: CreateAndUpdateBlogModel = {
       name: 'New blog 2',
       description: 'New description 2',
@@ -249,14 +320,14 @@ describe('Blogs testing (e2e)', () => {
     };
 
     await request(server)
-      .put(`${Paths.blogsSA}/${newBlog!.id}`)
-      .auth(basicLogin, basicPassword)
+      .put(`${Paths.blogsBlogger}/${newBlog!.id}`)
+      .auth(accessToken, { type: 'bearer' })
       .send(updateData)
       .expect(HTTP_STATUSES.NO_CONTENT_204);
 
     const foundBlogs = await request(server)
-      .get(Paths.blogsSA)
-      .auth(basicLogin, basicPassword)
+      .get(Paths.blogsBlogger)
+      .auth(accessToken, { type: 'bearer' })
       .expect(HTTP_STATUSES.OK_200);
 
     expect(foundBlogs.body.items[0]).toEqual({
@@ -269,15 +340,15 @@ describe('Blogs testing (e2e)', () => {
     newBlog = foundBlogs.body.items[0];
   });
 
-  it('- DELETE (superadmin) blog by ID with incorrect id', async () => {
+  it('- DELETE (blogger) blog by ID with incorrect id', async () => {
     await request(server)
-      .delete(`${Paths.blogsSA}/${badId}`)
-      .auth(basicLogin, basicPassword)
+      .delete(`${Paths.blogsBlogger}/${badId}`)
+      .auth(accessToken, { type: 'bearer' })
       .expect(HTTP_STATUSES.NOT_FOUND_404);
 
     const foundBlogs = await request(server)
-      .get(Paths.blogsSA)
-      .auth(basicLogin, basicPassword)
+      .get(Paths.blogsBlogger)
+      .auth(accessToken, { type: 'bearer' })
       .expect(HTTP_STATUSES.OK_200);
 
     expect(foundBlogs.body).toStrictEqual({
@@ -289,15 +360,15 @@ describe('Blogs testing (e2e)', () => {
     });
   });
 
-  it('+ DELETE (superadmin) blog by ID with correct id', async () => {
+  it('+ DELETE (blogger) blog by ID with correct id', async () => {
     await request(server)
-      .delete(`${Paths.blogsSA}/${newBlog!.id}`)
-      .auth(basicLogin, basicPassword)
+      .delete(`${Paths.blogsBlogger}/${newBlog!.id}`)
+      .auth(accessToken, { type: 'bearer' })
       .expect(HTTP_STATUSES.NO_CONTENT_204);
 
     const foundBlogs = await request(server)
-      .get(Paths.blogsSA)
-      .auth(basicLogin, basicPassword)
+      .get(Paths.blogsBlogger)
+      .auth(accessToken, { type: 'bearer' })
       .expect(HTTP_STATUSES.OK_200);
 
     expect(foundBlogs.body).toStrictEqual(responseNullData);

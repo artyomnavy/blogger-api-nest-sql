@@ -98,6 +98,7 @@ import { QuizzesQueryRepository } from './features/quiz/infrastructure/quizzes.q
 import { QuizPublicController } from './features/quiz/api/quiz.public.controller';
 import { QuizQuestion } from './features/quiz/domain/quiz-question.entity';
 import { ScheduleModule } from '@nestjs/schedule';
+import { BlogsBloggerController } from './features/blogs/api/blogs.blogger.controller';
 
 config();
 
@@ -194,6 +195,7 @@ const controllers = [
   AuthController,
   DevicesController,
   BlogsSAController,
+  BlogsBloggerController,
   BlogsPublicController,
   PostsController,
   CommentsController,
