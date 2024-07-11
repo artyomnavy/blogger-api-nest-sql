@@ -23,7 +23,7 @@ export class CreateOrConnectQuizUseCase
   ) {}
   async execute(command: CreateOrConnectQuizCommand) {
     // Проверяем существует ли такой пользователь (игрок)
-    const player = await this.usersQueryRepository.getUserByIdForQuiz(
+    const player = await this.usersQueryRepository.getOrmUserById(
       command.playerId,
     );
 

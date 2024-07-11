@@ -248,7 +248,7 @@ export class UsersQueryRepository {
       };
     }
   }
-  async getUserByIdForQuiz(userId: string): Promise<User | null> {
+  async getOrmUserById(userId: string): Promise<User | null> {
     const user = await this.usersQueryRepository.findOneBy({ id: userId });
 
     if (!user) {

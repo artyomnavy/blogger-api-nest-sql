@@ -11,6 +11,10 @@ import {
 } from '../src/features/auth/api/auth.constants';
 import { initSettings } from './utils/init-settings';
 import { UserOutputModel } from '../src/features/users/api/models/user.output.model';
+import { Repository } from 'typeorm';
+import { Blog } from '../src/features/blogs/domain/blog.entity';
+import { getRepositoryToken } from '@nestjs/typeorm';
+import { v4 as uuidv4 } from 'uuid';
 
 describe('Blogs testing (e2e)', () => {
   let app: INestApplication;
@@ -18,6 +22,7 @@ describe('Blogs testing (e2e)', () => {
   let createEntitiesTestManager: CreateEntitiesTestManager;
   let user: UserOutputModel;
   let accessToken: any;
+  let blogEntity: Repository<Blog>;
 
   beforeAll(async () => {
     const testSettings = await initSettings();
@@ -25,6 +30,8 @@ describe('Blogs testing (e2e)', () => {
     app = testSettings.app;
     server = testSettings.server;
     createEntitiesTestManager = testSettings.createEntitiesTestManager;
+
+    blogEntity = app.get(getRepositoryToken(Blog));
   });
 
   let newBlog: BlogOutputModel | null = null;
@@ -372,6 +379,86 @@ describe('Blogs testing (e2e)', () => {
       .expect(HTTP_STATUSES.OK_200);
 
     expect(foundBlogs.body).toStrictEqual(responseNullData);
+  });
+
+  it('+ PUT bind blog with user', async () => {
+    // Create user for binding blog
+    const userData = {
+      login: 'userToBind',
+      password: '654321',
+      email: 'userForBind@blog.com',
+    };
+
+    const createUserByAdmin = await createEntitiesTestManager.createUserByAdmin(
+      Paths.users,
+      userData,
+      basicLogin,
+      basicPassword,
+    );
+
+    const userForBind = createUserByAdmin.body;
+
+    expect(userForBind).toEqual({
+      id: expect.any(String),
+      login: userForBind.login,
+      email: userForBind.email,
+      createdAt: expect.any(String),
+    });
+
+    const foundUsers = await request(server)
+      .get(Paths.users)
+      .auth(basicLogin, basicPassword)
+      .expect(HTTP_STATUSES.OK_200);
+
+    expect(foundUsers.body).toStrictEqual({
+      pagesCount: 1,
+      page: 1,
+      pageSize: 10,
+      totalCount: 2,
+      items: [userForBind, user],
+    });
+
+    // Create blog without user
+    const blogWithoutUser = {
+      id: uuidv4(),
+      name: 'New blog',
+      description: 'Blog without user',
+      websiteUrl: 'https://newblog.com',
+      createdAt: new Date(),
+      isMembership: false,
+    };
+
+    await blogEntity
+      .createQueryBuilder()
+      .insert()
+      .into(Blog)
+      .values(blogWithoutUser)
+      .execute();
+
+    const foundBlogWithoutUser = await request(server)
+      .get(`${Paths.blogs}/${blogWithoutUser.id}`)
+      .expect(HTTP_STATUSES.OK_200);
+
+    expect(foundBlogWithoutUser.body).toStrictEqual({
+      ...blogWithoutUser,
+      createdAt: blogWithoutUser.createdAt.toISOString(),
+    });
+
+    await request(server)
+      .put(
+        `${Paths.blogsSA}/${blogWithoutUser.id}/bind-with-user/${userForBind.id}`,
+      )
+      .auth(basicLogin, basicPassword)
+      .expect(HTTP_STATUSES.NO_CONTENT_204);
+
+    const foundBlogBindingWithUser = await blogEntity
+      .createQueryBuilder('b')
+      .select(['b.id AS "blogId"', 'u.id AS "userId"'])
+      .leftJoin('b.user', 'u')
+      .where('u.id = :userId', { userId: userForBind.id })
+      .getRawOne();
+
+    expect(foundBlogBindingWithUser.userId).toEqual(userForBind.id);
   });
 
   afterAll(async () => {

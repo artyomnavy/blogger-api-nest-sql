@@ -99,6 +99,7 @@ import { QuizPublicController } from './features/quiz/api/quiz.public.controller
 import { QuizQuestion } from './features/quiz/domain/quiz-question.entity';
 import { ScheduleModule } from '@nestjs/schedule';
 import { BlogsBloggerController } from './features/blogs/api/blogs.blogger.controller';
+import { BindBlogWithUserUseCase } from './features/blogs/application/use-cases/bind-blog.use-case';
 
 config();
 
@@ -117,7 +118,12 @@ const quizzesUseCases = [
   CreateAnswerUseCase,
 ];
 
-const blogsUseCases = [UpdateBlogUseCase, DeleteBlogUseCase, CreateBlogUseCase];
+const blogsUseCases = [
+  UpdateBlogUseCase,
+  DeleteBlogUseCase,
+  CreateBlogUseCase,
+  BindBlogWithUserUseCase,
+];
 
 const commentsUseCases = [
   UpdateCommentUseCase,

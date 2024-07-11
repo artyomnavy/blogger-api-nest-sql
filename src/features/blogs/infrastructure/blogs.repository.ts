@@ -8,6 +8,7 @@ import { CreateAndUpdateBlogModel } from '../api/models/blog.input.model';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { Blog } from '../domain/blog.entity';
+import { User } from '../../users/domain/user.entity';
 
 @Injectable()
 export class BlogsRepository {
@@ -51,5 +52,15 @@ export class BlogsRepository {
       .execute();
 
     return resultDeleteBlog.affected === 1;
+  }
+  async bindBlogWithUser(blogId: string, user: User) {
+    const resultBind = await this.blogsRepository
+      .createQueryBuilder()
+      .update(Blog)
+      .set({ user: user })
+      .where('id = :blogId', { blogId })
+      .execute();
+
+    return resultBind.affected === 1;
   }
 }
