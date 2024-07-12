@@ -88,4 +88,53 @@ export class BlogsQueryRepository {
 
     return blog;
   }
+  async getAllBlogsForAdmin(
+    queryData: PaginatorModel,
+  ): Promise<PaginatorOutputModel<BlogOutputModel>> {
+    const searchNameTerm = queryData.searchNameTerm
+      ? queryData.searchNameTerm
+      : '';
+    const sortBy = queryData.sortBy ? queryData.sortBy : 'createdAt';
+    const sortDirection = queryData.sortDirection
+      ? (queryData.sortDirection.toUpperCase() as 'ASC' | 'DESC')
+      : 'DESC';
+    const pageNumber = queryData.pageNumber ? +queryData.pageNumber : 1;
+    const pageSize = queryData.pageSize ? +queryData.pageSize : 10;
+
+    const blogs = await this.blogsQueryRepository
+      .createQueryBuilder('b')
+      .select([
+        'b.id AS id',
+        'b.name AS name',
+        'b.description AS description',
+        'b.websiteUrl AS "websiteUrl"',
+        'b.createdAt AS "createdAt"',
+        'b.isMembership AS "isMembership"',
+        'u.id AS "userId"',
+        'u.login AS "userLogin"',
+      ])
+      .leftJoin('b.user', 'u')
+      .where('b.name ILIKE :name', { name: `%${searchNameTerm}%` })
+      .orderBy(`b.${sortBy}`, sortDirection)
+      .offset((pageNumber - 1) * pageSize)
+      .limit(pageSize)
+      .getRawMany();
+
+    const totalCount: number = await this.blogsQueryRepository
+      .createQueryBuilder('b')
+      .leftJoin('b.user', 'u')
+      .select('COUNT(b.id)')
+      .where('b.name ILIKE :name', { name: `%${searchNameTerm}%` })
+      .getCount();
+
+    const pagesCount = Math.ceil(totalCount / pageSize);
+
+    return {
+      pagesCount: pagesCount,
+      page: pageNumber,
+      pageSize: pageSize,
+      totalCount: totalCount,
+      items: blogs.map(blogMapper),
+    };
+  }
 }

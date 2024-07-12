@@ -1,3 +1,5 @@
+import { User } from '../../../users/domain/user.entity';
+
 export class Blog {
   constructor(
     public id: string,
@@ -6,6 +8,7 @@ export class Blog {
     public websiteUrl: string,
     public createdAt: Date,
     public isMembership: boolean,
+    public user: User,
   ) {}
 }
 
@@ -16,6 +19,8 @@ export class BlogModel {
   websiteUrl: string;
   createdAt: Date;
   isMembership: boolean;
+  userId?: string;
+  userLogin?: string;
 }
 export class BlogOutputModel {
   id: string;
@@ -24,10 +29,14 @@ export class BlogOutputModel {
   websiteUrl: string;
   createdAt: string;
   isMembership: boolean;
+  blogOwnerInfo?: {
+    userId: string;
+    userLogin: string;
+  };
 }
 
 export const blogMapper = (blog: BlogModel): BlogOutputModel => {
-  return {
+  const blogOutput: BlogOutputModel = {
     id: blog.id,
     name: blog.name,
     description: blog.description,
@@ -35,4 +44,13 @@ export const blogMapper = (blog: BlogModel): BlogOutputModel => {
     createdAt: blog.createdAt.toISOString(),
     isMembership: blog.isMembership,
   };
+
+  if (blog.userId && blog.userLogin) {
+    blogOutput.blogOwnerInfo = {
+      userId: blog.userId,
+      userLogin: blog.userLogin,
+    };
+  }
+
+  return blogOutput;
 };

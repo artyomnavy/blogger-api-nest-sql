@@ -381,7 +381,7 @@ describe('Blogs testing (e2e)', () => {
     expect(foundBlogs.body).toStrictEqual(responseNullData);
   });
 
-  it('+ PUT bind blog with user', async () => {
+  it('+ PUT (superadmin) bind blog with user', async () => {
     // Create user for binding blog
     const userData = {
       login: 'userToBind',
@@ -451,14 +451,31 @@ describe('Blogs testing (e2e)', () => {
       .auth(basicLogin, basicPassword)
       .expect(HTTP_STATUSES.NO_CONTENT_204);
 
-    const foundBlogBindingWithUser = await blogEntity
-      .createQueryBuilder('b')
-      .select(['b.id AS "blogId"', 'u.id AS "userId"'])
-      .leftJoin('b.user', 'u')
-      .where('u.id = :userId', { userId: userForBind.id })
-      .getRawOne();
+    const foundBlogsWithOwners = await request(server)
+      .get(`${Paths.blogsSA}`)
+      .auth(basicLogin, basicPassword)
+      .expect(HTTP_STATUSES.OK_200);
 
-    expect(foundBlogBindingWithUser.userId).toEqual(userForBind.id);
+    expect(foundBlogsWithOwners.body).toStrictEqual({
+      pagesCount: 1,
+      page: 1,
+      pageSize: 10,
+      totalCount: 1,
+      items: [
+        {
+          id: blogWithoutUser.id,
+          name: blogWithoutUser.name,
+          description: blogWithoutUser.description,
+          websiteUrl: blogWithoutUser.websiteUrl,
+          createdAt: expect.any(String),
+          isMembership: false,
+          blogOwnerInfo: {
+            userId: userForBind.id,
+            userLogin: userForBind.login,
+          },
+        },
+      ],
+    });
   });
 
   afterAll(async () => {

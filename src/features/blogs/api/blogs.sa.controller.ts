@@ -29,10 +29,10 @@ export class BlogsSAController {
   ) {}
   @Get()
   @UseGuards(BasicAuthGuard)
-  async getAllBlogs(
+  async getAllBlogsForAdmin(
     @Query() query: PaginatorModel,
   ): Promise<PaginatorOutputModel<BlogOutputModel>> {
-    const blogs = await this.blogsQueryRepository.getAllBlogs(query);
+    const blogs = await this.blogsQueryRepository.getAllBlogsForAdmin(query);
 
     return blogs;
   }

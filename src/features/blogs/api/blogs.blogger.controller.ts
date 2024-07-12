@@ -29,6 +29,7 @@ import { DeletePostCommand } from '../../posts/application/use-cases/delete-post
 import { UuidPipe } from '../../../common/pipes/uuid.pipe';
 import { CreatePostCommand } from '../../posts/application/use-cases/create-post.use-case';
 import { JwtBearerAuthGuard } from '../../../common/guards/jwt-bearer-auth-guard.service';
+import { CurrentUserId } from '../../../common/decorators/current-user-id.param.decorator';
 
 @Controller('blogger/blogs')
 export class BlogsBloggerController {
@@ -42,6 +43,7 @@ export class BlogsBloggerController {
   async getAllBlogs(
     @Query() query: PaginatorModel,
   ): Promise<PaginatorOutputModel<BlogOutputModel>> {
+    // TO DO: fix logic - should return blogs created by blogger, shouldn't return blogs created by other bloggers
     const blogs = await this.blogsQueryRepository.getAllBlogs(query);
 
     return blogs;
@@ -50,10 +52,11 @@ export class BlogsBloggerController {
   @UseGuards(JwtBearerAuthGuard)
   @HttpCode(HTTP_STATUSES.CREATED_201)
   async createBlog(
+    @CurrentUserId() userId: string,
     @Body() createModel: CreateAndUpdateBlogModel,
   ): Promise<BlogOutputModel> {
     const newBlog = await this.commandBus.execute(
-      new CreateBlogCommand(createModel),
+      new CreateBlogCommand(createModel, userId),
     );
 
     return newBlog;

@@ -8,7 +8,7 @@ import { PaginatorModel } from '../../../common/models/paginator.input.model';
 import { PaginatorOutputModel } from '../../../common/models/paginator.output.model';
 import bcrypt from 'bcrypt';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Repository } from 'typeorm';
+import { EntityManager, Repository } from 'typeorm';
 import { AuthMeOutputModel } from '../../auth/api/models/auth.output.model';
 import { User } from '../domain/user.entity';
 
