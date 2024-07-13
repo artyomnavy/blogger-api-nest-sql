@@ -2,6 +2,7 @@ import {
   Body,
   Controller,
   Delete,
+  ForbiddenException,
   Get,
   HttpCode,
   NotFoundException,
@@ -30,6 +31,8 @@ import { UuidPipe } from '../../../common/pipes/uuid.pipe';
 import { CreatePostCommand } from '../../posts/application/use-cases/create-post.use-case';
 import { JwtBearerAuthGuard } from '../../../common/guards/jwt-bearer-auth-guard.service';
 import { CurrentUserId } from '../../../common/decorators/current-user-id.param.decorator';
+import { BlogExistsPipe } from '../../../common/pipes/blog-exists.pipe';
+import { PostExistsPipe } from '../../../common/pipes/post-exists.pipe';
 
 @Controller('blogger/blogs')
 export class BlogsBloggerController {
@@ -65,13 +68,17 @@ export class BlogsBloggerController {
   @UseGuards(JwtBearerAuthGuard)
   @HttpCode(HTTP_STATUSES.NO_CONTENT_204)
   async updateBlog(
-    @Param('blogId', UuidPipe) blogId: string,
+    @CurrentUserId() userId: string,
+    @Param('blogId', UuidPipe, BlogExistsPipe) blogId: string,
     @Body() updateModel: CreateAndUpdateBlogModel,
   ) {
-    const blog = await this.blogsQueryRepository.getBlogById(blogId);
+    const isOwnerBlog = await this.blogsQueryRepository.checkOwnerBlog(
+      userId,
+      blogId,
+    );
 
-    if (!blog) {
-      throw new NotFoundException('Blog not found');
+    if (!isOwnerBlog) {
+      throw new ForbiddenException('Blog not owned by user');
     }
 
     const isUpdated = await this.commandBus.execute(
@@ -87,11 +94,17 @@ export class BlogsBloggerController {
   @Delete(':blogId')
   @UseGuards(JwtBearerAuthGuard)
   @HttpCode(HTTP_STATUSES.NO_CONTENT_204)
-  async deleteBlog(@Param('blogId', UuidPipe) blogId: string) {
-    const blog = await this.blogsQueryRepository.getBlogById(blogId);
+  async deleteBlog(
+    @CurrentUserId() userId: string,
+    @Param('blogId', UuidPipe, BlogExistsPipe) blogId: string,
+  ) {
+    const isOwnerBlog = await this.blogsQueryRepository.checkOwnerBlog(
+      userId,
+      blogId,
+    );
 
-    if (!blog) {
-      throw new NotFoundException('Blog not found');
+    if (!isOwnerBlog) {
+      throw new ForbiddenException('Blog not owned by user');
     }
 
     const isDeleted = await this.commandBus.execute(
@@ -107,15 +120,9 @@ export class BlogsBloggerController {
   @Get(':blogId/posts')
   @UseGuards(JwtBearerAuthGuard)
   async getPostsForBlog(
-    @Param('blogId', UuidPipe) blogId: string,
+    @Param('blogId', UuidPipe, BlogExistsPipe) blogId: string,
     @Query() query: PaginatorModel,
   ): Promise<PaginatorOutputModel<PostOutputModel>> {
-    const blog = await this.blogsQueryRepository.getBlogById(blogId);
-
-    if (!blog) {
-      throw new NotFoundException('Blog not found');
-    }
-
     const posts = await this.postsQueryRepository.getPostsByBlogId({
       query,
       blogId,
@@ -127,6 +134,7 @@ export class BlogsBloggerController {
   @UseGuards(JwtBearerAuthGuard)
   @HttpCode(HTTP_STATUSES.CREATED_201)
   async createPostForBlog(
+    @CurrentUserId() userId: string,
     @Param('blogId', UuidPipe) blogId: string,
     @Body() createModel: CreateAndUpdatePostModel,
   ): Promise<PostOutputModel> {
@@ -136,8 +144,17 @@ export class BlogsBloggerController {
       throw new NotFoundException('Blog not found');
     }
 
+    const isOwnerBlog = await this.blogsQueryRepository.checkOwnerBlog(
+      userId,
+      blogId,
+    );
+
+    if (!isOwnerBlog) {
+      throw new ForbiddenException('Blog not owned by user');
+    }
+
     const newPost = await this.commandBus.execute(
-      new CreatePostCommand(blogId, blog.name, createModel),
+      new CreatePostCommand(blog.id, blog.name, createModel),
     );
 
     return newPost;
@@ -146,20 +163,18 @@ export class BlogsBloggerController {
   @UseGuards(JwtBearerAuthGuard)
   @HttpCode(HTTP_STATUSES.NO_CONTENT_204)
   async updatePost(
-    @Param('blogId', UuidPipe) blogId: string,
-    @Param('postId', UuidPipe) postId: string,
+    @CurrentUserId() userId: string,
+    @Param('blogId', UuidPipe, BlogExistsPipe) blogId: string,
+    @Param('postId', UuidPipe, PostExistsPipe) postId: string,
     @Body() updateModel: CreateAndUpdatePostModel,
   ) {
-    const blog = await this.blogsQueryRepository.getBlogById(blogId);
+    const isOwnerBlog = await this.blogsQueryRepository.checkOwnerBlog(
+      userId,
+      blogId,
+    );
 
-    if (!blog) {
-      throw new NotFoundException('Blog not found');
-    }
-
-    const post = await this.postsQueryRepository.getPostById(postId);
-
-    if (!post) {
-      throw new NotFoundException('Post not found');
+    if (!isOwnerBlog) {
+      throw new ForbiddenException('Blog not owned by user');
     }
 
     const isUpdated = await this.commandBus.execute(
@@ -176,13 +191,17 @@ export class BlogsBloggerController {
   @UseGuards(JwtBearerAuthGuard)
   @HttpCode(HTTP_STATUSES.NO_CONTENT_204)
   async deletePost(
-    @Param('blogId', UuidPipe) blogId: string,
-    @Param('postId', UuidPipe) postId: string,
+    @CurrentUserId() userId: string,
+    @Param('blogId', UuidPipe, BlogExistsPipe) blogId: string,
+    @Param('postId', UuidPipe, PostExistsPipe) postId: string,
   ) {
-    const blog = await this.blogsQueryRepository.getBlogById(blogId);
+    const isOwnerBlog = await this.blogsQueryRepository.checkOwnerBlog(
+      userId,
+      blogId,
+    );
 
-    if (!blog) {
-      throw new NotFoundException('Blog not found');
+    if (!isOwnerBlog) {
+      throw new ForbiddenException('Blog not owned by user');
     }
 
     const isDeleted = await this.commandBus.execute(
@@ -192,7 +211,7 @@ export class BlogsBloggerController {
     if (isDeleted) {
       return;
     } else {
-      throw new NotFoundException('Post not found');
+      throw new Error('Post not delete');
     }
   }
 }
