@@ -41,10 +41,10 @@ export class BlogsBloggerController {
   @Get()
   @UseGuards(JwtBearerAuthGuard)
   async getAllBlogs(
+    @CurrentUserId() userId: string,
     @Query() query: PaginatorModel,
   ): Promise<PaginatorOutputModel<BlogOutputModel>> {
-    // TO DO: fix logic - should return blogs created by blogger, shouldn't return blogs created by other bloggers
-    const blogs = await this.blogsQueryRepository.getAllBlogs(query);
+    const blogs = await this.blogsQueryRepository.getAllBlogs(query, userId);
 
     return blogs;
   }

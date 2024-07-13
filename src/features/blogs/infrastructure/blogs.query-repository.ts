@@ -14,6 +14,7 @@ export class BlogsQueryRepository {
   ) {}
   async getAllBlogs(
     queryData: PaginatorModel,
+    userId?: string,
   ): Promise<PaginatorOutputModel<BlogOutputModel>> {
     const searchNameTerm = queryData.searchNameTerm
       ? queryData.searchNameTerm
@@ -35,7 +36,9 @@ export class BlogsQueryRepository {
         'b.createdAt',
         'b.isMembership',
       ])
+      .leftJoin('b.user', 'u')
       .where('b.name ILIKE :name', { name: `%${searchNameTerm}%` })
+      .andWhere(userId ? 'u.id = :userId' : 'TRUE', { userId })
       .orderBy(`b.${sortBy}`, sortDirection)
       .skip((pageNumber - 1) * pageSize)
       .take(pageSize)
@@ -44,7 +47,9 @@ export class BlogsQueryRepository {
     const totalCount: number = await this.blogsQueryRepository
       .createQueryBuilder('b')
       .select('COUNT(b.id)')
+      .leftJoin('b.user', 'u')
       .where('b.name ILIKE :name', { name: `%${searchNameTerm}%` })
+      .andWhere(userId ? 'u.id = :userId' : 'TRUE', { userId })
       .getCount();
 
     const pagesCount = Math.ceil(totalCount / pageSize);

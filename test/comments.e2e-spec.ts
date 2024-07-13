@@ -164,8 +164,7 @@ describe('Comments testing (e2e)', () => {
     });
 
     const foundBlogs = await request(server)
-      .get(Paths.blogsSA)
-      .auth(basicLogin, basicPassword)
+      .get(Paths.blogs)
       .expect(HTTP_STATUSES.OK_200);
 
     expect(foundBlogs.body).toStrictEqual({
