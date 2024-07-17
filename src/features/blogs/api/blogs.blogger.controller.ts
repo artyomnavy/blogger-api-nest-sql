@@ -69,53 +69,47 @@ export class BlogsBloggerController {
   @HttpCode(HTTP_STATUSES.NO_CONTENT_204)
   async updateBlog(
     @CurrentUserId() userId: string,
-    @Param('blogId', UuidPipe, BlogExistsPipe) blogId: string,
+    @Param('blogId', UuidPipe) blogId: string,
     @Body() updateModel: CreateAndUpdateBlogModel,
   ) {
-    const isOwnerBlog = await this.blogsQueryRepository.checkOwnerBlog(
-      userId,
-      blogId,
-    );
+    const updateCommand = new UpdateBlogCommand(userId, blogId, updateModel);
 
-    if (!isOwnerBlog) {
-      throw new ForbiddenException('Blog not owned by user');
+    const notice = await this.commandBus.execute(updateCommand);
+
+    if (notice.hasError()) {
+      if (notice.code === HTTP_STATUSES.NOT_FOUND_404) {
+        throw new NotFoundException(notice.message);
+      } else if (notice.code === HTTP_STATUSES.FORBIDDEN_403) {
+        throw new ForbiddenException(notice.message);
+      } else {
+        throw new Error(notice.message);
+      }
     }
 
-    const isUpdated = await this.commandBus.execute(
-      new UpdateBlogCommand(blogId, updateModel),
-    );
-
-    if (isUpdated) {
-      return;
-    } else {
-      throw new Error('Blog not updated');
-    }
+    return;
   }
   @Delete(':blogId')
   @UseGuards(JwtBearerAuthGuard)
   @HttpCode(HTTP_STATUSES.NO_CONTENT_204)
   async deleteBlog(
     @CurrentUserId() userId: string,
-    @Param('blogId', UuidPipe, BlogExistsPipe) blogId: string,
+    @Param('blogId', UuidPipe) blogId: string,
   ) {
-    const isOwnerBlog = await this.blogsQueryRepository.checkOwnerBlog(
-      userId,
-      blogId,
-    );
+    const deleteCommand = new DeleteBlogCommand(userId, blogId);
 
-    if (!isOwnerBlog) {
-      throw new ForbiddenException('Blog not owned by user');
+    const notice = await this.commandBus.execute(deleteCommand);
+
+    if (notice.hasError()) {
+      if (notice.code === HTTP_STATUSES.NOT_FOUND_404) {
+        throw new NotFoundException(notice.message);
+      } else if (notice.code === HTTP_STATUSES.FORBIDDEN_403) {
+        throw new ForbiddenException(notice.message);
+      } else {
+        throw new Error(notice.message);
+      }
     }
 
-    const isDeleted = await this.commandBus.execute(
-      new DeleteBlogCommand(blogId),
-    );
-
-    if (isDeleted) {
-      return;
-    } else {
-      throw new Error('Blog not deleted');
-    }
+    return;
   }
   @Get(':blogId/posts')
   @UseGuards(JwtBearerAuthGuard)
@@ -138,54 +132,51 @@ export class BlogsBloggerController {
     @Param('blogId', UuidPipe) blogId: string,
     @Body() createModel: CreateAndUpdatePostModel,
   ): Promise<PostOutputModel> {
-    const blog = await this.blogsQueryRepository.getBlogById(blogId);
+    const createCommand = new CreatePostCommand(userId, blogId, createModel);
 
-    if (!blog) {
-      throw new NotFoundException('Blog not found');
+    const notice = await this.commandBus.execute(createCommand);
+
+    if (notice.hasError()) {
+      if (notice.code === HTTP_STATUSES.NOT_FOUND_404) {
+        throw new NotFoundException(notice.message);
+      } else if (notice.code === HTTP_STATUSES.FORBIDDEN_403) {
+        throw new ForbiddenException(notice.message);
+      } else {
+        throw new Error(notice.message);
+      }
     }
 
-    const isOwnerBlog = await this.blogsQueryRepository.checkOwnerBlog(
-      userId,
-      blogId,
-    );
-
-    if (!isOwnerBlog) {
-      throw new ForbiddenException('Blog not owned by user');
-    }
-
-    const newPost = await this.commandBus.execute(
-      new CreatePostCommand(blog.id, blog.name, createModel),
-    );
-
-    return newPost;
+    return notice.data;
   }
   @Put(':blogId/posts/:postId')
   @UseGuards(JwtBearerAuthGuard)
   @HttpCode(HTTP_STATUSES.NO_CONTENT_204)
   async updatePost(
     @CurrentUserId() userId: string,
-    @Param('blogId', UuidPipe, BlogExistsPipe) blogId: string,
-    @Param('postId', UuidPipe, PostExistsPipe) postId: string,
+    @Param('blogId', UuidPipe) blogId: string,
+    @Param('postId', UuidPipe) postId: string,
     @Body() updateModel: CreateAndUpdatePostModel,
   ) {
-    const isOwnerBlog = await this.blogsQueryRepository.checkOwnerBlog(
+    const updateCommand = new UpdatePostCommand(
       userId,
       blogId,
+      postId,
+      updateModel,
     );
 
-    if (!isOwnerBlog) {
-      throw new ForbiddenException('Blog not owned by user');
+    const notice = await this.commandBus.execute(updateCommand);
+
+    if (notice.hasError()) {
+      if (notice.code === HTTP_STATUSES.NOT_FOUND_404) {
+        throw new NotFoundException(notice.message);
+      } else if (notice.code === HTTP_STATUSES.FORBIDDEN_403) {
+        throw new ForbiddenException(notice.message);
+      } else {
+        throw new Error(notice.message);
+      }
     }
 
-    const isUpdated = await this.commandBus.execute(
-      new UpdatePostCommand(postId, updateModel),
-    );
-
-    if (isUpdated) {
-      return;
-    } else {
-      throw new Error('Post not updated');
-    }
+    return;
   }
   @Delete(':blogId/posts/:postId')
   @UseGuards(JwtBearerAuthGuard)
@@ -195,23 +186,20 @@ export class BlogsBloggerController {
     @Param('blogId', UuidPipe, BlogExistsPipe) blogId: string,
     @Param('postId', UuidPipe, PostExistsPipe) postId: string,
   ) {
-    const isOwnerBlog = await this.blogsQueryRepository.checkOwnerBlog(
-      userId,
-      blogId,
-    );
+    const deleteCommand = new DeletePostCommand(userId, blogId, postId);
 
-    if (!isOwnerBlog) {
-      throw new ForbiddenException('Blog not owned by user');
+    const notice = await this.commandBus.execute(deleteCommand);
+
+    if (notice.hasError()) {
+      if (notice.code === HTTP_STATUSES.NOT_FOUND_404) {
+        throw new NotFoundException(notice.message);
+      } else if (notice.code === HTTP_STATUSES.FORBIDDEN_403) {
+        throw new ForbiddenException(notice.message);
+      } else {
+        throw new Error(notice.message);
+      }
     }
 
-    const isDeleted = await this.commandBus.execute(
-      new DeletePostCommand(postId),
-    );
-
-    if (isDeleted) {
-      return;
-    } else {
-      throw new Error('Post not delete');
-    }
+    return;
   }
 }
