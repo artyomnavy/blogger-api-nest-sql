@@ -1,9 +1,8 @@
 import { CommandHandler, ICommandHandler } from '@nestjs/cqrs';
 import { BlogsRepository } from '../../infrastructure/blogs.repository';
-import { ForbiddenException, NotFoundException } from '@nestjs/common';
-import { Notice } from '../../../../common/notification/notice';
 import { BlogsQueryRepository } from '../../infrastructure/blogs.query-repository';
 import { HTTP_STATUSES } from '../../../../common/utils';
+import { Notice } from '../../../../common/notification/notice';
 
 export class DeleteBlogCommand {
   constructor(
