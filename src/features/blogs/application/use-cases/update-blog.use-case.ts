@@ -46,10 +46,6 @@ export class UpdateBlogUseCase implements ICommandHandler<UpdateBlogCommand> {
 
     const isUpdated = await this.blogsRepository.updateBlog(blogId, updateData);
 
-    if (!isUpdated) {
-      notice.addError('Blog not updated', null, null);
-    }
-
-    return notice;
+    if (isUpdated) return notice;
   }
 }

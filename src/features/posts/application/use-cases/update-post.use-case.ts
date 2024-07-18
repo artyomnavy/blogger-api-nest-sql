@@ -57,10 +57,6 @@ export class UpdatePostUseCase implements ICommandHandler<UpdatePostCommand> {
 
     const isUpdated = await this.postsRepository.updatePost(postId, updateData);
 
-    if (!isUpdated) {
-      notice.addError('post not updated', null, null);
-    }
-
-    return notice;
+    if (isUpdated) return notice;
   }
 }

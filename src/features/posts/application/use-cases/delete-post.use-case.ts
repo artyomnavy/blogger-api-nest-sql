@@ -55,10 +55,6 @@ export class DeletePostUseCase implements ICommandHandler<DeletePostCommand> {
 
     const isDeleted = await this.postsRepository.deletePost(postId);
 
-    if (!isDeleted) {
-      notice.addError('Post not deleted', null, null);
-    }
-
-    return notice;
+    if (isDeleted) return notice;
   }
 }

@@ -183,6 +183,8 @@ describe('Posts testing (e2e)', () => {
       ],
     });
 
+    console.log(errorsCreatePostForBlog.body, 'errorsCreatePostForBlog.body');
+
     const foundPosts = await request(server)
       .get(Paths.posts)
       .expect(HTTP_STATUSES.OK_200);

@@ -61,10 +61,6 @@ export class CreatePostUseCase implements ICommandHandler<CreatePostCommand> {
       blog.name,
     );
 
-    if (!createdPost) {
-      notice.addError('Post not created', null, null);
-    }
-
     notice.addData(createdPost);
 
     return notice;

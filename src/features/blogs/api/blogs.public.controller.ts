@@ -13,7 +13,6 @@ import { PostOutputModel } from '../../posts/api/models/post.output.model';
 import { PaginatorModel } from '../../../common/models/paginator.input.model';
 import { PaginatorOutputModel } from '../../../common/models/paginator.output.model';
 import { UuidPipe } from '../../../common/pipes/uuid.pipe';
-import { BlogExistsPipe } from '../../../common/pipes/blog-exists.pipe';
 
 @Controller('blogs')
 export class BlogsPublicController {
@@ -44,11 +43,17 @@ export class BlogsPublicController {
   }
   @Get(':blogId/posts')
   async getPostsForBlog(
-    @Param('blogId', UuidPipe, BlogExistsPipe) blogId: string,
+    @Param('blogId', UuidPipe) blogId: string,
     @Query() query: PaginatorModel,
     @Req() req,
   ): Promise<PaginatorOutputModel<PostOutputModel>> {
     const userId = req.userId;
+
+    const blog = await this.blogsQueryRepository.getBlogById(blogId);
+
+    if (!blog) {
+      throw new NotFoundException('Blog not found');
+    }
 
     const posts = await this.postsQueryRepository.getPostsByBlogId({
       query,

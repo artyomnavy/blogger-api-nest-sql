@@ -4,6 +4,8 @@ import { Blog, BlogOutputModel } from '../../api/models/blog.output.model';
 import { CommandHandler, ICommandHandler } from '@nestjs/cqrs';
 import { v4 as uuidv4 } from 'uuid';
 import { UsersQueryRepository } from '../../../users/infrastructure/users.query-repository';
+import { Notice } from '../../../../common/notification/notice';
+import { HTTP_STATUSES } from '../../../../common/utils';
 
 export class CreateBlogCommand {
   constructor(
@@ -15,20 +17,25 @@ export class CreateBlogCommand {
 export class CreateBlogUseCase implements ICommandHandler<CreateBlogCommand> {
   constructor(
     private readonly blogsRepository: BlogsRepository,
-    private usersQueryRepository: UsersQueryRepository,
+    private readonly usersQueryRepository: UsersQueryRepository,
   ) {}
-  async execute(command: CreateBlogCommand): Promise<BlogOutputModel | null> {
-    const user = await this.usersQueryRepository.getOrmUserById(command.userId);
+  async execute(command: CreateBlogCommand) {
+    const notice = new Notice<BlogOutputModel>();
+
+    const { createData, userId } = command;
+
+    const user = await this.usersQueryRepository.getOrmUserById(userId);
 
     if (!user) {
-      return null;
+      notice.addError('User not found', 'userId', HTTP_STATUSES.NOT_FOUND_404);
+      return notice;
     }
 
     const newBlog = new Blog(
       uuidv4(),
-      command.createData.name,
-      command.createData.description,
-      command.createData.websiteUrl,
+      createData.name,
+      createData.description,
+      createData.websiteUrl,
       new Date(),
       false,
       user,
@@ -36,7 +43,9 @@ export class CreateBlogUseCase implements ICommandHandler<CreateBlogCommand> {
 
     const createdBlog = await this.blogsRepository.createBlog(newBlog);
 
-    return createdBlog;
+    notice.addData(createdBlog);
+
+    return notice;
   }
 }
 

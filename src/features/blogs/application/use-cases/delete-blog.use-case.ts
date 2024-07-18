@@ -44,10 +44,6 @@ export class DeleteBlogUseCase implements ICommandHandler<DeleteBlogCommand> {
 
     const isDeleted = await this.blogsRepository.deleteBlog(command.blogId);
 
-    if (!isDeleted) {
-      notice.addError('Blog not deleted', null, null);
-    }
-
-    return notice;
+    if (isDeleted) return notice;
   }
 }

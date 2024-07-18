@@ -31,8 +31,6 @@ import { UuidPipe } from '../../../common/pipes/uuid.pipe';
 import { CreatePostCommand } from '../../posts/application/use-cases/create-post.use-case';
 import { JwtBearerAuthGuard } from '../../../common/guards/jwt-bearer-auth-guard.service';
 import { CurrentUserId } from '../../../common/decorators/current-user-id.param.decorator';
-import { BlogExistsPipe } from '../../../common/pipes/blog-exists.pipe';
-import { PostExistsPipe } from '../../../common/pipes/post-exists.pipe';
 
 @Controller('blogger/blogs')
 export class BlogsBloggerController {
@@ -58,11 +56,15 @@ export class BlogsBloggerController {
     @CurrentUserId() userId: string,
     @Body() createModel: CreateAndUpdateBlogModel,
   ): Promise<BlogOutputModel> {
-    const newBlog = await this.commandBus.execute(
-      new CreateBlogCommand(createModel, userId),
-    );
+    const createCommand = new CreateBlogCommand(createModel, userId);
 
-    return newBlog;
+    const notice = await this.commandBus.execute(createCommand);
+
+    if (notice.hasError()) {
+      throw new NotFoundException(notice.messages[0]);
+    }
+
+    return notice.data;
   }
   @Put(':blogId')
   @UseGuards(JwtBearerAuthGuard)
@@ -78,11 +80,9 @@ export class BlogsBloggerController {
 
     if (notice.hasError()) {
       if (notice.code === HTTP_STATUSES.NOT_FOUND_404) {
-        throw new NotFoundException(notice.message);
-      } else if (notice.code === HTTP_STATUSES.FORBIDDEN_403) {
-        throw new ForbiddenException(notice.message);
+        throw new NotFoundException(notice.messages[0]);
       } else {
-        throw new Error(notice.message);
+        throw new ForbiddenException(notice.messages[0]);
       }
     }
 
@@ -101,11 +101,11 @@ export class BlogsBloggerController {
 
     if (notice.hasError()) {
       if (notice.code === HTTP_STATUSES.NOT_FOUND_404) {
-        throw new NotFoundException(notice.message);
+        throw new NotFoundException(notice.messages[0]);
       } else if (notice.code === HTTP_STATUSES.FORBIDDEN_403) {
-        throw new ForbiddenException(notice.message);
+        throw new ForbiddenException(notice.messages[0]);
       } else {
-        throw new Error(notice.message);
+        throw new Error(notice.messages[0]);
       }
     }
 
@@ -114,9 +114,15 @@ export class BlogsBloggerController {
   @Get(':blogId/posts')
   @UseGuards(JwtBearerAuthGuard)
   async getPostsForBlog(
-    @Param('blogId', UuidPipe, BlogExistsPipe) blogId: string,
+    @Param('blogId', UuidPipe) blogId: string,
     @Query() query: PaginatorModel,
   ): Promise<PaginatorOutputModel<PostOutputModel>> {
+    const blog = await this.blogsQueryRepository.getBlogById(blogId);
+
+    if (!blog) {
+      throw new NotFoundException('Blog not found');
+    }
+
     const posts = await this.postsQueryRepository.getPostsByBlogId({
       query,
       blogId,
@@ -138,11 +144,9 @@ export class BlogsBloggerController {
 
     if (notice.hasError()) {
       if (notice.code === HTTP_STATUSES.NOT_FOUND_404) {
-        throw new NotFoundException(notice.message);
-      } else if (notice.code === HTTP_STATUSES.FORBIDDEN_403) {
-        throw new ForbiddenException(notice.message);
+        throw new NotFoundException(notice.messages[0]);
       } else {
-        throw new Error(notice.message);
+        throw new ForbiddenException(notice.messages[0]);
       }
     }
 
@@ -168,11 +172,9 @@ export class BlogsBloggerController {
 
     if (notice.hasError()) {
       if (notice.code === HTTP_STATUSES.NOT_FOUND_404) {
-        throw new NotFoundException(notice.message);
-      } else if (notice.code === HTTP_STATUSES.FORBIDDEN_403) {
-        throw new ForbiddenException(notice.message);
+        throw new NotFoundException(notice.messages[0]);
       } else {
-        throw new Error(notice.message);
+        throw new ForbiddenException(notice.messages[0]);
       }
     }
 
@@ -183,8 +185,8 @@ export class BlogsBloggerController {
   @HttpCode(HTTP_STATUSES.NO_CONTENT_204)
   async deletePost(
     @CurrentUserId() userId: string,
-    @Param('blogId', UuidPipe, BlogExistsPipe) blogId: string,
-    @Param('postId', UuidPipe, PostExistsPipe) postId: string,
+    @Param('blogId', UuidPipe) blogId: string,
+    @Param('postId', UuidPipe) postId: string,
   ) {
     const deleteCommand = new DeletePostCommand(userId, blogId, postId);
 
@@ -192,11 +194,9 @@ export class BlogsBloggerController {
 
     if (notice.hasError()) {
       if (notice.code === HTTP_STATUSES.NOT_FOUND_404) {
-        throw new NotFoundException(notice.message);
-      } else if (notice.code === HTTP_STATUSES.FORBIDDEN_403) {
-        throw new ForbiddenException(notice.message);
+        throw new NotFoundException(notice.messages[0]);
       } else {
-        throw new Error(notice.message);
+        throw new ForbiddenException(notice.messages[0]);
       }
     }
 

@@ -27,7 +27,6 @@ import { ChangeLikeStatusForPostCommand } from '../application/use-cases/change-
 import { CreateCommentCommand } from '../../comments/application/use-cases/create-comment.use-case';
 import { UuidPipe } from '../../../common/pipes/uuid.pipe';
 import { UsersQueryRepository } from '../../users/infrastructure/users.query-repository';
-import { PostExistsPipe } from '../../../common/pipes/post-exists.pipe';
 
 @Controller('posts')
 export class PostsController {
@@ -68,11 +67,17 @@ export class PostsController {
   }
   @Get(':postId/comments')
   async getCommentsForPost(
-    @Param('postId', UuidPipe, PostExistsPipe) postId: string,
+    @Param('postId', UuidPipe) postId: string,
     @Query() query: PaginatorModel,
     @Req() req,
   ): Promise<PaginatorOutputModel<CommentOutputModel>> {
     const userId = req.userId;
+
+    const post = await this.postsQueryRepository.getPostById(postId);
+
+    if (!post) {
+      throw new NotFoundException('Post not found');
+    }
 
     const comments = await this.commentsQueryRepository.getCommentsByPostId({
       query,
@@ -86,10 +91,16 @@ export class PostsController {
   @UseGuards(JwtBearerAuthGuard)
   @HttpCode(HTTP_STATUSES.CREATED_201)
   async createCommentForPost(
-    @Param('postId', UuidPipe, PostExistsPipe) postId: string,
+    @Param('postId', UuidPipe) postId: string,
     @CurrentUserId() userId: string,
     @Body() createModel: CreateAndUpdateCommentModel,
   ): Promise<CommentOutputModel> {
+    const post = await this.postsQueryRepository.getPostById(postId);
+
+    if (!post) {
+      throw new NotFoundException('Post not found');
+    }
+
     const user = await this.usersQueryRepository.getUserById(userId);
 
     const userLogin = user!.login;
