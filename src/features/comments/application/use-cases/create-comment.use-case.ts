@@ -1,13 +1,19 @@
 import { CommandHandler, ICommandHandler } from '@nestjs/cqrs';
 import { CommentsRepository } from '../../infrastructure/comments.repository';
-import { Comment } from '../../api/models/comment.output.model';
+import {
+  Comment,
+  CommentOutputModel,
+} from '../../api/models/comment.output.model';
 import { v4 as uuidv4 } from 'uuid';
+import { PostsQueryRepository } from '../../../posts/infrastructure/posts.query-repository';
+import { UsersQueryRepository } from '../../../users/infrastructure/users.query-repository';
+import { ResultCode } from '../../../../common/utils';
+import { ResultType } from '../../../../common/types/result';
 
 export class CreateCommentCommand {
   constructor(
     public readonly postId: string,
     public readonly userId: string,
-    public readonly userLogin: string,
     public readonly content: string,
   ) {}
 }
@@ -15,22 +21,55 @@ export class CreateCommentCommand {
 export class CreateCommentUseCase
   implements ICommandHandler<CreateCommentCommand>
 {
-  constructor(private readonly commentsRepository: CommentsRepository) {}
+  constructor(
+    private readonly commentsRepository: CommentsRepository,
+    private readonly postsQueryRepository: PostsQueryRepository,
+    private readonly usersQueryRepository: UsersQueryRepository,
+  ) {}
 
-  async execute(command: CreateCommentCommand) {
+  async execute(
+    command: CreateCommentCommand,
+  ): Promise<ResultType<CommentOutputModel | null>> {
+    const { postId, userId, content } = command;
+
+    const post = await this.postsQueryRepository.getPostById(postId);
+
+    if (!post) {
+      return {
+        data: null,
+        code: ResultCode.NOT_FOUND,
+        message: 'Post not found',
+      };
+    }
+
+    const user = await this.usersQueryRepository.getUserById(userId);
+
+    if (!user) {
+      return {
+        data: null,
+        code: ResultCode.NOT_FOUND,
+        message: 'User not found',
+      };
+    }
+
+    const userLogin = user.login;
+
     const newComment = new Comment(
       uuidv4(),
-      command.content,
-      command.userId,
+      content,
+      userId,
       new Date(),
-      command.postId,
+      postId,
     );
 
     const createdComment = await this.commentsRepository.createComment(
       newComment,
-      command.userLogin,
+      userLogin,
     );
 
-    return createdComment;
+    return {
+      data: createdComment,
+      code: ResultCode.SUCCESS,
+    };
   }
 }

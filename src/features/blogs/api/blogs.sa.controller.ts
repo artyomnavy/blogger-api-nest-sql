@@ -2,7 +2,6 @@ import {
   Controller,
   Get,
   HttpCode,
-  NotFoundException,
   Param,
   ParseUUIDPipe,
   Put,
@@ -15,10 +14,10 @@ import { PaginatorModel } from '../../../common/models/paginator.input.model';
 import { PaginatorOutputModel } from '../../../common/models/paginator.output.model';
 import { BasicAuthGuard } from '../../../common/guards/basic-auth.guard';
 import { CommandBus } from '@nestjs/cqrs';
-import { HTTP_STATUSES } from '../../../common/utils';
-import { BindBlogValidatorPipe } from '../../../common/pipes/bind-blog-validator.pipe';
+import { HTTP_STATUSES, ResultCode } from '../../../common/utils';
 import { UsersQueryRepository } from '../../users/infrastructure/users.query-repository';
 import { BindBlogWithUserCommand } from '../application/use-cases/bind-blog.use-case';
+import { resultCodeToHttpException } from '../../../common/exceptions/result-code-to-http-exception';
 
 @Controller('sa/blogs')
 export class BlogsSAController {
@@ -40,24 +39,18 @@ export class BlogsSAController {
   @UseGuards(BasicAuthGuard)
   @HttpCode(HTTP_STATUSES.NO_CONTENT_204)
   async bindBlogWithUser(
-    @Param('blogId', new ParseUUIDPipe({ version: '4' }), BindBlogValidatorPipe)
+    @Param('blogId', new ParseUUIDPipe({ version: '4' }))
     blogId: string,
     @Param('userId', new ParseUUIDPipe({ version: '4' })) userId: string,
   ) {
-    const user = await this.usersQueryRepository.getOrmUserById(userId);
-
-    if (!user) {
-      throw new NotFoundException('User not found');
-    }
-
-    const isBind = await this.commandBus.execute(
-      new BindBlogWithUserCommand(blogId, user),
+    const result = await this.commandBus.execute(
+      new BindBlogWithUserCommand(blogId, userId),
     );
 
-    if (isBind) {
-      return;
-    } else {
-      throw new Error('Blog not bind with user');
+    if (result.code !== ResultCode.SUCCESS) {
+      resultCodeToHttpException(result.code, result.message, result.field);
     }
+
+    return;
   }
 }

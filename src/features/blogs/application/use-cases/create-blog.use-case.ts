@@ -27,7 +27,7 @@ export class CreateBlogUseCase implements ICommandHandler<CreateBlogCommand> {
     const user = await this.usersQueryRepository.getOrmUserById(userId);
 
     if (!user) {
-      notice.addError('User not found', 'userId', HTTP_STATUSES.NOT_FOUND_404);
+      notice.addError(HTTP_STATUSES.NOT_FOUND_404, 'User not found');
       return notice;
     }
 

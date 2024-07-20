@@ -24,7 +24,7 @@ export class DeleteBlogUseCase implements ICommandHandler<DeleteBlogCommand> {
     const blog = await this.blogsQueryRepository.getBlogById(blogId);
 
     if (!blog) {
-      notice.addError('Blog not found', 'blogId', HTTP_STATUSES.NOT_FOUND_404);
+      notice.addError(HTTP_STATUSES.NOT_FOUND_404, 'Blog not found');
       return notice;
     }
 
@@ -34,11 +34,7 @@ export class DeleteBlogUseCase implements ICommandHandler<DeleteBlogCommand> {
     );
 
     if (!isOwnerBlog) {
-      notice.addError(
-        'Blog not owned by user',
-        'userId',
-        HTTP_STATUSES.FORBIDDEN_403,
-      );
+      notice.addError(HTTP_STATUSES.FORBIDDEN_403, 'Blog not owned by user');
       return notice;
     }
 

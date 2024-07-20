@@ -1,5 +1,6 @@
 import {
   ArgumentsHost,
+  BadRequestException,
   Catch,
   ExceptionFilter,
   HttpException,
@@ -15,7 +16,10 @@ export class HttpExceptionFilter implements ExceptionFilter {
     const request = ctx.getRequest<Request>();
     const status = exception.getStatus();
 
-    if (status === HTTP_STATUSES.BAD_REQUEST_400) {
+    if (
+      status === HTTP_STATUSES.BAD_REQUEST_400 &&
+      exception instanceof BadRequestException
+    ) {
       const errorsResponse: any = {
         errorsMessages: [],
       };
@@ -27,7 +31,7 @@ export class HttpExceptionFilter implements ExceptionFilter {
           errorsResponse.errorsMessages.push(e),
         );
       } else {
-        errorsResponse.errorsMessages.push(responseBody.message);
+        errorsResponse.errorsMessages.push(responseBody);
       }
 
       response.status(status).json(errorsResponse);

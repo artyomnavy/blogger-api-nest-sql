@@ -17,7 +17,7 @@ import { PostOutputModel } from './models/post.output.model';
 import { PaginatorModel } from '../../../common/models/paginator.input.model';
 import { PaginatorOutputModel } from '../../../common/models/paginator.output.model';
 import { CommentOutputModel } from '../../comments/api/models/comment.output.model';
-import { HTTP_STATUSES } from '../../../common/utils';
+import { HTTP_STATUSES, ResultCode } from '../../../common/utils';
 import { CreateAndUpdateCommentModel } from '../../comments/api/models/comment.input.model';
 import { UpdateLikeModel } from '../../likes/api/models/like.input.model';
 import { JwtBearerAuthGuard } from '../../../common/guards/jwt-bearer-auth-guard.service';
@@ -27,6 +27,7 @@ import { ChangeLikeStatusForPostCommand } from '../application/use-cases/change-
 import { CreateCommentCommand } from '../../comments/application/use-cases/create-comment.use-case';
 import { UuidPipe } from '../../../common/pipes/uuid.pipe';
 import { UsersQueryRepository } from '../../users/infrastructure/users.query-repository';
+import { resultCodeToHttpException } from '../../../common/exceptions/result-code-to-http-exception';
 
 @Controller('posts')
 export class PostsController {
@@ -95,21 +96,15 @@ export class PostsController {
     @CurrentUserId() userId: string,
     @Body() createModel: CreateAndUpdateCommentModel,
   ): Promise<CommentOutputModel> {
-    const post = await this.postsQueryRepository.getPostById(postId);
-
-    if (!post) {
-      throw new NotFoundException('Post not found');
-    }
-
-    const user = await this.usersQueryRepository.getUserById(userId);
-
-    const userLogin = user!.login;
-
-    const newComment = await this.commandBus.execute(
-      new CreateCommentCommand(postId, userId, userLogin, createModel.content),
+    const result = await this.commandBus.execute(
+      new CreateCommentCommand(postId, userId, createModel.content),
     );
 
-    return newComment;
+    if (result.code !== ResultCode.SUCCESS) {
+      resultCodeToHttpException(result.code, result.message);
+    }
+
+    return result.data;
   }
   @Put(':postId/like-status')
   @UseGuards(JwtBearerAuthGuard)
@@ -119,14 +114,14 @@ export class PostsController {
     @CurrentUserId() userId: string,
     @Body() updateData: UpdateLikeModel,
   ) {
-    const post = await this.postsQueryRepository.getPostById(postId, userId);
-
-    if (!post) throw new NotFoundException('Post not found');
-
-    const isUpdated = await this.commandBus.execute(
-      new ChangeLikeStatusForPostCommand(userId, post, updateData.likeStatus),
+    const result = await this.commandBus.execute(
+      new ChangeLikeStatusForPostCommand(userId, postId, updateData.likeStatus),
     );
 
-    if (isUpdated) return;
+    if (result.code !== ResultCode.SUCCESS) {
+      resultCodeToHttpException(result.code, result.message);
+    }
+
+    return;
   }
 }

@@ -1,14 +1,15 @@
 import { CommandHandler, ICommandHandler } from '@nestjs/cqrs';
-import { CommentOutputModel } from '../../api/models/comment.output.model';
-import { LikeStatuses } from '../../../../common/utils';
+import { LikeStatuses, ResultCode } from '../../../../common/utils';
 import { LikesCommentsRepository } from '../../../likes/infrastructure/likes-comments.repository';
 import { LikeComment } from '../../../likes/api/models/like-comment.output.model';
 import { v4 as uuidv4 } from 'uuid';
+import { CommentsQueryRepository } from '../../infrastructure/comments.query-repository';
+import { ResultType } from '../../../../common/types/result';
 
 export class ChangeLikeStatusForCommentCommand {
   constructor(
     public readonly userId: string,
-    public readonly comment: CommentOutputModel,
+    public readonly commentId: string,
     public readonly likeStatus: string,
   ) {}
 }
@@ -16,48 +17,76 @@ export class ChangeLikeStatusForCommentCommand {
 export class ChangeLikeStatusForCommentUseCase
   implements ICommandHandler<ChangeLikeStatusForCommentCommand>
 {
-  constructor(private readonly likesRepository: LikesCommentsRepository) {}
+  constructor(
+    private readonly likesRepository: LikesCommentsRepository,
+    private readonly commentsQueryRepository: CommentsQueryRepository,
+  ) {}
 
-  async execute(command: ChangeLikeStatusForCommentCommand): Promise<boolean> {
-    const currentMyStatus = command.comment.likesInfo.myStatus;
+  async execute(
+    command: ChangeLikeStatusForCommentCommand,
+  ): Promise<ResultType<boolean>> {
+    const { userId, commentId, likeStatus } = command;
+
+    const comment = await this.commentsQueryRepository.getCommentById(
+      commentId,
+      userId,
+    );
+
+    if (!comment) {
+      return {
+        data: false,
+        code: ResultCode.NOT_FOUND,
+        message: 'Comment not found',
+      };
+    }
+
+    const currentMyStatus = comment.likesInfo.myStatus;
 
     if (command.likeStatus === currentMyStatus) {
-      return true;
+      return {
+        data: true,
+        code: ResultCode.SUCCESS,
+      };
     }
 
     const newLike = new LikeComment(
       uuidv4(),
-      command.comment.id,
-      command.userId,
-      command.likeStatus,
+      comment.id,
+      userId,
+      likeStatus,
       new Date(),
     );
 
     if (currentMyStatus === LikeStatuses.NONE) {
-      const likeForComment =
-        await this.likesRepository.createLikeForComment(newLike);
-      return likeForComment ? true : false;
+      // Create like for comment
+      await this.likesRepository.createLikeForComment(newLike);
+
+      return {
+        data: true,
+        code: ResultCode.SUCCESS,
+      };
     } else {
-      switch (command.likeStatus) {
+      switch (likeStatus) {
         case LikeStatuses.NONE:
-          const isDeleteLikeForComment =
-            await this.likesRepository.deleteLikeForComment(
-              command.comment.id,
-              command.userId,
-            );
-          return isDeleteLikeForComment;
+          // Delete like for comment
+          await this.likesRepository.deleteLikeForComment(comment.id, userId);
+
+          return {
+            data: true,
+            code: ResultCode.SUCCESS,
+          };
 
         default:
-          const isUpdateLikeForComment =
-            await this.likesRepository.updateLikeForComment(
-              command.comment.id,
-              command.userId,
-              {
-                status: command.likeStatus,
-                addedAt: new Date(),
-              },
-            );
-          return isUpdateLikeForComment;
+          // Update like for comment
+          await this.likesRepository.updateLikeForComment(comment.id, userId, {
+            status: likeStatus,
+            addedAt: new Date(),
+          });
+
+          return {
+            data: true,
+            code: ResultCode.SUCCESS,
+          };
       }
     }
   }

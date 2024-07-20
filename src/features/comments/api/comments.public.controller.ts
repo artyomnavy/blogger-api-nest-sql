@@ -2,7 +2,6 @@ import {
   Body,
   Controller,
   Delete,
-  ForbiddenException,
   Get,
   HttpCode,
   NotFoundException,
@@ -13,7 +12,7 @@ import {
 } from '@nestjs/common';
 import { CommentsQueryRepository } from '../infrastructure/comments.query-repository';
 import { UpdateLikeModel } from '../../likes/api/models/like.input.model';
-import { HTTP_STATUSES } from '../../../common/utils';
+import { HTTP_STATUSES, ResultCode } from '../../../common/utils';
 import { CreateAndUpdateCommentModel } from './models/comment.input.model';
 import { JwtBearerAuthGuard } from '../../../common/guards/jwt-bearer-auth-guard.service';
 import { CurrentUserId } from '../../../common/decorators/current-user-id.param.decorator';
@@ -22,6 +21,7 @@ import { DeleteCommentCommand } from '../application/use-cases/delete-comment.us
 import { ChangeLikeStatusForCommentCommand } from '../application/use-cases/change-like-status-comment.use-case';
 import { UpdateCommentCommand } from '../application/use-cases/update-comment.use-case';
 import { UuidPipe } from '../../../common/pipes/uuid.pipe';
+import { resultCodeToHttpException } from '../../../common/exceptions/result-code-to-http-exception';
 
 @Controller('comments')
 export class CommentsController {
@@ -55,22 +55,15 @@ export class CommentsController {
     @CurrentUserId() userId: string,
     @Body() updateModel: CreateAndUpdateCommentModel,
   ) {
-    const comment = await this.commentsQueryRepository.getCommentById(
-      commentId,
-      userId,
+    const result = await this.commandBus.execute(
+      new UpdateCommentCommand(userId, commentId, updateModel),
     );
 
-    if (!comment) {
-      throw new NotFoundException('Comment not found');
-    } else if (comment.commentatorInfo.userId !== userId) {
-      throw new ForbiddenException('Comment is not yours');
+    if (result.code !== ResultCode.SUCCESS) {
+      resultCodeToHttpException(result.code, result.message);
     }
 
-    const isUpdated = await this.commandBus.execute(
-      new UpdateCommentCommand(commentId, updateModel),
-    );
-
-    if (isUpdated) return;
+    return;
   }
   @Put(':commentId/like-status')
   @UseGuards(JwtBearerAuthGuard)
@@ -80,22 +73,19 @@ export class CommentsController {
     @Body() updateModel: UpdateLikeModel,
     @CurrentUserId() userId: string,
   ) {
-    const comment = await this.commentsQueryRepository.getCommentById(
-      commentId,
-      userId,
-    );
-
-    if (!comment) throw new NotFoundException('Comment not found');
-
-    const isUpdated = await this.commandBus.execute(
+    const result = await this.commandBus.execute(
       new ChangeLikeStatusForCommentCommand(
         userId,
-        comment,
+        commentId,
         updateModel.likeStatus,
       ),
     );
 
-    if (isUpdated) return;
+    if (result.code !== ResultCode.SUCCESS) {
+      resultCodeToHttpException(result.code, result.message);
+    }
+
+    return;
   }
   @Delete(':commentId')
   @UseGuards(JwtBearerAuthGuard)
@@ -104,21 +94,14 @@ export class CommentsController {
     @Param('commentId', UuidPipe) commentId: string,
     @CurrentUserId() userId: string,
   ) {
-    const comment = await this.commentsQueryRepository.getCommentById(
-      commentId,
-      userId,
+    const result = await this.commandBus.execute(
+      new DeleteCommentCommand(commentId, userId),
     );
 
-    if (!comment) {
-      throw new NotFoundException('Comment not found');
-    } else if (comment.commentatorInfo.userId !== userId) {
-      throw new ForbiddenException('Comment is not yours');
+    if (result.code !== ResultCode.SUCCESS) {
+      resultCodeToHttpException(result.code, result.message);
     }
 
-    const isDeleted = await this.commandBus.execute(
-      new DeleteCommentCommand(commentId),
-    );
-
-    if (isDeleted) return;
+    return;
   }
 }

@@ -3,7 +3,7 @@ export class Notice<T = null> {
     this.data = data;
   }
 
-  messages: { message: string; key: string | null }[] = [];
+  messages: { message: string; key?: string }[] = [];
   code = 0;
   data: T | null = null;
 
@@ -12,9 +12,9 @@ export class Notice<T = null> {
   }
 
   public addError(
-    message: string,
-    key: string | null = null,
     code: number | null = null,
+    message: string,
+    key?: string,
   ): void {
     this.code = code ?? 1;
     this.messages.push({ message, key });

@@ -83,16 +83,6 @@ export class BlogsQueryRepository {
       return blogMapper(blog);
     }
   }
-  async checkBindBlog(userId: string): Promise<boolean> {
-    const blog = await this.blogsQueryRepository
-      .createQueryBuilder('b')
-      .select(['b.id AS "blogId"', 'u.id AS "userId"'])
-      .leftJoin('b.user', 'u')
-      .where('u.id = :userId', { userId })
-      .getRawOne();
-
-    return blog != null;
-  }
   async checkOwnerBlog(userId: string, blogId: string): Promise<boolean> {
     const blog = await this.blogsQueryRepository
       .createQueryBuilder('b')

@@ -37,3 +37,10 @@ export enum PublishedStatuses {
   PUBLISHED = 'published',
   NOT_PUBLISHED = 'notPublished',
 }
+
+export enum ResultCode {
+  SUCCESS,
+  FORBIDDEN,
+  NOT_FOUND,
+  BAD_REQUEST,
+}

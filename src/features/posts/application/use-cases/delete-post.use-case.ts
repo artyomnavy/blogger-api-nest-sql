@@ -28,14 +28,14 @@ export class DeletePostUseCase implements ICommandHandler<DeletePostCommand> {
     const blog = await this.blogsQueryRepository.getBlogById(blogId);
 
     if (!blog) {
-      notice.addError('Blog not found', 'blogId', HTTP_STATUSES.NOT_FOUND_404);
+      notice.addError(HTTP_STATUSES.NOT_FOUND_404, 'Blog not found');
       return notice;
     }
 
     const post = await this.postsQueryRepository.getPostById(postId);
 
     if (!post) {
-      notice.addError('Post not found', 'postId', HTTP_STATUSES.NOT_FOUND_404);
+      notice.addError(HTTP_STATUSES.NOT_FOUND_404, 'Post not found');
       return notice;
     }
 
@@ -45,11 +45,7 @@ export class DeletePostUseCase implements ICommandHandler<DeletePostCommand> {
     );
 
     if (!isOwnerBlog) {
-      notice.addError(
-        'Blog not owned by user',
-        'userId',
-        HTTP_STATUSES.FORBIDDEN_403,
-      );
+      notice.addError(HTTP_STATUSES.FORBIDDEN_403, 'Blog not owned by user');
       return notice;
     }
 

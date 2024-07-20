@@ -444,6 +444,7 @@ describe('Blogs testing (e2e)', () => {
       createdAt: blogWithoutUser.createdAt.toISOString(),
     });
 
+    // Bind blog to user
     await request(server)
       .put(
         `${Paths.blogsSA}/${blogWithoutUser.id}/bind-with-user/${userForBind.id}`,

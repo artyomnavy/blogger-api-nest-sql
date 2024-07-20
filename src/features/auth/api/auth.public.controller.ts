@@ -9,6 +9,7 @@ import {
   Res,
   HttpException,
   Get,
+  NotFoundException,
 } from '@nestjs/common';
 import { HTTP_STATUSES } from '../../../common/utils';
 import {
@@ -76,12 +77,6 @@ export class AuthController {
   async sendEmailForRecoveryPassword(
     @Body() recoveryModel: PasswordRecoveryModel,
   ) {
-    const user = await this.usersQueryRepository.getUserByEmail(
-      recoveryModel.email,
-    );
-
-    if (!user) return;
-
     const isSend = await this.commandBus.execute(
       new SendEmailForPasswordRecoveryCommand(recoveryModel.email),
     );
@@ -206,7 +201,7 @@ export class AuthController {
       await this.usersQueryRepository.getUserByIdForAuthMe(currentUserId);
 
     if (!authMe) {
-      throw new Error('Info not belong yours account');
+      throw new NotFoundException('User not found');
     }
 
     return authMe;
