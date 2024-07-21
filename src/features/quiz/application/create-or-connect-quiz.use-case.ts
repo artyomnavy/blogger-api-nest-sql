@@ -2,10 +2,12 @@ import { CommandHandler, ICommandHandler } from '@nestjs/cqrs';
 import { QuestionsQueryRepository } from '../infrastructure/questions.query-repository';
 import { v4 as uuidv4 } from 'uuid';
 import { QuizzesQueryRepository } from '../infrastructure/quizzes.query-repository';
-import { QuizStatuses } from '../../../common/utils';
+import { QuizStatuses, ResultCode } from '../../../common/utils';
 import { UsersQueryRepository } from '../../users/infrastructure/users.query-repository';
 import { QuizzesRepository } from '../infrastructure/quizzes.repository';
 import { PlayersSessionsRepository } from '../infrastructure/players-sessions.repository';
+import { ResultType } from '../../../common/types/result';
+import { QuizOutputModel } from '../api/models/quiz.output.model';
 
 export class CreateOrConnectQuizCommand {
   constructor(public readonly playerId: string) {}
@@ -21,14 +23,36 @@ export class CreateOrConnectQuizUseCase
     private readonly playersSessionsRepository: PlayersSessionsRepository,
     private readonly usersQueryRepository: UsersQueryRepository,
   ) {}
-  async execute(command: CreateOrConnectQuizCommand) {
+  async execute(
+    command: CreateOrConnectQuizCommand,
+  ): Promise<ResultType<QuizOutputModel | null>> {
+    const { playerId } = command;
+
+    // Проверяем есть ли с таким игроком игра с активным статусом или ожидающим 2-го игрока
+    const quiz =
+      await this.quizzesQueryRepository.getQuizByPlayerIdAndPendingOrActiveStatusForConnection(
+        playerId,
+      );
+
+    if (quiz) {
+      return {
+        data: null,
+        code: ResultCode.FORBIDDEN,
+        message: 'Player is already participating in active pair',
+      };
+    }
+
     // Проверяем существует ли такой пользователь (игрок)
     const player = await this.usersQueryRepository.getOrmUserById(
       command.playerId,
     );
 
     if (!player) {
-      return null;
+      return {
+        data: null,
+        code: ResultCode.NOT_FOUND,
+        message: 'User not found',
+      };
     }
 
     // Для существующего пользователя (игрока) создаем сессию игры
@@ -40,12 +64,13 @@ export class CreateOrConnectQuizUseCase
       });
 
     // Проверяем есть ли игра, ожидающая второго игрока
-    const quiz = await this.quizzesQueryRepository.getQuizByPendingStatus(
-      QuizStatuses.PENDING_SECOND_PLAYER,
-    );
+    const pendingQuiz =
+      await this.quizzesQueryRepository.getQuizByPendingStatus(
+        QuizStatuses.PENDING_SECOND_PLAYER,
+      );
 
     // Создаем новую игру (когда нет игры, ожидающей второго игрока)
-    if (!quiz) {
+    if (!pendingQuiz) {
       const quizId = uuidv4();
       const pairCreatedDate = new Date();
 
@@ -56,7 +81,10 @@ export class CreateOrConnectQuizUseCase
         pairCreatedDate: pairCreatedDate,
       });
 
-      return newQuiz;
+      return {
+        data: newQuiz,
+        code: ResultCode.SUCCESS,
+      };
     }
 
     // Подключаемся к игре, ожидающей второго игрока
@@ -65,13 +93,19 @@ export class CreateOrConnectQuizUseCase
     const randomQuestions =
       await this.questionsQueryRepository.getFiveRandomQuestions();
 
-    const connectQuiz = await this.quizzesRepository.connectingToQuiz(quiz, {
-      secondPlayerSession: newPlayerSession,
-      status: QuizStatuses.ACTIVE,
-      questions: randomQuestions,
-      startGameDate: new Date(),
-    });
+    const connectQuiz = await this.quizzesRepository.connectingToQuiz(
+      pendingQuiz,
+      {
+        secondPlayerSession: newPlayerSession,
+        status: QuizStatuses.ACTIVE,
+        questions: randomQuestions,
+        startGameDate: new Date(),
+      },
+    );
 
-    return connectQuiz;
+    return {
+      data: connectQuiz,
+      code: ResultCode.SUCCESS,
+    };
   }
 }

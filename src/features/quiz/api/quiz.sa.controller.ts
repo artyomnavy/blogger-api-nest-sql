@@ -4,7 +4,6 @@ import {
   Delete,
   Get,
   HttpCode,
-  NotFoundException,
   Param,
   Post,
   Put,
@@ -15,7 +14,7 @@ import { BasicAuthGuard } from '../../../common/guards/basic-auth.guard';
 import { PaginatorModel } from '../../../common/models/paginator.input.model';
 import { PaginatorOutputModel } from '../../../common/models/paginator.output.model';
 import { QuestionOutputModel } from './models/question.output.model';
-import { HTTP_STATUSES } from '../../../common/utils';
+import { HTTP_STATUSES, ResultCode } from '../../../common/utils';
 import { QuestionsQueryRepository } from '../infrastructure/questions.query-repository';
 import {
   CreateAndUpdateQuestionModel,
@@ -27,6 +26,7 @@ import { UuidPipe } from '../../../common/pipes/uuid.pipe';
 import { UpdateQuestionCommand } from '../application/update-question.use-case';
 import { UpdatePublishQuestionCommand } from '../application/update-publish-question.use-case';
 import { DeleteQuestionCommand } from '../application/delete-question.use-case';
+import { resultCodeToHttpException } from '../../../common/exceptions/result-code-to-http-exception';
 
 @Controller('sa/quiz/questions')
 export class QuizSAController {
@@ -64,20 +64,15 @@ export class QuizSAController {
     @Param('questionId', UuidPipe) questionId: string,
     @Body() updateModel: CreateAndUpdateQuestionModel,
   ) {
-    const question =
-      await this.questionsQueryRepository.getQuestionById(questionId);
-
-    if (!question) throw new NotFoundException('Question not found');
-
-    const isUpdated = await this.commandBus.execute(
+    const result = await this.commandBus.execute(
       new UpdateQuestionCommand(questionId, updateModel),
     );
 
-    if (isUpdated) {
-      return;
-    } else {
-      throw new Error('Question not updated');
+    if (result.code !== ResultCode.SUCCESS) {
+      resultCodeToHttpException(result.code, result.message);
     }
+
+    return;
   }
   @Put(':questionId/publish')
   @UseGuards(BasicAuthGuard)
@@ -86,40 +81,28 @@ export class QuizSAController {
     @Param('questionId', UuidPipe) questionId: string,
     @Body() publishData: PublishQuestionModel,
   ) {
-    const question =
-      await this.questionsQueryRepository.getQuestionById(questionId);
-
-    if (!question) throw new NotFoundException('Question not found');
-
-    if (question.published === publishData.published) return;
-
-    const isUpdated = await this.commandBus.execute(
+    const result = await this.commandBus.execute(
       new UpdatePublishQuestionCommand(questionId, publishData.published),
     );
 
-    if (isUpdated) {
-      return;
-    } else {
-      throw new Error('Publish question not updated');
+    if (result.code !== ResultCode.SUCCESS) {
+      resultCodeToHttpException(result.code, result.message);
     }
+
+    return;
   }
   @Delete(':questionId')
   @UseGuards(BasicAuthGuard)
   @HttpCode(HTTP_STATUSES.NO_CONTENT_204)
   async deleteQuestion(@Param('questionId', UuidPipe) questionId: string) {
-    const question =
-      await this.questionsQueryRepository.getQuestionById(questionId);
-
-    if (!question) throw new NotFoundException('Question not found');
-
-    const isDeleted = await this.commandBus.execute(
+    const result = await this.commandBus.execute(
       new DeleteQuestionCommand(questionId),
     );
 
-    if (isDeleted) {
-      return;
-    } else {
-      throw new Error('Question not deleted');
+    if (result.code !== ResultCode.SUCCESS) {
+      resultCodeToHttpException(result.code, result.message);
     }
+
+    return;
   }
 }

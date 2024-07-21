@@ -1,6 +1,10 @@
 import { Quiz } from '../domain/quiz.entity';
 import { CommandHandler, ICommandHandler } from '@nestjs/cqrs';
-import { AnswerStatuses, QuizStatuses } from '../../../common/utils';
+import {
+  AnswerStatuses,
+  QuizStatuses,
+  ResultCode,
+} from '../../../common/utils';
 import { v4 as uuidv4 } from 'uuid';
 import { PlayersSessionsRepository } from '../infrastructure/players-sessions.repository';
 import { AnswersRepository } from '../infrastructure/answers.repository';
@@ -11,11 +15,12 @@ import { TransactionManagerUseCase } from '../../../common/use-cases/transaction
 import { SchedulerRegistry } from '@nestjs/schedule';
 import { Answer } from '../domain/answer.entity';
 import { PlayerSession } from '../domain/player-session.entity';
+import { QuizzesQueryRepository } from '../infrastructure/quizzes.query-repository';
+import { ResultType } from '../../../common/types/result';
 
 export class CreateAnswerCommand {
   constructor(
     public readonly playerId: string,
-    public readonly quiz: Quiz,
     public readonly bodyAnswer: string,
   ) {}
 }
@@ -24,7 +29,7 @@ export class CreateAnswerCommand {
 export class CreateAnswerUseCase
   extends TransactionManagerUseCase<
     CreateAnswerCommand,
-    AnswerOutputModel | null
+    ResultType<AnswerOutputModel | null>
   >
   implements ICommandHandler<CreateAnswerCommand>
 {
@@ -32,6 +37,7 @@ export class CreateAnswerUseCase
     private readonly answersRepository: AnswersRepository,
     private readonly playersSessionsRepository: PlayersSessionsRepository,
     private readonly quizzesRepository: QuizzesRepository,
+    private readonly quizzesQueryRepository: QuizzesQueryRepository,
     protected readonly dataSource: DataSource,
     private readonly schedulerRegistry: SchedulerRegistry,
   ) {
@@ -41,31 +47,55 @@ export class CreateAnswerUseCase
   async doLogic(
     command: CreateAnswerCommand,
     manager: EntityManager,
-  ): Promise<AnswerOutputModel | null> {
+  ): Promise<ResultType<AnswerOutputModel | null>> {
+    const { playerId, bodyAnswer } = command;
+
+    const quiz =
+      await this.quizzesQueryRepository.getQuizByPlayerIdAndActiveStatusForAnswer(
+        manager,
+        playerId,
+      );
+
+    if (
+      !quiz ||
+      !quiz.startGameDate ||
+      (playerId === quiz.firstPlayerSession.player.id &&
+        quiz.firstPlayerSession.answers.length === 5) ||
+      (playerId === quiz.secondPlayerSession.player.id &&
+        quiz.secondPlayerSession.answers.length === 5)
+    ) {
+      return {
+        data: null,
+        code: ResultCode.FORBIDDEN,
+        message:
+          'Player is not inside active pair or has already answered to all questions',
+      };
+    }
+
     // Находим сессию игры и ответы для текущего игрока
     // Присваиваем currentPlayerSession и currentAnswers значения по умолчанию
-    let currentPlayerSession = command.quiz.firstPlayerSession;
-    let currentAnswers = command.quiz.firstPlayerSession.answers;
+    let currentPlayerSession = quiz.firstPlayerSession;
+    let currentAnswers = quiz.firstPlayerSession.answers;
 
     // Если id игрока принадлежит второму игроку, то меняем значения переменных
     // currentPlayerSession и currentAnswers
-    if (command.playerId === command.quiz.secondPlayerSession.player.id) {
-      currentPlayerSession = command.quiz.secondPlayerSession;
-      currentAnswers = command.quiz.secondPlayerSession.answers;
+    if (playerId === quiz.secondPlayerSession.player.id) {
+      currentPlayerSession = quiz.secondPlayerSession;
+      currentAnswers = quiz.secondPlayerSession.answers;
     }
 
     // Находим текущий вопрос для создания текущего ответа игрока
-    const currentQuestion =
-      command.quiz.quizQuestion[currentAnswers.length].question;
+    const currentQuestion = quiz.quizQuestion[currentAnswers.length].question;
 
     // Присваиваем статусу текущего ответа значение по умолчанию
     let answerStatus = AnswerStatuses.INCORRECT;
 
     // Проверяем есть ли ответ текущего игрока в массиве правильных ответов вопроса
     // Текущий вопрос определяем по количеству уже имеющихся ответов для текущего игрока
-    const isCorrectAnswer = command.quiz.quizQuestion[
-      currentAnswers.length ? currentAnswers.length : 0
-    ].question.correctAnswers.includes(command.bodyAnswer);
+    const isCorrectAnswer =
+      quiz.quizQuestion[
+        currentAnswers.length ? currentAnswers.length : 0
+      ].question.correctAnswers.includes(bodyAnswer);
 
     // Если текущий ответ правильный, то меняем ему статус и увеличиваем счет текущего игрока
     if (isCorrectAnswer) {
@@ -82,7 +112,7 @@ export class CreateAnswerUseCase
     // Создаем текущий ответ в базе данных
     const createAnswer = await this.answersRepository.createAnswer(manager, {
       id: uuidv4(),
-      body: command.bodyAnswer,
+      body: bodyAnswer,
       answerStatus: answerStatus,
       addedAt: new Date(),
       playerSession: currentPlayerSession,
@@ -90,25 +120,25 @@ export class CreateAnswerUseCase
     });
 
     // Ответы игроков до добавления текущего ответа
-    const firstPlayerAnswers = command.quiz.firstPlayerSession.answers;
-    const secondPlayerAnswers = command.quiz.secondPlayerSession.answers;
+    const firstPlayerAnswers = quiz.firstPlayerSession.answers;
+    const secondPlayerAnswers = quiz.secondPlayerSession.answers;
 
     // Проверяем, что если какой-либо игрок ответил на все вопросы (до добавления текущего ответа),
     // то другому игроку дается 10 секунд для ответа на оставшиеся вопросы,
     // либо игра завершается по истечении отведенного времени на ответы
     if (
       (currentAnswers.length === 4 &&
-        command.playerId === command.quiz.firstPlayerSession.player.id &&
+        playerId === quiz.firstPlayerSession.player.id &&
         secondPlayerAnswers.length !== 5) ||
       (currentAnswers.length === 4 &&
-        command.playerId === command.quiz.secondPlayerSession.player.id &&
+        playerId === quiz.secondPlayerSession.player.id &&
         firstPlayerAnswers.length !== 5)
     ) {
       // Меняем свойство-флаг (таймаут добавлен)
       this.timeoutAdded = true;
 
       // Устанавливаем имя динамического таймаута
-      const timeoutName = `Timeout finish quiz with id ${command.quiz.id} executing after 10 seconds`;
+      const timeoutName = `Timeout finish quiz with id ${quiz.id} executing after 10 seconds`;
 
       // Устанавливаем динамический таймаут
       const timeout = setTimeout(async () => {
@@ -116,7 +146,7 @@ export class CreateAnswerUseCase
           currentAnswers,
           manager,
           currentPlayerSession,
-          command.quiz,
+          quiz,
         );
 
         // Удаляем таймаут
@@ -139,18 +169,21 @@ export class CreateAnswerUseCase
       // Определение игрока, первым завершившим игру
       const fastResponder =
         firstPlayerAnswers.length > secondPlayerAnswers.length
-          ? command.quiz.firstPlayerSession
-          : command.quiz.secondPlayerSession;
+          ? quiz.firstPlayerSession
+          : quiz.secondPlayerSession;
 
       await this.updateScoreAndFinishQuiz(
         fastResponder.answers,
         manager,
         fastResponder,
-        command.quiz,
+        quiz,
       );
     }
 
-    return createAnswer;
+    return {
+      data: createAnswer,
+      code: ResultCode.SUCCESS,
+    };
   }
   private async updateScoreAndFinishQuiz(
     answers: Answer[],

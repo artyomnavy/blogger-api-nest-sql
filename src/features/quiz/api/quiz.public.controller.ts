@@ -22,11 +22,12 @@ import {
   StatisticOutputModel,
 } from './models/quiz.output.model';
 import { CreateAnswerCommand } from '../application/create-answer.use-case';
-import { HTTP_STATUSES } from '../../../common/utils';
+import { HTTP_STATUSES, ResultCode } from '../../../common/utils';
 import { AnswerOutputModel } from './models/answer.output.model';
 import { PaginatorModel } from '../../../common/models/paginator.input.model';
 import { PaginatorOutputModel } from '../../../common/models/paginator.output.model';
 import { PlayerOutputQuizModel } from './models/player-session.output.model';
+import { resultCodeToHttpException } from '../../../common/exceptions/result-code-to-http-exception';
 
 @Controller('pair-game-quiz')
 export class QuizPublicController {
@@ -139,26 +140,15 @@ export class QuizPublicController {
   async createOrConnectQuiz(
     @CurrentUserId() playerId: string,
   ): Promise<QuizOutputModel> {
-    const quiz =
-      await this.quizzesQueryRepository.getQuizByPlayerIdAndPendingOrActiveStatusForConnection(
-        playerId,
-      );
-
-    if (quiz) {
-      throw new ForbiddenException(
-        'Player is already participating in active pair',
-      );
-    }
-
-    const newQuiz = await this.commandBus.execute(
+    const result = await this.commandBus.execute(
       new CreateOrConnectQuizCommand(playerId),
     );
 
-    if (!newQuiz) {
-      throw new Error('Quiz not created or connected');
+    if (result.code !== ResultCode.SUCCESS) {
+      resultCodeToHttpException(result.code, result.message);
     }
 
-    return newQuiz;
+    return result.data;
   }
 
   @Post('pairs/my-current/answers')
@@ -168,32 +158,14 @@ export class QuizPublicController {
     @CurrentUserId() playerId: string,
     @Body() createModel: CreateAnswerModel,
   ): Promise<AnswerOutputModel> {
-    const quiz =
-      await this.quizzesQueryRepository.getQuizByPlayerIdAndActiveStatusForAnswer(
-        playerId,
-      );
-
-    if (
-      !quiz ||
-      !quiz.startGameDate ||
-      (playerId === quiz.firstPlayerSession.player.id &&
-        quiz.firstPlayerSession.answers.length === 5) ||
-      (playerId === quiz.secondPlayerSession.player.id &&
-        quiz.secondPlayerSession.answers.length === 5)
-    ) {
-      throw new ForbiddenException(
-        'Player is not inside active pair or has already answered to all questions',
-      );
-    }
-
-    const newAnswer = await this.commandBus.execute(
-      new CreateAnswerCommand(playerId, quiz, createModel.answer),
+    const result = await this.commandBus.execute(
+      new CreateAnswerCommand(playerId, createModel.answer),
     );
 
-    if (!newAnswer) {
-      throw new Error('Answer not created');
+    if (result.code !== ResultCode.SUCCESS) {
+      resultCodeToHttpException(result.code, result.message);
     }
 
-    return newAnswer;
+    return result.data;
   }
 }

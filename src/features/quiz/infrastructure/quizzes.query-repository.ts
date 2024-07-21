@@ -1,6 +1,6 @@
 import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Repository } from 'typeorm';
+import { EntityManager, Repository } from 'typeorm';
 import { Quiz } from '../domain/quiz.entity';
 import { QuizStatuses } from '../../../common/utils';
 import {
@@ -418,10 +418,11 @@ export class QuizzesQueryRepository {
     }
   }
   async getQuizByPlayerIdAndActiveStatusForAnswer(
+    manager: EntityManager,
     id: string,
   ): Promise<Quiz | null> {
-    const quiz = await this.quizQueryRepository
-      .createQueryBuilder('qz')
+    const quiz = await manager
+      .createQueryBuilder(Quiz, 'qz')
       .select([
         'qz.id',
         'qz.status',
