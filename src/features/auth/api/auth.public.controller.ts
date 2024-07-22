@@ -11,7 +11,7 @@ import {
   Get,
   NotFoundException,
 } from '@nestjs/common';
-import { HTTP_STATUSES } from '../../../common/utils';
+import { HTTP_STATUSES, ResultCode } from '../../../common/utils';
 import {
   AuthLoginModel,
   ConfirmCodeModel,
@@ -37,6 +37,7 @@ import { ResendingEmailCommand } from '../application/use-cases/re-sending-email
 import { UpdatePasswordForRecoveryCommand } from '../application/use-cases/update-password-for-recovery-user.use-case';
 import { SendEmailForPasswordRecoveryCommand } from '../application/use-cases/send-email-for-password-recovery-user.use-case';
 import { ThrottlerGuard } from '@nestjs/throttler';
+import { resultCodeToHttpException } from '../../../common/exceptions/result-code-to-http-exception';
 
 @Controller('auth')
 export class AuthController {
@@ -154,15 +155,13 @@ export class AuthController {
   @UseGuards(ThrottlerGuard)
   @HttpCode(HTTP_STATUSES.NO_CONTENT_204)
   async createUserByRegistration(@Body() createModel: CreateUserModel) {
-    const user = await this.commandBus.execute(
+    const result = await this.commandBus.execute(
       new CreateUserByRegistrationCommand(createModel),
     );
 
-    if (!user)
-      throw new HttpException(
-        "Recovery code don't sending to passed email address, try later",
-        HTTP_STATUSES.IM_A_TEAPOT_418,
-      );
+    if (result.code !== ResultCode.SUCCESS) {
+      resultCodeToHttpException(result.code, result.message);
+    }
 
     return;
   }

@@ -1,12 +1,9 @@
 import { Injectable } from '@nestjs/common';
-import {
-  UserOutputModel,
-  UserAccountModel,
-  userMapper,
-} from '../api/models/user.output.model';
+import { UserAccountModel, BanInfo } from '../api/models/user.output.model';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Repository } from 'typeorm';
+import { EntityManager, Repository } from 'typeorm';
 import { User } from '../domain/user.entity';
+import { UserBan } from '../domain/user-ban.entity';
 
 @Injectable()
 export class UsersRepository {
@@ -14,15 +11,22 @@ export class UsersRepository {
     @InjectRepository(User)
     private readonly usersRepository: Repository<User>,
   ) {}
-  async createUser(newUser: UserAccountModel): Promise<UserOutputModel> {
-    await this.usersRepository
+  async createUser(
+    newUser: UserAccountModel,
+    manager?: EntityManager,
+  ): Promise<string> {
+    const queryBuilder = manager
+      ? manager.createQueryBuilder()
+      : this.usersRepository.createQueryBuilder();
+
+    const resultCreateUser = await queryBuilder
       .createQueryBuilder()
       .insert()
       .into(User)
       .values(newUser)
       .execute();
 
-    return userMapper(newUser);
+    return resultCreateUser.raw[0].id;
   }
   async deleteUser(id: string): Promise<boolean> {
     const resultDeleteUser = await this.usersRepository
@@ -70,5 +74,18 @@ export class UsersRepository {
       .execute();
 
     return resultUpdatePassword.affected === 1;
+  }
+  async createUserBanInfo(
+    banInfo: BanInfo,
+    manager: EntityManager,
+  ): Promise<UserBan> {
+    const userBan = new UserBan();
+
+    userBan.id = banInfo.id;
+    userBan.isBanned = banInfo.isBanned;
+    userBan.banDate = banInfo.banDate;
+    userBan.banReason = banInfo.banReason;
+
+    return await manager.save(userBan);
   }
 }

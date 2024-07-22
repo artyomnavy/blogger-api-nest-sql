@@ -8,7 +8,7 @@ import { PaginatorModel } from '../../../common/models/paginator.input.model';
 import { PaginatorOutputModel } from '../../../common/models/paginator.output.model';
 import bcrypt from 'bcrypt';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Repository } from 'typeorm';
+import { EntityManager, Repository } from 'typeorm';
 import { AuthMeOutputModel } from '../../auth/api/models/auth.output.model';
 import { User } from '../domain/user.entity';
 
@@ -74,7 +74,7 @@ export class UsersQueryRepository {
       items: users.map(userMapper),
     };
   }
-  async getUserByLogin(login: string): Promise<UserOutputModel | null> {
+  async getUserByLogin(login: string): Promise<User | null> {
     const user = await this.usersQueryRepository
       .createQueryBuilder()
       .select([
@@ -94,7 +94,7 @@ export class UsersQueryRepository {
     if (!user) {
       return null;
     } else {
-      return userMapper(user);
+      return user;
     }
   }
   async getUserByEmail(email: string): Promise<UserAccountModel | null> {
@@ -198,9 +198,15 @@ export class UsersQueryRepository {
       return await bcrypt.compare(newPassword, user.password);
     }
   }
-  async getUserById(id: string): Promise<UserOutputModel | null> {
-    const user = await this.usersQueryRepository
-      .createQueryBuilder()
+  async getUserById(
+    id: string,
+    manager?: EntityManager,
+  ): Promise<UserOutputModel | null> {
+    const queryBuilder = manager
+      ? manager.createQueryBuilder(User, 'u')
+      : this.usersQueryRepository.createQueryBuilder('u');
+
+    const user = await queryBuilder
       .select([
         'u.id',
         'u.login',
@@ -211,7 +217,7 @@ export class UsersQueryRepository {
         'u.expirationDate',
         'u.isConfirmed',
       ])
-      .from(User, 'u')
+      .leftJoinAndSelect('u.userBan', 'ub')
       .where('u.id = :id', { id })
       .getOne();
 

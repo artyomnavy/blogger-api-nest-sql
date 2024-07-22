@@ -1,7 +1,8 @@
-import { ResultCode } from '../utils';
+import { HTTP_STATUSES, ResultCode } from '../utils';
 import {
   BadRequestException,
   ForbiddenException,
+  HttpException,
   NotFoundException,
 } from '@nestjs/common';
 
@@ -17,5 +18,10 @@ export const resultCodeToHttpException = (
       throw new NotFoundException(message);
     case ResultCode.BAD_REQUEST:
       throw new BadRequestException({ message: message, field: field });
+    case ResultCode.IM_A_TEAPOT:
+      throw new HttpException(
+        message ? message : 'Something error',
+        HTTP_STATUSES.IM_A_TEAPOT_418,
+      );
   }
 };

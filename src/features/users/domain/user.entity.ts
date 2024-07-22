@@ -1,10 +1,18 @@
-import { Column, Entity, OneToMany, PrimaryGeneratedColumn } from 'typeorm';
+import {
+  Column,
+  Entity,
+  JoinColumn,
+  OneToMany,
+  OneToOne,
+  PrimaryGeneratedColumn,
+} from 'typeorm';
 import { Device } from '../../devices/domain/device.entity';
 import { Comment } from '../../comments/domain/comment.entity';
 import { LikeComment } from '../../likes/domain/like-comment.entity';
 import { LikePost } from '../../likes/domain/like-post.entity';
 import { Blog } from '../../blogs/domain/blog.entity';
 import { PlayerSession } from '../../quiz/domain/player-session.entity';
+import { UserBan } from './user-ban.entity';
 
 @Entity({ name: 'users' })
 export class User {
@@ -43,6 +51,10 @@ export class User {
 
   @Column('boolean', { name: 'is_confirmed', default: false })
   isConfirmed: boolean;
+
+  @OneToOne(() => UserBan, (userBan) => userBan.user, { onDelete: 'CASCADE' })
+  @JoinColumn({ name: 'user_ban_id' })
+  userBan: UserBan;
 
   @OneToMany(() => Device, (d) => d.user)
   devices: Device[];

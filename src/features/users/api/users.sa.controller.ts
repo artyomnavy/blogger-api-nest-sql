@@ -15,12 +15,13 @@ import { CreateUserModel } from './models/user.input.model';
 import { PaginatorModel } from '../../../common/models/paginator.input.model';
 import { PaginatorOutputModel } from '../../../common/models/paginator.output.model';
 import { UserOutputModel } from './models/user.output.model';
-import { HTTP_STATUSES } from '../../../common/utils';
+import { HTTP_STATUSES, ResultCode } from '../../../common/utils';
 import { BasicAuthGuard } from '../../../common/guards/basic-auth.guard';
 import { DeleteUserCommand } from '../application/use-cases/delete-user.use-case';
 import { CommandBus } from '@nestjs/cqrs';
 import { CreateUserByAdminCommand } from '../application/use-cases/create-user-by-admin.use-case';
 import { UuidPipe } from '../../../common/pipes/uuid.pipe';
+import { resultCodeToHttpException } from '../../../common/exceptions/result-code-to-http-exception';
 
 @Controller('sa/users')
 export class UsersController {
@@ -47,11 +48,15 @@ export class UsersController {
   async createUserByAdmin(
     @Body() createModel: CreateUserModel,
   ): Promise<UserOutputModel> {
-    const newUser = await this.commandBus.execute(
+    const result = await this.commandBus.execute(
       new CreateUserByAdminCommand(createModel),
     );
 
-    return newUser;
+    if (result.code !== ResultCode.SUCCESS) {
+      resultCodeToHttpException(result.code, result.message);
+    }
+
+    return result.data;
   }
   @Delete(':userId')
   @UseGuards(BasicAuthGuard)

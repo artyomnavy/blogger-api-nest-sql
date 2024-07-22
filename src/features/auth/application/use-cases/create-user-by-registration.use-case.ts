@@ -5,28 +5,49 @@ import { add } from 'date-fns';
 import { EmailsManager } from '../../managers/emails-manager';
 import { CreateUserModel } from '../../../users/api/models/user.input.model';
 import { UsersRepository } from '../../../users/infrastructure/users.repository';
-import {
-  User,
-  UserOutputModel,
-} from '../../../users/api/models/user.output.model';
+import { BanInfo, User } from '../../../users/api/models/user.output.model';
+import { ResultType } from '../../../../common/types/result';
+import { TransactionManagerUseCase } from '../../../../common/use-cases/transaction.use-case';
+import { DataSource, EntityManager } from 'typeorm';
+import { ResultCode } from '../../../../common/utils';
+import { UsersQueryRepository } from '../../../users/infrastructure/users.query-repository';
 
 export class CreateUserByRegistrationCommand {
   constructor(public readonly createData: CreateUserModel) {}
 }
 @CommandHandler(CreateUserByRegistrationCommand)
 export class CreateUserByRegistrationUseCase
+  extends TransactionManagerUseCase<
+    CreateUserByRegistrationCommand,
+    ResultType<boolean>
+  >
   implements ICommandHandler<CreateUserByRegistrationCommand>
 {
   constructor(
     private readonly usersRepository: UsersRepository,
     private readonly emailsManager: EmailsManager,
-  ) {}
+    private readonly usersQueryRepository: UsersQueryRepository,
+    protected readonly dataSource: DataSource,
+  ) {
+    super(dataSource);
+  }
 
-  async execute(
+  async doLogic(
     command: CreateUserByRegistrationCommand,
-  ): Promise<UserOutputModel | null> {
+    manager: EntityManager,
+  ): Promise<ResultType<boolean>> {
+    // Хэшируем пароль пользователя
     const passwordHash = await bcrypt.hash(command.createData.password, 10);
 
+    // Создаем информацию о бане пользователя
+    const newBanInfo = new BanInfo(uuidv4(), false, null, null);
+
+    const userBan = await this.usersRepository.createUserBanInfo(
+      newBanInfo,
+      manager,
+    );
+
+    // Создаем пользователя с информацией о бане
     const newUser = new User(
       uuidv4(),
       command.createData.login,
@@ -38,10 +59,12 @@ export class CreateUserByRegistrationUseCase
         minutes: 10,
       }),
       false,
+      userBan,
     );
 
-    const createdUser = await this.usersRepository.createUser(newUser);
+    const userId = await this.usersRepository.createUser(newUser, manager);
 
+    // Отправляем код подтверждения на электронную почту
     try {
       await this.emailsManager.sendEmailConfirmationMessage(
         newUser.email,
@@ -49,9 +72,27 @@ export class CreateUserByRegistrationUseCase
       );
     } catch (e) {
       console.error(e);
-      return null;
+      return {
+        data: false,
+        code: ResultCode.IM_A_TEAPOT,
+        message:
+          "Recovery code don't sending to passed email address, try later",
+      };
     }
 
-    return createdUser;
+    const user = await this.usersQueryRepository.getUserById(userId, manager);
+
+    if (!user) {
+      return {
+        data: false,
+        code: ResultCode.NOT_FOUND,
+        message: 'User not found',
+      };
+    }
+
+    return {
+      data: true,
+      code: ResultCode.SUCCESS,
+    };
   }
 }

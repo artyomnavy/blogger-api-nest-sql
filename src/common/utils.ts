@@ -43,4 +43,5 @@ export enum ResultCode {
   FORBIDDEN,
   NOT_FOUND,
   BAD_REQUEST,
+  IM_A_TEAPOT,
 }
