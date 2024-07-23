@@ -24,6 +24,7 @@ export class CommentsQueryRepository {
     const comment = await this.commentsQueryRepository
       .createQueryBuilder('c')
       .leftJoin('c.user', 'u')
+      .leftJoin('u.userBan', 'ub')
       .select([
         'c.id AS "id"',
         'c.content AS "content"',
@@ -37,9 +38,14 @@ export class CommentsQueryRepository {
         return subQuery
           .select('COUNT(lc.id)')
           .from(LikeComment, 'lc')
-          .where('lc.commentId = :id AND lc.status = :like', {
+          .leftJoin('lc.user', 'u')
+          .leftJoin('u.userBan', 'ub')
+          .where('(lc.commentId = :id AND lc.status = :like)', {
             id,
             like: LikeStatuses.LIKE,
+          })
+          .andWhere('(ub.isBanned = :ban OR ub.isBanned IS NULL)', {
+            ban: false,
           });
       }, 'likesCount')
       // Подзапрос количества дизлайков комментария
@@ -47,9 +53,14 @@ export class CommentsQueryRepository {
         return subQuery
           .select('COUNT(lc.id)')
           .from(LikeComment, 'lc')
-          .where('lc.commentId = :id AND lc.status = :dislike', {
+          .leftJoin('lc.user', 'u')
+          .leftJoin('u.userBan', 'ub')
+          .where('(lc.commentId = :id AND lc.status = :dislike)', {
             id,
             dislike: LikeStatuses.DISLIKE,
+          })
+          .andWhere('(ub.isBanned = :ban OR ub.isBanned IS NULL)', {
+            ban: false,
           });
       }, 'dislikesCount')
       // Подзапрос статуса пользователя (лайк или дизлайк) для комментария
@@ -58,15 +69,23 @@ export class CommentsQueryRepository {
         return subQuery
           .select('lc.status')
           .from(LikeComment, 'lc')
+          .leftJoin('lc.user', 'u')
+          .leftJoin('u.userBan', 'ub')
           .where(
-            'lc.commentId = :id AND lc.userId = :userId AND :userId IS NOT NULL',
+            '(lc.commentId = :id AND lc.userId = :userId AND :userId IS NOT NULL)',
             {
               id,
               userId: userId,
             },
-          );
+          )
+          .andWhere('(ub.isBanned = :ban OR ub.isBanned IS NULL)', {
+            ban: false,
+          });
       }, 'myStatus')
-      .where('c.id = :id', { id })
+      .where('(c.id = :id AND (ub.isBanned = :ban OR ub.isBanned IS NULL))', {
+        id,
+        ban: false,
+      })
       .getRawOne();
 
     if (!comment) {

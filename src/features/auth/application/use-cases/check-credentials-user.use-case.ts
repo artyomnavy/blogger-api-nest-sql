@@ -2,7 +2,7 @@ import { CommandHandler, ICommandHandler } from '@nestjs/cqrs';
 import bcrypt from 'bcrypt';
 import { AuthLoginModel } from '../../api/models/auth.input.model';
 import { UsersQueryRepository } from '../../../users/infrastructure/users.query-repository';
-import { UserAccountModel } from '../../../users/api/models/user.output.model';
+import { User } from '../../../users/domain/user.entity';
 
 export class CheckCredentialsCommand {
   constructor(public readonly inputData: AuthLoginModel) {}
@@ -13,18 +13,12 @@ export class CheckCredentialsUseCase
 {
   constructor(private readonly usersQueryRepository: UsersQueryRepository) {}
 
-  async execute(
-    command: CheckCredentialsCommand,
-  ): Promise<UserAccountModel | null> {
+  async execute(command: CheckCredentialsCommand): Promise<User | null> {
     const user = await this.usersQueryRepository.getUserByLoginOrEmail(
       command.inputData.loginOrEmail,
     );
 
-    if (!user) {
-      return null;
-    }
-
-    if (!user.isConfirmed) {
+    if (!user || !user.isConfirmed || user.userBan.isBanned) {
       return null;
     }
 

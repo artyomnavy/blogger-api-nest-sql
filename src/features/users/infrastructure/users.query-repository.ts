@@ -1,9 +1,5 @@
 import { Injectable } from '@nestjs/common';
-import {
-  UserAccountModel,
-  userMapper,
-  UserOutputModel,
-} from '../api/models/user.output.model';
+import { userMapper, UserOutputModel } from '../api/models/user.output.model';
 import { PaginatorModel } from '../../../common/models/paginator.input.model';
 import { PaginatorOutputModel } from '../../../common/models/paginator.output.model';
 import bcrypt from 'bcrypt';
@@ -46,6 +42,7 @@ export class UsersQueryRepository {
         'u.expirationDate',
         'u.isConfirmed',
       ])
+      .leftJoinAndSelect('u.userBan', 'ub')
       .where('(u.login ILIKE :login OR u.email ILIKE :email)', {
         login: `%${searchLoginTerm}%`,
         email: `%${searchEmailTerm}%`,
@@ -97,7 +94,7 @@ export class UsersQueryRepository {
       return user;
     }
   }
-  async getUserByEmail(email: string): Promise<UserAccountModel | null> {
+  async getUserByEmail(email: string): Promise<User | null> {
     const user = await this.usersQueryRepository
       .createQueryBuilder()
       .select([
@@ -120,11 +117,9 @@ export class UsersQueryRepository {
       return user;
     }
   }
-  async getUserByLoginOrEmail(
-    loginOrEmail: string,
-  ): Promise<UserAccountModel | null> {
+  async getUserByLoginOrEmail(loginOrEmail: string): Promise<User | null> {
     const user = await this.usersQueryRepository
-      .createQueryBuilder()
+      .createQueryBuilder('u')
       .select([
         'u.id',
         'u.login',
@@ -135,10 +130,11 @@ export class UsersQueryRepository {
         'u.expirationDate',
         'u.isConfirmed',
       ])
-      .from(User, 'u')
-      .where('u.login = :loginOrEmail OR u.email = :loginOrEmail', {
+      .leftJoinAndSelect('u.userBan', 'ub')
+      .where('(u.login = :loginOrEmail OR u.email = :loginOrEmail)', {
         loginOrEmail,
       })
+      .andWhere('(ub.isBanned = :ban OR ub.isBanned IS NULL)', { ban: false })
       .getOne();
 
     if (!user) {
@@ -147,9 +143,7 @@ export class UsersQueryRepository {
       return user;
     }
   }
-  async getUserByConfirmationCode(
-    code: string,
-  ): Promise<UserAccountModel | null> {
+  async getUserByConfirmationCode(code: string): Promise<User | null> {
     const user = await this.usersQueryRepository
       .createQueryBuilder()
       .select([

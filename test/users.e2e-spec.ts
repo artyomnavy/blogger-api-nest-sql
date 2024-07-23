@@ -110,6 +110,11 @@ describe('Users testing (e2e)', () => {
       login: createData.login,
       email: createData.email,
       createdAt: expect.any(String),
+      banInfo: {
+        banDate: null,
+        banReason: null,
+        isBanned: false,
+      },
     });
 
     const foundUsers = await request(server)

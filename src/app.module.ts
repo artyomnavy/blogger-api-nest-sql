@@ -100,6 +100,7 @@ import { QuizQuestion } from './features/quiz/domain/quiz-question.entity';
 import { ScheduleModule } from '@nestjs/schedule';
 import { BlogsBloggerController } from './features/blogs/api/blogs.blogger.controller';
 import { BindBlogWithUserUseCase } from './features/blogs/application/use-cases/bind-blog.use-case';
+import { UserBan } from './features/users/domain/user-ban.entity';
 
 config();
 
@@ -213,6 +214,7 @@ const controllers = [
 
 const entities = [
   User,
+  UserBan,
   Device,
   Blog,
   Post,

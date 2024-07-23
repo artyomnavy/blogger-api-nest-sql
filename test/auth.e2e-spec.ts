@@ -2,10 +2,7 @@ import { INestApplication } from '@nestjs/common';
 import { TestingModuleBuilder } from '@nestjs/testing';
 import request from 'supertest';
 import { HTTP_STATUSES } from '../src/common/utils';
-import {
-  userMapper,
-  UserOutputModel,
-} from '../src/features/users/api/models/user.output.model';
+import { UserOutputModel } from '../src/features/users/api/models/user.output.model';
 import { Paths } from './utils/test-constants';
 import jwt from 'jsonwebtoken';
 import { CreateEntitiesTestManager } from './utils/test-manager';
@@ -94,6 +91,11 @@ describe('Auth testing (e2e)', () => {
       login: createData.login,
       email: createData.email,
       createdAt: expect.any(String),
+      banInfo: {
+        banDate: null,
+        banReason: null,
+        isBanned: false,
+      },
     });
 
     const foundUsers = await request(server)
@@ -273,7 +275,17 @@ describe('Auth testing (e2e)', () => {
 
     code = getUserByLogin!.confirmationCode;
 
-    newUserByRegistration = userMapper(getUserByLogin!);
+    newUserByRegistration = {
+      id: getUserByLogin!.id,
+      login: getUserByLogin!.login,
+      email: getUserByLogin!.email,
+      createdAt: getUserByLogin!.createdAt.toISOString(),
+      banInfo: {
+        isBanned: false,
+        banDate: null,
+        banReason: null,
+      },
+    };
   });
 
   it('- POST does not enter to system and does not create token with unconfirmed email', async () => {
@@ -412,6 +424,11 @@ describe('Auth testing (e2e)', () => {
       login: createData.login,
       email: createData.email,
       createdAt: expect.any(String),
+      banInfo: {
+        banDate: null,
+        banReason: null,
+        isBanned: false,
+      },
     });
 
     // Check ip-restriction (because early testing with same local ip)
