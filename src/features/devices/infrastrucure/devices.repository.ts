@@ -1,7 +1,7 @@
 import { Injectable } from '@nestjs/common';
 import { DeviceSessionModel } from '../api/models/device.output.model';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Repository } from 'typeorm';
+import { EntityManager, Repository } from 'typeorm';
 import { Device } from '../domain/device.entity';
 
 @Injectable()
@@ -83,5 +83,20 @@ export class DevicesRepository {
       .execute();
 
     return resultTerminateDeviceSession.affected === 1;
+  }
+  async terminateAllDevicesSessionsForBannedUser(
+    userId: string,
+    manager: EntityManager,
+  ): Promise<boolean> {
+    const resultTerminateAllDevicesSessionsForBannedUser = await manager
+      .createQueryBuilder()
+      .delete()
+      .from(Device)
+      .where('userId = :userId', {
+        userId,
+      })
+      .execute();
+
+    return resultTerminateAllDevicesSessionsForBannedUser.affected === 1;
   }
 }

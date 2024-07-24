@@ -4,6 +4,7 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { EntityManager, Repository } from 'typeorm';
 import { User } from '../domain/user.entity';
 import { UserBan } from '../domain/user-ban.entity';
+import { UpdateUserBanModel } from '../api/models/user.input.model';
 
 @Injectable()
 export class UsersRepository {
@@ -74,18 +75,5 @@ export class UsersRepository {
       .execute();
 
     return resultUpdatePassword.affected === 1;
-  }
-  async createUserBanInfo(
-    banInfo: BanInfo,
-    manager: EntityManager,
-  ): Promise<UserBan> {
-    const userBan = new UserBan();
-
-    userBan.id = banInfo.id;
-    userBan.isBanned = banInfo.isBanned;
-    userBan.banDate = banInfo.banDate;
-    userBan.banReason = banInfo.banReason;
-
-    return await manager.save(userBan);
   }
 }

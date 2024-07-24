@@ -6,12 +6,14 @@ import {
   HttpCode,
   NotFoundException,
   Param,
+  ParseUUIDPipe,
   Post,
+  Put,
   Query,
   UseGuards,
 } from '@nestjs/common';
 import { UsersQueryRepository } from '../infrastructure/users.query-repository';
-import { CreateUserModel } from './models/user.input.model';
+import { CreateUserModel, UpdateUserBanModel } from './models/user.input.model';
 import { PaginatorModel } from '../../../common/models/paginator.input.model';
 import { PaginatorOutputModel } from '../../../common/models/paginator.output.model';
 import { UserOutputModel } from './models/user.output.model';
@@ -22,6 +24,7 @@ import { CommandBus } from '@nestjs/cqrs';
 import { CreateUserByAdminCommand } from '../application/use-cases/create-user-by-admin.use-case';
 import { UuidPipe } from '../../../common/pipes/uuid.pipe';
 import { resultCodeToHttpException } from '../../../common/exceptions/result-code-to-http-exception';
+import { UpdateUserBanInfoCommand } from '../application/use-cases/update-user-ban.use-case';
 
 @Controller('sa/users')
 export class UsersController {
@@ -53,6 +56,23 @@ export class UsersController {
     }
 
     return result.data;
+  }
+  @Put(':userId/ban')
+  @UseGuards(BasicAuthGuard)
+  @HttpCode(HTTP_STATUSES.NO_CONTENT_204)
+  async updateUserBanInfo(
+    @Param('userId', new ParseUUIDPipe({ version: '4' })) userId: string,
+    @Body() updateData: UpdateUserBanModel,
+  ) {
+    const result = await this.commandBus.execute(
+      new UpdateUserBanInfoCommand(userId, updateData),
+    );
+
+    if (result.code !== ResultCode.SUCCESS) {
+      resultCodeToHttpException(result.code, result.message);
+    }
+
+    return;
   }
   @Delete(':userId')
   @UseGuards(BasicAuthGuard)

@@ -39,6 +39,8 @@ export class PostsQueryRepository {
     const posts = await this.postsQueryRepository
       .createQueryBuilder('p')
       .leftJoin('p.blog', 'b')
+      .leftJoin('b.user', 'u')
+      .leftJoin('u.userBan', 'ub')
       .select([
         'p.id AS "id"',
         'p.title AS "title"',
@@ -53,8 +55,13 @@ export class PostsQueryRepository {
         return subQuery
           .select('COUNT(lp.id)')
           .from(LikePost, 'lp')
-          .where('lp.postId = p.id AND lp.status = :like', {
+          .leftJoin('lp.user', 'u')
+          .leftJoin('u.userBan', 'ub')
+          .where('(lp.postId = p.id AND lp.status = :like)', {
             like: LikeStatuses.LIKE,
+          })
+          .andWhere('(ub.isBanned = :ban)', {
+            ban: false,
           });
       }, 'likesCount')
       // Подзапрос количества дизлайков поста
@@ -62,8 +69,13 @@ export class PostsQueryRepository {
         return subQuery
           .select('COUNT(lp.id)')
           .from(LikePost, 'lp')
-          .where('lp.postId = p.id AND lp.status = :dislike', {
+          .leftJoin('lp.user', 'u')
+          .leftJoin('u.userBan', 'ub')
+          .where('(lp.postId = p.id AND lp.status = :dislike)', {
             dislike: LikeStatuses.DISLIKE,
+          })
+          .andWhere('(ub.isBanned = :ban)', {
+            ban: false,
           });
       }, 'dislikesCount')
       // Подзапрос статуса пользователя (лайк или дизлайк) для поста
@@ -91,14 +103,19 @@ export class PostsQueryRepository {
                 .select('lp.addedAt, lp.userId, u.login')
                 .from(LikePost, 'lp')
                 .leftJoin('lp.user', 'u')
-                .where('lp.postId = p.id AND lp.status = :status', {
+                .leftJoin('u.userBan', 'ub')
+                .where('(lp.postId = p.id AND lp.status = :status)', {
                   status: LikeStatuses.LIKE,
+                })
+                .andWhere('(ub.isBanned = :ban)', {
+                  ban: false,
                 })
                 .orderBy('lp.addedAt', 'DESC')
                 .limit(3),
             'sub_lp',
           );
       }, 'newestLikes')
+      .where('ub.isBanned = :ban', { ban: false })
       .orderBy(order, sortDirection)
       .offset((pageNumber - 1) * pageSize)
       .limit(pageSize)
@@ -106,7 +123,11 @@ export class PostsQueryRepository {
 
     const totalCount: number = await this.postsQueryRepository
       .createQueryBuilder('p')
+      .leftJoin('p.blog', 'b')
+      .leftJoin('b.user', 'u')
+      .leftJoin('u.userBan', 'ub')
       .select('COUNT(p.id)')
+      .where('ub.isBanned = :ban', { ban: false })
       .getCount();
 
     const pagesCount = Math.ceil(totalCount / pageSize);
@@ -128,6 +149,8 @@ export class PostsQueryRepository {
     const post = await this.postsQueryRepository
       .createQueryBuilder('p')
       .leftJoin('p.blog', 'b')
+      .leftJoin('b.user', 'u')
+      .leftJoin('u.userBan', 'ub')
       .select([
         'p.id AS "id"',
         'p.title AS "title"',
@@ -142,9 +165,14 @@ export class PostsQueryRepository {
         return subQuery
           .select('COUNT(lp.id)')
           .from(LikePost, 'lp')
+          .leftJoin('lp.user', 'u')
+          .leftJoin('u.userBan', 'ub')
           .where('lp.postId = :id AND lp.status = :like', {
             id,
             like: LikeStatuses.LIKE,
+          })
+          .andWhere('(ub.isBanned = :ban)', {
+            ban: false,
           });
       }, 'likesCount')
       // Подзапрос количества дизлайков поста
@@ -152,9 +180,14 @@ export class PostsQueryRepository {
         return subQuery
           .select('COUNT(lp.id)')
           .from(LikePost, 'lp')
+          .leftJoin('lp.user', 'u')
+          .leftJoin('u.userBan', 'ub')
           .where('lp.postId = :id AND lp.status = :dislike', {
             id,
             dislike: LikeStatuses.DISLIKE,
+          })
+          .andWhere('(ub.isBanned = :ban)', {
+            ban: false,
           });
       }, 'dislikesCount')
       // Подзапрос статуса пользователя (лайк или дизлайк) для поста
@@ -183,16 +216,21 @@ export class PostsQueryRepository {
                 .select('lp.addedAt, lp.userId, u.login')
                 .from(LikePost, 'lp')
                 .leftJoin('lp.user', 'u')
+                .leftJoin('u.userBan', 'ub')
                 .where('lp.postId = :id AND lp.status = :status', {
                   id,
                   status: LikeStatuses.LIKE,
+                })
+                .andWhere('(ub.isBanned = :ban)', {
+                  ban: false,
                 })
                 .orderBy('lp.addedAt', 'DESC')
                 .limit(3),
             'sub_lp',
           );
       }, 'newestLikes')
-      .where('p.id = :id', { id })
+      .where('(p.id = :id)', { id })
+      .andWhere('(ub.isBanned = :ban)', { ban: false })
       .getRawOne();
 
     if (!post) {
@@ -224,6 +262,8 @@ export class PostsQueryRepository {
     const posts = await this.postsQueryRepository
       .createQueryBuilder('p')
       .leftJoin('p.blog', 'b')
+      .leftJoin('b.user', 'u')
+      .leftJoin('u.userBan', 'ub')
       .select([
         'p.id AS "id"',
         'p.title AS "title"',
@@ -238,8 +278,13 @@ export class PostsQueryRepository {
         return subQuery
           .select('COUNT(lp.id)')
           .from(LikePost, 'lp')
-          .where('lp.postId = p.id AND lp.status = :like', {
+          .leftJoin('lp.user', 'u')
+          .leftJoin('u.userBan', 'ub')
+          .where('(lp.postId = p.id AND lp.status = :like)', {
             like: LikeStatuses.LIKE,
+          })
+          .andWhere('(ub.isBanned = :ban)', {
+            ban: false,
           });
       }, 'likesCount')
       // Подзапрос количества дизлайков поста
@@ -247,8 +292,13 @@ export class PostsQueryRepository {
         return subQuery
           .select('COUNT(lp.id)')
           .from(LikePost, 'lp')
-          .where('lp.postId = p.id AND lp.status = :dislike', {
+          .leftJoin('lp.user', 'u')
+          .leftJoin('u.userBan', 'ub')
+          .where('(lp.postId = p.id AND lp.status = :dislike)', {
             dislike: LikeStatuses.DISLIKE,
+          })
+          .andWhere('(ub.isBanned = :ban)', {
+            ban: false,
           });
       }, 'dislikesCount')
       // Подзапрос статуса пользователя (лайк или дизлайк) для поста
@@ -276,8 +326,12 @@ export class PostsQueryRepository {
                 .select('lp.addedAt, lp.userId, u.login')
                 .from(LikePost, 'lp')
                 .leftJoin('lp.user', 'u')
-                .where('lp.postId = p.id AND lp.status = :status', {
+                .leftJoin('u.userBan', 'ub')
+                .where('(lp.postId = p.id AND lp.status = :status)', {
                   status: LikeStatuses.LIKE,
+                })
+                .andWhere('(ub.isBanned = :ban)', {
+                  ban: false,
                 })
                 .orderBy('lp.addedAt', 'DESC')
                 .limit(3),
@@ -285,6 +339,7 @@ export class PostsQueryRepository {
           );
       }, 'newestLikes')
       .where('p.blogId = :blogId', { blogId: blogId })
+      .andWhere('(ub.isBanned = :ban)', { ban: false })
       .orderBy(order, sortDirection)
       .offset((pageNumber - 1) * pageSize)
       .limit(pageSize)
@@ -292,10 +347,14 @@ export class PostsQueryRepository {
 
     const totalCount: number = await this.postsQueryRepository
       .createQueryBuilder('p')
+      .leftJoin('p.blog', 'b')
+      .leftJoin('b.user', 'u')
+      .leftJoin('u.userBan', 'ub')
       .select('COUNT(p.id)')
-      .where('p.blogId = :blogId', {
+      .where('(p.blogId = :blogId)', {
         blogId: blogId,
       })
+      .andWhere('(ub.isBanned = :ban)', { ban: false })
       .getCount();
 
     const pagesCount = Math.ceil(totalCount / pageSize);

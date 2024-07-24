@@ -77,6 +77,11 @@ describe('Blogs testing (e2e)', () => {
       login: user.login,
       email: user.email,
       createdAt: expect.any(String),
+      banInfo: {
+        banDate: null,
+        banReason: null,
+        isBanned: false,
+      },
     });
 
     const foundUsers = await request(server)
@@ -403,6 +408,11 @@ describe('Blogs testing (e2e)', () => {
       login: userForBind.login,
       email: userForBind.email,
       createdAt: expect.any(String),
+      banInfo: {
+        banDate: null,
+        banReason: null,
+        isBanned: false,
+      },
     });
 
     const foundUsers = await request(server)

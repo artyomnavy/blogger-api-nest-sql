@@ -101,6 +101,8 @@ import { ScheduleModule } from '@nestjs/schedule';
 import { BlogsBloggerController } from './features/blogs/api/blogs.blogger.controller';
 import { BindBlogWithUserUseCase } from './features/blogs/application/use-cases/bind-blog.use-case';
 import { UserBan } from './features/users/domain/user-ban.entity';
+import { UpdateUserBanInfoUseCase } from './features/users/application/use-cases/update-user-ban.use-case';
+import { UsersBanRepository } from './features/users/infrastructure/users-ban.repository';
 
 config();
 
@@ -157,7 +159,11 @@ const authUseCases = [
   CheckCredentialsUseCase,
 ];
 
-const usersUseCases = [DeleteUserUseCase, CreateUserByAdminUseCase];
+const usersUseCases = [
+  DeleteUserUseCase,
+  CreateUserByAdminUseCase,
+  UpdateUserBanInfoUseCase,
+];
 
 const servicesProviders = [AppService, JwtService];
 
@@ -165,6 +171,7 @@ const repositoriesProviders = [
   BlogsRepository,
   PostsRepository,
   UsersRepository,
+  UsersBanRepository,
   DevicesRepository,
   CommentsRepository,
   LikesCommentsRepository,

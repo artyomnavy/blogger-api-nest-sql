@@ -13,6 +13,7 @@ import { ResultCode } from '../../../../common/utils';
 import { ResultType } from '../../../../common/types/result';
 import { TransactionManagerUseCase } from '../../../../common/use-cases/transaction.use-case';
 import { DataSource, EntityManager } from 'typeorm';
+import { UsersBanRepository } from '../../infrastructure/users-ban.repository';
 
 export class CreateUserByAdminCommand {
   constructor(public readonly createData: CreateUserModel) {}
@@ -27,6 +28,7 @@ export class CreateUserByAdminUseCase
 {
   constructor(
     private readonly usersRepository: UsersRepository,
+    private readonly usersBanRepository: UsersBanRepository,
     private readonly usersQueryRepository: UsersQueryRepository,
     protected readonly dataSource: DataSource,
   ) {
@@ -43,7 +45,7 @@ export class CreateUserByAdminUseCase
     // Создаем информацию о бане пользователя
     const newBanInfo = new BanInfo(uuidv4(), false, null, null);
 
-    const userBan = await this.usersRepository.createUserBanInfo(
+    const userBan = await this.usersBanRepository.createUserBanInfo(
       newBanInfo,
       manager,
     );

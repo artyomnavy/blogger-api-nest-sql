@@ -1,4 +1,11 @@
-import { IsNotEmpty, IsString, Length, Matches } from 'class-validator';
+import {
+  IsBoolean,
+  IsNotEmpty,
+  IsString,
+  Length,
+  Matches,
+  MinLength,
+} from 'class-validator';
 import { Transform } from 'class-transformer';
 import {
   IsEmailExist,
@@ -30,4 +37,16 @@ export class CreateUserModel {
   @IsString()
   @IsNotEmpty()
   email: string;
+}
+
+export class UpdateUserBanModel {
+  @IsBoolean()
+  @IsNotEmpty()
+  isBanned: boolean;
+
+  @MinLength(20, { message: 'Invalid banReason length' })
+  @Transform(({ value }) => value?.trim())
+  @IsString()
+  @IsNotEmpty()
+  banReason: string;
 }

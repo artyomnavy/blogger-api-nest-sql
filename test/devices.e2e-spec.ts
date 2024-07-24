@@ -87,6 +87,11 @@ describe('Devices testing (e2e)', () => {
       login: createUserData[0].login,
       email: createUserData[0].email,
       createdAt: expect.any(String),
+      banInfo: {
+        banDate: null,
+        banReason: null,
+        isBanned: false,
+      },
     });
 
     await request(server)
@@ -207,6 +212,11 @@ describe('Devices testing (e2e)', () => {
       login: createUserData[1].login,
       email: createUserData[1].email,
       createdAt: expect.any(String),
+      banInfo: {
+        banDate: null,
+        banReason: null,
+        isBanned: false,
+      },
     });
 
     const deviceSessionForUser2 = await request(server)

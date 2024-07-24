@@ -11,6 +11,7 @@ import { TransactionManagerUseCase } from '../../../../common/use-cases/transact
 import { DataSource, EntityManager } from 'typeorm';
 import { ResultCode } from '../../../../common/utils';
 import { UsersQueryRepository } from '../../../users/infrastructure/users.query-repository';
+import { UsersBanRepository } from '../../../users/infrastructure/users-ban.repository';
 
 export class CreateUserByRegistrationCommand {
   constructor(public readonly createData: CreateUserModel) {}
@@ -25,6 +26,7 @@ export class CreateUserByRegistrationUseCase
 {
   constructor(
     private readonly usersRepository: UsersRepository,
+    private readonly usersBanRepository: UsersBanRepository,
     private readonly emailsManager: EmailsManager,
     private readonly usersQueryRepository: UsersQueryRepository,
     protected readonly dataSource: DataSource,
@@ -42,7 +44,7 @@ export class CreateUserByRegistrationUseCase
     // Создаем информацию о бане пользователя
     const newBanInfo = new BanInfo(uuidv4(), false, null, null);
 
-    const userBan = await this.usersRepository.createUserBanInfo(
+    const userBan = await this.usersBanRepository.createUserBanInfo(
       newBanInfo,
       manager,
     );

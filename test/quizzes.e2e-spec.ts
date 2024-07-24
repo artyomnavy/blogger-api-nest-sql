@@ -406,6 +406,11 @@ describe('Quiz testing (e2e)', () => {
       login: playerOneData.login,
       email: playerOneData.email,
       createdAt: expect.any(String),
+      banInfo: {
+        banDate: null,
+        banReason: null,
+        isBanned: false,
+      },
     });
 
     const createPlayerTwo = await createEntitiesTestManager.createUserByAdmin(
@@ -422,6 +427,11 @@ describe('Quiz testing (e2e)', () => {
       login: playerTwoData.login,
       email: playerTwoData.email,
       createdAt: expect.any(String),
+      banInfo: {
+        banDate: null,
+        banReason: null,
+        isBanned: false,
+      },
     });
 
     const foundPlayers = await request(server)
