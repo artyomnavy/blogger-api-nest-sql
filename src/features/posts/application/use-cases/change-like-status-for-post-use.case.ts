@@ -1,10 +1,8 @@
 import { CommandHandler, ICommandHandler } from '@nestjs/cqrs';
-import { PostOutputModel } from '../../api/models/post.output.model';
 import { LikeStatuses, ResultCode } from '../../../../common/utils';
 import { v4 as uuidv4 } from 'uuid';
 import { LikePost } from '../../../likes/api/models/like-post.output.model';
 import { LikesPostsRepository } from '../../../likes/infrastructure/likes-posts.repository';
-import { NotFoundException } from '@nestjs/common';
 import { PostsQueryRepository } from '../../infrastructure/posts.query-repository';
 import { ResultType } from '../../../../common/types/result';
 
