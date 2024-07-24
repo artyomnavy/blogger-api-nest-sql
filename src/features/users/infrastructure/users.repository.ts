@@ -1,10 +1,8 @@
 import { Injectable } from '@nestjs/common';
-import { UserAccountModel, BanInfo } from '../api/models/user.output.model';
+import { UserAccountModel } from '../api/models/user.output.model';
 import { InjectRepository } from '@nestjs/typeorm';
 import { EntityManager, Repository } from 'typeorm';
 import { User } from '../domain/user.entity';
-import { UserBan } from '../domain/user-ban.entity';
-import { UpdateUserBanModel } from '../api/models/user.input.model';
 
 @Injectable()
 export class UsersRepository {
