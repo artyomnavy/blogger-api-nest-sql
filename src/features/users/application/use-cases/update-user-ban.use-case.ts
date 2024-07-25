@@ -4,7 +4,7 @@ import { UsersQueryRepository } from '../../infrastructure/users.query-repositor
 import { ResultCode } from '../../../../common/utils';
 import { ResultType } from '../../../../common/types/result';
 import { DevicesRepository } from '../../../devices/infrastrucure/devices.repository';
-import { UsersBanRepository } from '../../infrastructure/users-ban.repository';
+import { UsersBansRepository } from '../../infrastructure/users-bans-repository.service';
 import { DataSource, EntityManager } from 'typeorm';
 import { TransactionManagerUseCase } from '../../../../common/use-cases/transaction.use-case';
 
@@ -24,7 +24,7 @@ export class UpdateUserBanInfoUseCase
 {
   constructor(
     private readonly usersQueryRepository: UsersQueryRepository,
-    private readonly usersBanRepository: UsersBanRepository,
+    private readonly usersBanRepository: UsersBansRepository,
     private readonly devicesRepository: DevicesRepository,
     protected readonly dataSource: DataSource,
   ) {
@@ -37,11 +37,15 @@ export class UpdateUserBanInfoUseCase
   ): Promise<ResultType<boolean>> {
     const { userId, updateData } = command;
 
-    // Устанавливаем значение даты бана по умолчанию
+    // Устанавливаем значения по умолчанию для даты и причины бана
     let banDate: Date | null = null;
+    let banReason: string | null = null;
 
     // Проверяем существует ли такой пользователь
-    const user = await this.usersQueryRepository.getUserById(userId, manager);
+    const user = await this.usersQueryRepository.getOrmUserById(
+      userId,
+      manager,
+    );
 
     if (!user) {
       return {
@@ -53,6 +57,7 @@ export class UpdateUserBanInfoUseCase
 
     if (updateData.isBanned) {
       banDate = new Date();
+      banReason = updateData.banReason;
       // Останавливаем (удаляем) все сессии забаненного пользователя
       await this.devicesRepository.terminateAllDevicesSessionsForBannedUser(
         userId,
@@ -62,8 +67,9 @@ export class UpdateUserBanInfoUseCase
 
     // Обновляем информацию о бане пользователя
     await this.usersBanRepository.updateUserBanInfo(
-      userId,
-      updateData,
+      user.userBan,
+      updateData.isBanned,
+      banReason,
       banDate,
       manager,
     );

@@ -21,6 +21,7 @@ export class UserAccountModel {
   confirmationCode: string | null;
   expirationDate: Date | null;
   isConfirmed: boolean;
+  userBan: UserBan;
 }
 
 export class User {

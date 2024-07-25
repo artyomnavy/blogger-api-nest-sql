@@ -7,7 +7,7 @@ import { UserBan } from '../domain/user-ban.entity';
 import { UpdateUserBanModel } from '../api/models/user.input.model';
 
 @Injectable()
-export class UsersBanRepository {
+export class UsersBansRepository {
   constructor(
     @InjectRepository(User)
     private readonly usersBanRepository: Repository<UserBan>,
@@ -26,22 +26,18 @@ export class UsersBanRepository {
     return await manager.save(userBan);
   }
   async updateUserBanInfo(
-    userId: string,
-    updateData: UpdateUserBanModel,
+    userBan: UserBan,
+    isBanned: boolean,
+    banReason: string | null,
     banDate: Date | null,
     manager: EntityManager,
   ): Promise<boolean> {
-    const resultUpdateBanInfo = await manager
-      .createQueryBuilder()
-      .update(UserBan)
-      .set({
-        isBanned: updateData.isBanned,
-        banReason: updateData.banReason,
-        banDate: banDate,
-      })
-      .where('user_id = :userId', { userId: userId })
-      .execute();
+    userBan.isBanned = isBanned;
+    userBan.banReason = banReason;
+    userBan.banDate = banDate;
 
-    return resultUpdateBanInfo.affected === 1;
+    const resultUpdateBanInfo = await manager.save(userBan);
+
+    return !!resultUpdateBanInfo;
   }
 }

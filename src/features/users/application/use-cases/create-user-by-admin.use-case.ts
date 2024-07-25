@@ -13,7 +13,7 @@ import { ResultCode } from '../../../../common/utils';
 import { ResultType } from '../../../../common/types/result';
 import { TransactionManagerUseCase } from '../../../../common/use-cases/transaction.use-case';
 import { DataSource, EntityManager } from 'typeorm';
-import { UsersBanRepository } from '../../infrastructure/users-ban.repository';
+import { UsersBansRepository } from '../../infrastructure/users-bans-repository.service';
 
 export class CreateUserByAdminCommand {
   constructor(public readonly createData: CreateUserModel) {}
@@ -28,7 +28,7 @@ export class CreateUserByAdminUseCase
 {
   constructor(
     private readonly usersRepository: UsersRepository,
-    private readonly usersBanRepository: UsersBanRepository,
+    private readonly usersBanRepository: UsersBansRepository,
     private readonly usersQueryRepository: UsersQueryRepository,
     protected readonly dataSource: DataSource,
   ) {

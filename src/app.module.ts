@@ -102,7 +102,7 @@ import { BlogsBloggerController } from './features/blogs/api/blogs.blogger.contr
 import { BindBlogWithUserUseCase } from './features/blogs/application/use-cases/bind-blog.use-case';
 import { UserBan } from './features/users/domain/user-ban.entity';
 import { UpdateUserBanInfoUseCase } from './features/users/application/use-cases/update-user-ban.use-case';
-import { UsersBanRepository } from './features/users/infrastructure/users-ban.repository';
+import { UsersBansRepository } from './features/users/infrastructure/users-bans-repository.service';
 
 config();
 
@@ -171,7 +171,7 @@ const repositoriesProviders = [
   BlogsRepository,
   PostsRepository,
   UsersRepository,
-  UsersBanRepository,
+  UsersBansRepository,
   DevicesRepository,
   CommentsRepository,
   LikesCommentsRepository,

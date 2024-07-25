@@ -38,6 +38,12 @@ export enum PublishedStatuses {
   NOT_PUBLISHED = 'notPublished',
 }
 
+export enum BanStatus {
+  ALL = 'all',
+  BANNED = 'banned',
+  NOT_BANNED = 'notBanned',
+}
+
 export enum ResultCode {
   SUCCESS,
   FORBIDDEN,

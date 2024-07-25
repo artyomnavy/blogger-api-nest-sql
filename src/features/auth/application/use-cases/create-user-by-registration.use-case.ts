@@ -11,7 +11,7 @@ import { TransactionManagerUseCase } from '../../../../common/use-cases/transact
 import { DataSource, EntityManager } from 'typeorm';
 import { ResultCode } from '../../../../common/utils';
 import { UsersQueryRepository } from '../../../users/infrastructure/users.query-repository';
-import { UsersBanRepository } from '../../../users/infrastructure/users-ban.repository';
+import { UsersBansRepository } from '../../../users/infrastructure/users-bans-repository.service';
 
 export class CreateUserByRegistrationCommand {
   constructor(public readonly createData: CreateUserModel) {}
@@ -26,7 +26,7 @@ export class CreateUserByRegistrationUseCase
 {
   constructor(
     private readonly usersRepository: UsersRepository,
-    private readonly usersBanRepository: UsersBanRepository,
+    private readonly usersBanRepository: UsersBansRepository,
     private readonly emailsManager: EmailsManager,
     private readonly usersQueryRepository: UsersQueryRepository,
     protected readonly dataSource: DataSource,

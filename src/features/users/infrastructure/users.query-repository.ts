@@ -7,6 +7,7 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { EntityManager, Repository } from 'typeorm';
 import { AuthMeOutputModel } from '../../auth/api/models/auth.output.model';
 import { User } from '../domain/user.entity';
+import { BanStatus, LikeStatuses, ResultCode } from '../../../common/utils';
 
 @Injectable()
 export class UsersQueryRepository {
@@ -17,6 +18,7 @@ export class UsersQueryRepository {
   async getAllUsers(
     queryData: PaginatorModel,
   ): Promise<PaginatorOutputModel<UserOutputModel>> {
+    const banStatus = queryData.banStatus ? queryData.banStatus : BanStatus.ALL;
     const sortBy = queryData.sortBy ? queryData.sortBy : 'createdAt';
     const sortDirection = queryData.sortDirection!
       ? (queryData.sortDirection.toUpperCase() as 'ASC' | 'DESC')
@@ -43,7 +45,10 @@ export class UsersQueryRepository {
         'u.isConfirmed',
       ])
       .leftJoinAndSelect('u.userBan', 'ub')
-      .where('(u.login ILIKE :login OR u.email ILIKE :email)', {
+      .where(banStatus === BanStatus.ALL ? '1=1' : 'ub.isBanned = :ban', {
+        ban: banStatus === BanStatus.BANNED,
+      })
+      .andWhere('(u.login ILIKE :login OR u.email ILIKE :email)', {
         login: `%${searchLoginTerm}%`,
         email: `%${searchEmailTerm}%`,
       })
@@ -54,8 +59,12 @@ export class UsersQueryRepository {
 
     const totalCount: number = await this.usersQueryRepository
       .createQueryBuilder('u')
+      .leftJoin('u.userBan', 'ub')
       .select('COUNT(u.id)')
-      .where('(u.login ILIKE :login OR u.email ILIKE :email)', {
+      .where(banStatus === BanStatus.ALL ? '1=1' : 'ub.isBanned = :ban', {
+        ban: banStatus === BanStatus.BANNED,
+      })
+      .andWhere('(u.login ILIKE :login OR u.email ILIKE :email)', {
         login: `%${searchLoginTerm}%`,
         email: `%${searchEmailTerm}%`,
       })
@@ -248,8 +257,18 @@ export class UsersQueryRepository {
       };
     }
   }
-  async getOrmUserById(userId: string): Promise<User | null> {
-    const user = await this.usersQueryRepository.findOneBy({ id: userId });
+  async getOrmUserById(
+    userId: string,
+    manager?: EntityManager,
+  ): Promise<User | null> {
+    const usersQueryRepository = manager
+      ? manager.getRepository(User)
+      : this.usersQueryRepository;
+
+    const user = await usersQueryRepository.findOne({
+      where: { id: userId },
+      relations: ['userBan'],
+    });
 
     if (!user) {
       return null;
