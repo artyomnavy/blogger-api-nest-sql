@@ -1,7 +1,9 @@
 import {
   IsBoolean,
   IsNotEmpty,
+  IsOptional,
   IsString,
+  IsUUID,
   Length,
   Matches,
   MinLength,
@@ -39,7 +41,7 @@ export class CreateUserModel {
   email: string;
 }
 
-export class UpdateUserBanModel {
+export class UpdateUserBanByAdminModel {
   @IsBoolean()
   @IsNotEmpty()
   isBanned: boolean;
@@ -49,4 +51,22 @@ export class UpdateUserBanModel {
   @IsString()
   @IsNotEmpty()
   banReason: string;
+}
+
+export class UpdateUserBanByBloggerModel {
+  @IsBoolean()
+  @IsNotEmpty()
+  isBanned: boolean;
+
+  @MinLength(20, { message: 'Invalid banReason length' })
+  @Transform(({ value }) => value?.trim())
+  @IsString()
+  @IsNotEmpty()
+  banReason: string;
+
+  @IsUUID('4', { message: 'Invalid blogId value' })
+  @Transform(({ value }) => value?.trim())
+  @IsString()
+  @IsNotEmpty()
+  blogId: string;
 }

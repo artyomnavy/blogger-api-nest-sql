@@ -13,7 +13,10 @@ import {
   UseGuards,
 } from '@nestjs/common';
 import { UsersQueryRepository } from '../infrastructure/users.query-repository';
-import { CreateUserModel, UpdateUserBanModel } from './models/user.input.model';
+import {
+  CreateUserModel,
+  UpdateUserBanByAdminModel,
+} from './models/user.input.model';
 import { PaginatorModel } from '../../../common/models/paginator.input.model';
 import { PaginatorOutputModel } from '../../../common/models/paginator.output.model';
 import { UserOutputModel } from './models/user.output.model';
@@ -24,10 +27,10 @@ import { CommandBus } from '@nestjs/cqrs';
 import { CreateUserByAdminCommand } from '../application/use-cases/create-user-by-admin.use-case';
 import { UuidPipe } from '../../../common/pipes/uuid.pipe';
 import { resultCodeToHttpException } from '../../../common/exceptions/result-code-to-http-exception';
-import { UpdateUserBanInfoCommand } from '../application/use-cases/update-user-ban.use-case';
+import { UpdateUserBanInfoByAdminCommand } from '../application/use-cases/update-user-ban-by-admin.use-case';
 
 @Controller('sa/users')
-export class UsersController {
+export class UsersSAController {
   constructor(
     protected usersQueryRepository: UsersQueryRepository,
     private readonly commandBus: CommandBus,
@@ -60,12 +63,12 @@ export class UsersController {
   @Put(':userId/ban')
   @UseGuards(BasicAuthGuard)
   @HttpCode(HTTP_STATUSES.NO_CONTENT_204)
-  async updateUserBanInfo(
+  async updateUserBanInfoByAdmin(
     @Param('userId', new ParseUUIDPipe({ version: '4' })) userId: string,
-    @Body() updateData: UpdateUserBanModel,
+    @Body() updateData: UpdateUserBanByAdminModel,
   ) {
     const result = await this.commandBus.execute(
-      new UpdateUserBanInfoCommand(userId, updateData),
+      new UpdateUserBanInfoByAdminCommand(userId, updateData),
     );
 
     if (result.code !== ResultCode.SUCCESS) {

@@ -1,4 +1,4 @@
-import { UserBan } from '../../domain/user-ban.entity';
+import { UserBanByAdmin } from '../../domain/user-ban-by-admin.entity';
 
 export class UserOutputModel {
   id: string;
@@ -21,7 +21,7 @@ export class UserAccountModel {
   confirmationCode: string | null;
   expirationDate: Date | null;
   isConfirmed: boolean;
-  userBan: UserBan;
+  userBanByAdmin: UserBanByAdmin;
 }
 
 export class User {
@@ -34,7 +34,7 @@ export class User {
     public confirmationCode: string | null,
     public expirationDate: Date | null,
     public isConfirmed: boolean,
-    public userBan: UserBan,
+    public userBanByAdmin: UserBanByAdmin,
   ) {}
 }
 
@@ -54,9 +54,11 @@ export const userMapper = (user: User): UserOutputModel => {
     email: user.email,
     createdAt: user.createdAt.toISOString(),
     banInfo: {
-      isBanned: user.userBan.isBanned,
-      banDate: user.userBan.banDate ? user.userBan.banDate.toISOString() : null,
-      banReason: user.userBan.banReason,
+      isBanned: user.userBanByAdmin.isBanned,
+      banDate: user.userBanByAdmin.banDate
+        ? user.userBanByAdmin.banDate.toISOString()
+        : null,
+      banReason: user.userBanByAdmin.banReason,
     },
   };
 };

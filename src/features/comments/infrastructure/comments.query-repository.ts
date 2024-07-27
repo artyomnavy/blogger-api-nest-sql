@@ -24,7 +24,7 @@ export class CommentsQueryRepository {
     const comment = await this.commentsQueryRepository
       .createQueryBuilder('c')
       .leftJoin('c.user', 'u')
-      .leftJoin('u.userBan', 'ub')
+      .leftJoin('u.userBanByAdmin', 'uba')
       .select([
         'c.id AS "id"',
         'c.content AS "content"',
@@ -39,12 +39,12 @@ export class CommentsQueryRepository {
           .select('COUNT(lc.id)')
           .from(LikeComment, 'lc')
           .leftJoin('lc.user', 'u')
-          .leftJoin('u.userBan', 'ub')
+          .leftJoin('u.userBanByAdmin', 'uba')
           .where('(lc.commentId = :id AND lc.status = :like)', {
             id,
             like: LikeStatuses.LIKE,
           })
-          .andWhere('(ub.isBanned = :ban)', {
+          .andWhere('(uba.isBanned = :ban)', {
             ban: false,
           });
       }, 'likesCount')
@@ -54,12 +54,12 @@ export class CommentsQueryRepository {
           .select('COUNT(lc.id)')
           .from(LikeComment, 'lc')
           .leftJoin('lc.user', 'u')
-          .leftJoin('u.userBan', 'ub')
+          .leftJoin('u.userBanByAdmin', 'uba')
           .where('(lc.commentId = :id AND lc.status = :dislike)', {
             id,
             dislike: LikeStatuses.DISLIKE,
           })
-          .andWhere('(ub.isBanned = :ban)', {
+          .andWhere('(uba.isBanned = :ban)', {
             ban: false,
           });
       }, 'dislikesCount')
@@ -77,7 +77,7 @@ export class CommentsQueryRepository {
             },
           );
       }, 'myStatus')
-      .where('(c.id = :id AND ub.isBanned = :ban)', {
+      .where('(c.id = :id AND uba.isBanned = :ban)', {
         id,
         ban: false,
       })
@@ -112,7 +112,7 @@ export class CommentsQueryRepository {
     const comments = await this.commentsQueryRepository
       .createQueryBuilder('c')
       .leftJoin('c.user', 'u')
-      .leftJoin('u.userBan', 'ub')
+      .leftJoin('u.userBanByAdmin', 'uba')
       .select([
         'c.id AS "id"',
         'c.content AS "content"',
@@ -127,11 +127,11 @@ export class CommentsQueryRepository {
           .select('COUNT(lc.id)')
           .from(LikeComment, 'lc')
           .leftJoin('lc.user', 'u')
-          .leftJoin('u.userBan', 'ub')
+          .leftJoin('u.userBanByAdmin', 'uba')
           .where('(lc.commentId = c.id AND lc.status = :like)', {
             like: LikeStatuses.LIKE,
           })
-          .andWhere('(ub.isBanned = :ban)', {
+          .andWhere('(uba.isBanned = :ban)', {
             ban: false,
           });
       }, 'likesCount')
@@ -141,11 +141,11 @@ export class CommentsQueryRepository {
           .select('COUNT(lc.id)')
           .from(LikeComment, 'lc')
           .leftJoin('lc.user', 'u')
-          .leftJoin('u.userBan', 'ub')
+          .leftJoin('u.userBanByAdmin', 'uba')
           .where('(lc.commentId = c.id AND lc.status = :dislike)', {
             dislike: LikeStatuses.DISLIKE,
           })
-          .andWhere('(ub.isBanned = :ban)', {
+          .andWhere('(uba.isBanned = :ban)', {
             ban: false,
           });
       }, 'dislikesCount')
@@ -162,7 +162,7 @@ export class CommentsQueryRepository {
             },
           );
       }, 'myStatus')
-      .where('c.postId = :postId AND ub.isBanned = :ban', {
+      .where('c.postId = :postId AND uba.isBanned = :ban', {
         postId: postId,
         ban: false,
       })
@@ -175,8 +175,8 @@ export class CommentsQueryRepository {
       .createQueryBuilder('c')
       .select('COUNT(c.id)')
       .leftJoin('c.user', 'u')
-      .leftJoin('u.userBan', 'ub')
-      .where('c.postId = :postId AND ub.isBanned = :ban', {
+      .leftJoin('u.userBanByAdmin', 'uba')
+      .where('c.postId = :postId AND uba.isBanned = :ban', {
         postId: postId,
         ban: false,
       })

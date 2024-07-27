@@ -18,7 +18,7 @@ export class CheckCredentialsUseCase
       command.inputData.loginOrEmail,
     );
 
-    if (!user || !user.isConfirmed || user.userBan.isBanned) {
+    if (!user || !user.isConfirmed || user.userBanByAdmin.isBanned) {
       return null;
     }
 

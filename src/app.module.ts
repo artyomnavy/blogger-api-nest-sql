@@ -10,7 +10,7 @@ import { config } from 'dotenv';
 import { BlogsSAController } from './features/blogs/api/blogs.sa.controller';
 import { PostsController } from './features/posts/api/posts.public.controller';
 import { CommentsController } from './features/comments/api/comments.public.controller';
-import { UsersController } from './features/users/api/users.sa.controller';
+import { UsersSAController } from './features/users/api/users.sa.controller';
 import { BlogsQueryRepository } from './features/blogs/infrastructure/blogs.query-repository';
 import { CommentsQueryRepository } from './features/comments/infrastructure/comments.query-repository';
 import { UsersQueryRepository } from './features/users/infrastructure/users.query-repository';
@@ -100,9 +100,13 @@ import { QuizQuestion } from './features/quiz/domain/quiz-question.entity';
 import { ScheduleModule } from '@nestjs/schedule';
 import { BlogsBloggerController } from './features/blogs/api/blogs.blogger.controller';
 import { BindBlogWithUserUseCase } from './features/blogs/application/use-cases/bind-blog.use-case';
-import { UserBan } from './features/users/domain/user-ban.entity';
-import { UpdateUserBanInfoUseCase } from './features/users/application/use-cases/update-user-ban.use-case';
-import { UsersBansRepository } from './features/users/infrastructure/users-bans-repository.service';
+import { UserBanByAdmin } from './features/users/domain/user-ban-by-admin.entity';
+import { UpdateUserBanInfoByAdminUseCase } from './features/users/application/use-cases/update-user-ban-by-admin.use-case';
+import { UsersBansByAdminRepository } from './features/users/infrastructure/users-bans-by-admin-repository';
+import { UpdateUserBanInfoByBloggerUseCase } from './features/users/application/use-cases/update-user-ban-by-blogger.use-case';
+import { UsersBansByBloggersRepository } from './features/users/infrastructure/users-bans-by-bloggers-repository';
+import { UsersBloggerController } from './features/users/api/users.blogger.controller';
+import { UserBanByBloggers } from './features/users/domain/user-ban-by-blogger.entity';
 
 config();
 
@@ -162,7 +166,8 @@ const authUseCases = [
 const usersUseCases = [
   DeleteUserUseCase,
   CreateUserByAdminUseCase,
-  UpdateUserBanInfoUseCase,
+  UpdateUserBanInfoByAdminUseCase,
+  UpdateUserBanInfoByBloggerUseCase,
 ];
 
 const servicesProviders = [AppService, JwtService];
@@ -171,7 +176,8 @@ const repositoriesProviders = [
   BlogsRepository,
   PostsRepository,
   UsersRepository,
-  UsersBansRepository,
+  UsersBansByAdminRepository,
+  UsersBansByBloggersRepository,
   DevicesRepository,
   CommentsRepository,
   LikesCommentsRepository,
@@ -213,7 +219,8 @@ const controllers = [
   BlogsPublicController,
   PostsController,
   CommentsController,
-  UsersController,
+  UsersSAController,
+  UsersBloggerController,
   TestController,
   QuizSAController,
   QuizPublicController,
@@ -221,7 +228,8 @@ const controllers = [
 
 const entities = [
   User,
-  UserBan,
+  UserBanByAdmin,
+  UserBanByBloggers,
   Device,
   Blog,
   Post,

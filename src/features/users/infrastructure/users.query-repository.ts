@@ -7,7 +7,7 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { EntityManager, Repository } from 'typeorm';
 import { AuthMeOutputModel } from '../../auth/api/models/auth.output.model';
 import { User } from '../domain/user.entity';
-import { BanStatus, LikeStatuses, ResultCode } from '../../../common/utils';
+import { BanStatus } from '../../../common/utils';
 
 @Injectable()
 export class UsersQueryRepository {
@@ -44,8 +44,8 @@ export class UsersQueryRepository {
         'u.expirationDate',
         'u.isConfirmed',
       ])
-      .leftJoinAndSelect('u.userBan', 'ub')
-      .where(banStatus === BanStatus.ALL ? '1=1' : 'ub.isBanned = :ban', {
+      .leftJoinAndSelect('u.userBanByAdmin', 'uba')
+      .where(banStatus === BanStatus.ALL ? '1=1' : 'uba.isBanned = :ban', {
         ban: banStatus === BanStatus.BANNED,
       })
       .andWhere('(u.login ILIKE :login OR u.email ILIKE :email)', {
@@ -59,10 +59,77 @@ export class UsersQueryRepository {
 
     const totalCount: number = await this.usersQueryRepository
       .createQueryBuilder('u')
-      .leftJoin('u.userBan', 'ub')
+      .leftJoin('u.userBanByAdmin', 'uba')
       .select('COUNT(u.id)')
-      .where(banStatus === BanStatus.ALL ? '1=1' : 'ub.isBanned = :ban', {
+      .where(banStatus === BanStatus.ALL ? '1=1' : 'uba.isBanned = :ban', {
         ban: banStatus === BanStatus.BANNED,
+      })
+      .andWhere('(u.login ILIKE :login OR u.email ILIKE :email)', {
+        login: `%${searchLoginTerm}%`,
+        email: `%${searchEmailTerm}%`,
+      })
+      .getCount();
+
+    const pagesCount = Math.ceil(totalCount / pageSize);
+
+    return {
+      pagesCount: pagesCount,
+      page: pageNumber,
+      pageSize: pageSize,
+      totalCount: totalCount,
+      items: users.map(userMapper),
+    };
+  }
+  async getAllBannedUsersForBlog(
+    blogId: string,
+    queryData: PaginatorModel,
+  ): Promise<PaginatorOutputModel<UserOutputModel>> {
+    const sortBy = queryData.sortBy ? queryData.sortBy : 'createdAt';
+    const sortDirection = queryData.sortDirection!
+      ? (queryData.sortDirection.toUpperCase() as 'ASC' | 'DESC')
+      : 'DESC';
+    const pageNumber = queryData.pageNumber ? +queryData.pageNumber : 1;
+    const pageSize = queryData.pageSize ? +queryData.pageSize : 10;
+    const searchLoginTerm = queryData.searchLoginTerm
+      ? queryData.searchLoginTerm
+      : '';
+    const searchEmailTerm = queryData.searchEmailTerm
+      ? queryData.searchEmailTerm
+      : '';
+
+    const users = await this.usersQueryRepository
+      .createQueryBuilder('u')
+      .select([
+        'u.id',
+        'u.login',
+        'u.email',
+        'u.password',
+        'u.createdAt',
+        'u.confirmationCode',
+        'u.expirationDate',
+        'u.isConfirmed',
+      ])
+      .leftJoinAndSelect('u.userBanByBloggers', 'ubb')
+      .where('(ubb.blogId = :blogId AND ubb.isBanned = :ban)', {
+        blogId: blogId,
+        ban: true,
+      })
+      .andWhere('(u.login ILIKE :login OR u.email ILIKE :email)', {
+        login: `%${searchLoginTerm}%`,
+        email: `%${searchEmailTerm}%`,
+      })
+      .orderBy(`u.${sortBy}`, sortDirection)
+      .skip((pageNumber - 1) * pageSize)
+      .take(pageSize)
+      .getMany();
+
+    const totalCount: number = await this.usersQueryRepository
+      .createQueryBuilder('u')
+      .leftJoin('u.userBanByBloggers', 'ubb')
+      .select('COUNT(u.id)')
+      .where('(ubb.blogId = :blogId AND ubb.isBanned = :ban)', {
+        blogId: blogId,
+        ban: true,
       })
       .andWhere('(u.login ILIKE :login OR u.email ILIKE :email)', {
         login: `%${searchLoginTerm}%`,
@@ -139,11 +206,11 @@ export class UsersQueryRepository {
         'u.expirationDate',
         'u.isConfirmed',
       ])
-      .leftJoinAndSelect('u.userBan', 'ub')
+      .leftJoinAndSelect('u.userBanByAdmin', 'uba')
       .where('(u.login = :loginOrEmail OR u.email = :loginOrEmail)', {
         loginOrEmail,
       })
-      .andWhere('(ub.isBanned = :ban OR ub.isBanned IS NULL)', { ban: false })
+      .andWhere('(uba.isBanned = :ban OR uba.isBanned IS NULL)', { ban: false })
       .getOne();
 
     if (!user) {
@@ -220,7 +287,7 @@ export class UsersQueryRepository {
         'u.expirationDate',
         'u.isConfirmed',
       ])
-      .leftJoinAndSelect('u.userBan', 'ub')
+      .leftJoinAndSelect('u.userBanByAdmin', 'uba')
       .where('u.id = :id', { id })
       .getOne();
 
@@ -267,7 +334,7 @@ export class UsersQueryRepository {
 
     const user = await usersQueryRepository.findOne({
       where: { id: userId },
-      relations: ['userBan'],
+      relations: ['userBanByAdmin'],
     });
 
     if (!user) {

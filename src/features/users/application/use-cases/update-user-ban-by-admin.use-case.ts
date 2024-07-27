@@ -1,30 +1,30 @@
 import { CommandHandler, ICommandHandler } from '@nestjs/cqrs';
-import { UpdateUserBanModel } from '../../api/models/user.input.model';
+import { UpdateUserBanByAdminModel } from '../../api/models/user.input.model';
 import { UsersQueryRepository } from '../../infrastructure/users.query-repository';
 import { ResultCode } from '../../../../common/utils';
 import { ResultType } from '../../../../common/types/result';
 import { DevicesRepository } from '../../../devices/infrastrucure/devices.repository';
-import { UsersBansRepository } from '../../infrastructure/users-bans-repository.service';
+import { UsersBansByAdminRepository } from '../../infrastructure/users-bans-by-admin-repository';
 import { DataSource, EntityManager } from 'typeorm';
 import { TransactionManagerUseCase } from '../../../../common/use-cases/transaction.use-case';
 
-export class UpdateUserBanInfoCommand {
+export class UpdateUserBanInfoByAdminCommand {
   constructor(
     public readonly userId: string,
-    public readonly updateData: UpdateUserBanModel,
+    public readonly updateData: UpdateUserBanByAdminModel,
   ) {}
 }
-@CommandHandler(UpdateUserBanInfoCommand)
-export class UpdateUserBanInfoUseCase
+@CommandHandler(UpdateUserBanInfoByAdminCommand)
+export class UpdateUserBanInfoByAdminUseCase
   extends TransactionManagerUseCase<
-    UpdateUserBanInfoCommand,
+    UpdateUserBanInfoByAdminCommand,
     ResultType<boolean>
   >
-  implements ICommandHandler<UpdateUserBanInfoCommand>
+  implements ICommandHandler<UpdateUserBanInfoByAdminCommand>
 {
   constructor(
     private readonly usersQueryRepository: UsersQueryRepository,
-    private readonly usersBanRepository: UsersBansRepository,
+    private readonly usersBansByAdminRepository: UsersBansByAdminRepository,
     private readonly devicesRepository: DevicesRepository,
     protected readonly dataSource: DataSource,
   ) {
@@ -32,7 +32,7 @@ export class UpdateUserBanInfoUseCase
   }
 
   async doLogic(
-    command: UpdateUserBanInfoCommand,
+    command: UpdateUserBanInfoByAdminCommand,
     manager: EntityManager,
   ): Promise<ResultType<boolean>> {
     const { userId, updateData } = command;
@@ -66,8 +66,8 @@ export class UpdateUserBanInfoUseCase
     }
 
     // Обновляем информацию о бане пользователя
-    await this.usersBanRepository.updateUserBanInfo(
-      user.userBan,
+    await this.usersBansByAdminRepository.updateUserBanInfoByAdmin(
+      user.userBanByAdmin,
       updateData.isBanned,
       banReason,
       banDate,

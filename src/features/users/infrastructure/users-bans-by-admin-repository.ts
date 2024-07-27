@@ -2,21 +2,19 @@ import { Injectable } from '@nestjs/common';
 import { BanInfo } from '../api/models/user.output.model';
 import { InjectRepository } from '@nestjs/typeorm';
 import { EntityManager, Repository } from 'typeorm';
-import { User } from '../domain/user.entity';
-import { UserBan } from '../domain/user-ban.entity';
-import { UpdateUserBanModel } from '../api/models/user.input.model';
+import { UserBanByAdmin } from '../domain/user-ban-by-admin.entity';
 
 @Injectable()
-export class UsersBansRepository {
+export class UsersBansByAdminRepository {
   constructor(
-    @InjectRepository(User)
-    private readonly usersBanRepository: Repository<UserBan>,
+    @InjectRepository(UserBanByAdmin)
+    private readonly usersBansByAdminRepository: Repository<UserBanByAdmin>,
   ) {}
   async createUserBanInfo(
     banInfo: BanInfo,
     manager: EntityManager,
-  ): Promise<UserBan> {
-    const userBan = new UserBan();
+  ): Promise<UserBanByAdmin> {
+    const userBan = new UserBanByAdmin();
 
     userBan.id = banInfo.id;
     userBan.isBanned = banInfo.isBanned;
@@ -25,8 +23,8 @@ export class UsersBansRepository {
 
     return await manager.save(userBan);
   }
-  async updateUserBanInfo(
-    userBan: UserBan,
+  async updateUserBanInfoByAdmin(
+    userBan: UserBanByAdmin,
     isBanned: boolean,
     banReason: string | null,
     banDate: Date | null,

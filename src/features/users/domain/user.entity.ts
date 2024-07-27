@@ -12,7 +12,8 @@ import { LikeComment } from '../../likes/domain/like-comment.entity';
 import { LikePost } from '../../likes/domain/like-post.entity';
 import { Blog } from '../../blogs/domain/blog.entity';
 import { PlayerSession } from '../../quiz/domain/player-session.entity';
-import { UserBan } from './user-ban.entity';
+import { UserBanByAdmin } from './user-ban-by-admin.entity';
+import { UserBanByBloggers } from './user-ban-by-blogger.entity';
 
 @Entity({ name: 'users' })
 export class User {
@@ -52,9 +53,21 @@ export class User {
   @Column('boolean', { name: 'is_confirmed', default: false })
   isConfirmed: boolean;
 
-  @OneToOne(() => UserBan, (userBan) => userBan.user, { onDelete: 'CASCADE' })
-  @JoinColumn({ name: 'user_ban_id' })
-  userBan: UserBan;
+  @OneToOne(() => UserBanByAdmin, (userBanByAdmin) => userBanByAdmin.user, {
+    onDelete: 'CASCADE',
+  })
+  @JoinColumn({ name: 'user_ban_by_admin_id' })
+  userBanByAdmin: UserBanByAdmin;
+
+  @OneToOne(
+    () => UserBanByBloggers,
+    (UserBanByBloggers) => UserBanByBloggers.user,
+    {
+      onDelete: 'CASCADE',
+    },
+  )
+  @JoinColumn({ name: 'user_ban_by_bloggers_id' })
+  userBanByBloggers: UserBanByBloggers;
 
   @OneToMany(() => Device, (d) => d.user)
   devices: Device[];

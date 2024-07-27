@@ -7,8 +7,8 @@ import {
 } from 'typeorm';
 import { User } from './user.entity';
 
-@Entity({ name: 'users_bans' })
-export class UserBan {
+@Entity({ name: 'users_bans_by_bloggers' })
+export class UserBanByBloggers {
   @PrimaryGeneratedColumn('uuid')
   id: string;
 
@@ -25,7 +25,14 @@ export class UserBan {
   })
   banReason: string | null;
 
-  @OneToOne(() => User, (user) => user.userBan)
+  @Column({
+    type: 'character varying',
+    name: 'blog_id',
+    nullable: true,
+  })
+  blogId: string | null;
+
+  @OneToOne(() => User, (user) => user.userBanByBloggers)
   @JoinColumn({ name: 'user_id' })
   user: User;
 }
