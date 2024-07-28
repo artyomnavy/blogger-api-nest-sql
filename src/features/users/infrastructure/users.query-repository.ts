@@ -1,5 +1,5 @@
 import { Injectable } from '@nestjs/common';
-import { userMapper, UserOutputModel } from '../api/models/user.output.model';
+import { UserOutputModel } from '../api/models/user.output.model';
 import { PaginatorModel } from '../../../common/models/paginator.input.model';
 import { PaginatorOutputModel } from '../../../common/models/paginator.output.model';
 import bcrypt from 'bcrypt';
@@ -20,7 +20,7 @@ export class UsersQueryRepository {
   ): Promise<PaginatorOutputModel<UserOutputModel>> {
     const banStatus = queryData.banStatus ? queryData.banStatus : BanStatus.ALL;
     const sortBy = queryData.sortBy ? queryData.sortBy : 'createdAt';
-    const sortDirection = queryData.sortDirection!
+    const sortDirection = queryData.sortDirection
       ? (queryData.sortDirection.toUpperCase() as 'ASC' | 'DESC')
       : 'DESC';
     const pageNumber = queryData.pageNumber ? +queryData.pageNumber : 1;
@@ -77,24 +77,25 @@ export class UsersQueryRepository {
       page: pageNumber,
       pageSize: pageSize,
       totalCount: totalCount,
-      items: users.map(userMapper),
+      items: await Promise.all(
+        users.map((user: User) => this.userMapperWithBanInfoByAdmin(user)),
+      ),
     };
   }
   async getAllBannedUsersForBlog(
     blogId: string,
     queryData: PaginatorModel,
-  ): Promise<PaginatorOutputModel<UserOutputModel>> {
+  ): Promise<
+    PaginatorOutputModel<Omit<UserOutputModel, 'email' | 'createdAt'>>
+  > {
     const sortBy = queryData.sortBy ? queryData.sortBy : 'createdAt';
-    const sortDirection = queryData.sortDirection!
+    const sortDirection = queryData.sortDirection
       ? (queryData.sortDirection.toUpperCase() as 'ASC' | 'DESC')
       : 'DESC';
     const pageNumber = queryData.pageNumber ? +queryData.pageNumber : 1;
     const pageSize = queryData.pageSize ? +queryData.pageSize : 10;
     const searchLoginTerm = queryData.searchLoginTerm
       ? queryData.searchLoginTerm
-      : '';
-    const searchEmailTerm = queryData.searchEmailTerm
-      ? queryData.searchEmailTerm
       : '';
 
     const users = await this.usersQueryRepository
@@ -110,14 +111,9 @@ export class UsersQueryRepository {
         'u.isConfirmed',
       ])
       .leftJoinAndSelect('u.userBanByBloggers', 'ubb')
-      .where('(ubb.blogId = :blogId AND ubb.isBanned = :ban)', {
-        blogId: blogId,
-        ban: true,
-      })
-      .andWhere('(u.login ILIKE :login OR u.email ILIKE :email)', {
-        login: `%${searchLoginTerm}%`,
-        email: `%${searchEmailTerm}%`,
-      })
+      .where('(u.login ILIKE :login)', { login: `%${searchLoginTerm}%` })
+      .andWhere('(ubb.blogId = :blogId)', { blogId: blogId })
+      .andWhere('(ubb.isBanned = :ban)', { ban: true })
       .orderBy(`u.${sortBy}`, sortDirection)
       .skip((pageNumber - 1) * pageSize)
       .take(pageSize)
@@ -127,14 +123,9 @@ export class UsersQueryRepository {
       .createQueryBuilder('u')
       .leftJoin('u.userBanByBloggers', 'ubb')
       .select('COUNT(u.id)')
-      .where('(ubb.blogId = :blogId AND ubb.isBanned = :ban)', {
-        blogId: blogId,
-        ban: true,
-      })
-      .andWhere('(u.login ILIKE :login OR u.email ILIKE :email)', {
-        login: `%${searchLoginTerm}%`,
-        email: `%${searchEmailTerm}%`,
-      })
+      .where('(u.login ILIKE :login)', { login: `%${searchLoginTerm}%` })
+      .andWhere('(ubb.blogId = :blogId)', { blogId: blogId })
+      .andWhere('(ubb.isBanned = :ban)', { ban: true })
       .getCount();
 
     const pagesCount = Math.ceil(totalCount / pageSize);
@@ -144,7 +135,9 @@ export class UsersQueryRepository {
       page: pageNumber,
       pageSize: pageSize,
       totalCount: totalCount,
-      items: users.map(userMapper),
+      items: await Promise.all(
+        users.map((user: User) => this.userMapperWithBanInfoByBlogger(user)),
+      ),
     };
   }
   async getUserByLogin(login: string): Promise<User | null> {
@@ -294,7 +287,7 @@ export class UsersQueryRepository {
     if (!user) {
       return null;
     } else {
-      return userMapper(user);
+      return await this.userMapperWithBanInfoByAdmin(user);
     }
   }
   async getUserByIdForAuthMe(id: string): Promise<AuthMeOutputModel | null> {
@@ -332,9 +325,25 @@ export class UsersQueryRepository {
       ? manager.getRepository(User)
       : this.usersQueryRepository;
 
+    const user = await usersQueryRepository.findOneBy({ id: userId });
+
+    if (!user) {
+      return null;
+    } else {
+      return user;
+    }
+  }
+  async getOrmUserByIdWithBanInfo(
+    userId: string,
+    manager?: EntityManager,
+  ): Promise<User | null> {
+    const usersQueryRepository = manager
+      ? manager.getRepository(User)
+      : this.usersQueryRepository;
+
     const user = await usersQueryRepository.findOne({
       where: { id: userId },
-      relations: ['userBanByAdmin'],
+      relations: ['userBanByAdmin', 'userBanByBloggers'],
     });
 
     if (!user) {
@@ -342,5 +351,35 @@ export class UsersQueryRepository {
     } else {
       return user;
     }
+  }
+  async userMapperWithBanInfoByAdmin(user: User): Promise<UserOutputModel> {
+    return {
+      id: user.id,
+      login: user.login,
+      email: user.email,
+      createdAt: user.createdAt.toISOString(),
+      banInfo: {
+        isBanned: user.userBanByAdmin.isBanned,
+        banDate: user.userBanByAdmin.banDate
+          ? user.userBanByAdmin.banDate.toISOString()
+          : null,
+        banReason: user.userBanByAdmin.banReason,
+      },
+    };
+  }
+  async userMapperWithBanInfoByBlogger(
+    user: User,
+  ): Promise<Omit<UserOutputModel, 'email' | 'createdAt'>> {
+    return {
+      id: user.id,
+      login: user.login,
+      banInfo: {
+        isBanned: user.userBanByBloggers.isBanned,
+        banDate: user.userBanByBloggers.banDate
+          ? user.userBanByBloggers.banDate.toISOString()
+          : null,
+        banReason: user.userBanByBloggers.banReason,
+      },
+    };
   }
 }

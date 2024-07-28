@@ -42,13 +42,22 @@ export class CreateCommentUseCase
       };
     }
 
-    const user = await this.usersQueryRepository.getUserById(userId);
+    const user =
+      await this.usersQueryRepository.getOrmUserByIdWithBanInfo(userId);
 
     if (!user) {
       return {
         data: null,
         code: ResultCode.NOT_FOUND,
         message: 'User not found',
+      };
+    }
+
+    if (user.userBanByBloggers && user.userBanByBloggers.isBanned) {
+      return {
+        data: null,
+        code: ResultCode.FORBIDDEN,
+        message: 'User is banned for blog',
       };
     }
 

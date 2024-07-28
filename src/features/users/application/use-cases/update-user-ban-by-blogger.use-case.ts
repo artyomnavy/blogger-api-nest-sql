@@ -38,6 +38,11 @@ export class UpdateUserBanInfoByBloggerUseCase
   ): Promise<ResultType<boolean>> {
     const { blogOwnerId, userId, updateData } = command;
 
+    // Устанавливаем значения по умолчанию для даты и причины бана
+    let banDate: Date | null = null;
+    let banReason: string | null = null;
+    let blogId: string | null = null;
+
     // Проверяем существует ли такой владелец блога
     const ownerBlog = await this.usersQueryRepository.getUserById(
       blogOwnerId,
@@ -52,8 +57,12 @@ export class UpdateUserBanInfoByBloggerUseCase
       };
     }
 
+    // TO DO: why getOrmUserByIdWithBanInfo not return UserBanByBloggers?
     // Проверяем существует ли такой пользователь для бана/разбана
-    const user = await this.usersQueryRepository.getUserById(userId, manager);
+    const user = await this.usersQueryRepository.getOrmUserByIdWithBanInfo(
+      userId,
+      manager,
+    );
 
     if (!user) {
       return {
@@ -90,21 +99,20 @@ export class UpdateUserBanInfoByBloggerUseCase
 
     // Проверяем статус бана запроса
     if (updateData.isBanned) {
-      // Создаем информацию о бане пользователя для конкретного блога
-      await this.usersBansByBloggersRepository.createUserBanInfoByBlogger(
-        updateData.isBanned,
-        updateData.banReason,
-        new Date(),
-        updateData.blogId,
-        manager,
-      );
-    } else {
-      await this.usersBansByBloggersRepository.deleteUserBanInfoByBlogger(
-        userId,
-        updateData.blogId,
-        manager,
-      );
+      banDate = new Date();
+      banReason = updateData.banReason;
+      blogId = updateData.blogId;
     }
+
+    // Обновляем информацию о бане пользователя
+    await this.usersBansByBloggersRepository.updateUserBanInfoByBlogger(
+      user.userBanByBloggers,
+      updateData.isBanned,
+      banReason,
+      banDate,
+      blogId,
+      manager,
+    );
 
     return {
       data: true,

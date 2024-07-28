@@ -42,7 +42,7 @@ export class UpdateUserBanInfoByAdminUseCase
     let banReason: string | null = null;
 
     // Проверяем существует ли такой пользователь
-    const user = await this.usersQueryRepository.getOrmUserById(
+    const user = await this.usersQueryRepository.getOrmUserByIdWithBanInfo(
       userId,
       manager,
     );

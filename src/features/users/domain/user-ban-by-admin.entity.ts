@@ -12,7 +12,7 @@ export class UserBanByAdmin {
   @PrimaryGeneratedColumn('uuid')
   id: string;
 
-  @Column('boolean', { name: 'banned', default: false })
+  @Column('boolean', { name: 'is_banned', default: false })
   isBanned: boolean;
 
   @Column('timestamp with time zone', { name: 'ban_date', nullable: true })
@@ -25,7 +25,10 @@ export class UserBanByAdmin {
   })
   banReason: string | null;
 
-  @OneToOne(() => User, (user) => user.userBanByAdmin)
+  @OneToOne(() => User, (user) => user.userBanByAdmin, {
+    cascade: true,
+    onDelete: 'CASCADE',
+  })
   @JoinColumn({ name: 'user_id' })
   user: User;
 }

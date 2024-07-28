@@ -12,7 +12,6 @@ import { LikeComment } from './likes/domain/like-comment.entity';
 import { Quiz } from './quiz/domain/quiz.entity';
 import { Question } from './quiz/domain/question.entity';
 import { Answer } from './quiz/domain/answer.entity';
-import { PlayerSession } from './quiz/domain/player-session.entity';
 import { QuizQuestion } from './quiz/domain/quiz-question.entity';
 
 @Controller('testing')
@@ -39,8 +38,6 @@ export class TestController {
     private readonly questionsRepository: Repository<Question>,
     @InjectRepository(Answer)
     private readonly answersRepository: Repository<Answer>,
-    @InjectRepository(PlayerSession)
-    private readonly playersSessionsRepository: Repository<PlayerSession>,
     @InjectRepository(QuizQuestion)
     private readonly quizzesQuestionsRepository: Repository<QuizQuestion>,
   ) {}

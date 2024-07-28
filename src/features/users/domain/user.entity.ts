@@ -53,20 +53,12 @@ export class User {
   @Column('boolean', { name: 'is_confirmed', default: false })
   isConfirmed: boolean;
 
-  @OneToOne(() => UserBanByAdmin, (userBanByAdmin) => userBanByAdmin.user, {
-    onDelete: 'CASCADE',
-  })
+  @OneToOne(() => UserBanByAdmin, (uba) => uba.user)
   @JoinColumn({ name: 'user_ban_by_admin_id' })
   userBanByAdmin: UserBanByAdmin;
 
-  @OneToOne(
-    () => UserBanByBloggers,
-    (UserBanByBloggers) => UserBanByBloggers.user,
-    {
-      onDelete: 'CASCADE',
-    },
-  )
-  @JoinColumn({ name: 'user_ban_by_bloggers_id' })
+  @OneToOne(() => UserBanByBloggers, (ubb) => ubb.user)
+  @JoinColumn({ name: 'user_ban_by_blogger_id' })
   userBanByBloggers: UserBanByBloggers;
 
   @OneToMany(() => Device, (d) => d.user)

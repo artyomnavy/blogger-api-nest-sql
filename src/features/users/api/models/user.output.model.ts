@@ -1,4 +1,5 @@
 import { UserBanByAdmin } from '../../domain/user-ban-by-admin.entity';
+import { UserBanByBloggers } from '../../domain/user-ban-by-blogger.entity';
 
 export class UserOutputModel {
   id: string;
@@ -35,10 +36,11 @@ export class User {
     public expirationDate: Date | null,
     public isConfirmed: boolean,
     public userBanByAdmin: UserBanByAdmin,
+    public userBanByBlogger: UserBanByBloggers,
   ) {}
 }
 
-export class BanInfo {
+export class BanInfoByAdmin {
   constructor(
     public id: string,
     public isBanned: boolean,
@@ -47,18 +49,12 @@ export class BanInfo {
   ) {}
 }
 
-export const userMapper = (user: User): UserOutputModel => {
-  return {
-    id: user.id,
-    login: user.login,
-    email: user.email,
-    createdAt: user.createdAt.toISOString(),
-    banInfo: {
-      isBanned: user.userBanByAdmin.isBanned,
-      banDate: user.userBanByAdmin.banDate
-        ? user.userBanByAdmin.banDate.toISOString()
-        : null,
-      banReason: user.userBanByAdmin.banReason,
-    },
-  };
-};
+export class BanInfoByBlogger {
+  constructor(
+    public id: string,
+    public isBanned: boolean,
+    public banDate: Date | null,
+    public banReason: string | null,
+    public blogId: string | null,
+  ) {}
+}

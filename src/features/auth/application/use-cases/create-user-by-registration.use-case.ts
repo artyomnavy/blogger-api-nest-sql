@@ -5,13 +5,18 @@ import { add } from 'date-fns';
 import { EmailsManager } from '../../managers/emails-manager';
 import { CreateUserModel } from '../../../users/api/models/user.input.model';
 import { UsersRepository } from '../../../users/infrastructure/users.repository';
-import { BanInfo, User } from '../../../users/api/models/user.output.model';
+import {
+  BanInfoByAdmin,
+  BanInfoByBlogger,
+  User,
+} from '../../../users/api/models/user.output.model';
 import { ResultType } from '../../../../common/types/result';
 import { TransactionManagerUseCase } from '../../../../common/use-cases/transaction.use-case';
 import { DataSource, EntityManager } from 'typeorm';
 import { ResultCode } from '../../../../common/utils';
 import { UsersQueryRepository } from '../../../users/infrastructure/users.query-repository';
 import { UsersBansByAdminRepository } from '../../../users/infrastructure/users-bans-by-admin-repository';
+import { UsersBansByBloggersRepository } from '../../../users/infrastructure/users-bans-by-bloggers-repository';
 
 export class CreateUserByRegistrationCommand {
   constructor(public readonly createData: CreateUserModel) {}
@@ -27,6 +32,7 @@ export class CreateUserByRegistrationUseCase
   constructor(
     private readonly usersRepository: UsersRepository,
     private readonly usersBansByAdminRepository: UsersBansByAdminRepository,
+    private readonly usersBansByBloggersRepository: UsersBansByBloggersRepository,
     private readonly emailsManager: EmailsManager,
     private readonly usersQueryRepository: UsersQueryRepository,
     protected readonly dataSource: DataSource,
@@ -41,15 +47,30 @@ export class CreateUserByRegistrationUseCase
     // Хэшируем пароль пользователя
     const passwordHash = await bcrypt.hash(command.createData.password, 10);
 
-    // Создаем информацию о бане пользователя
-    const newBanInfo = new BanInfo(uuidv4(), false, null, null);
+    // Создаем информацию о банах пользователя
+    const newBanInfo = new BanInfoByAdmin(uuidv4(), false, null, null);
 
-    const userBan = await this.usersBansByAdminRepository.createUserBanInfo(
-      newBanInfo,
-      manager,
+    const userBanByAdmin =
+      await this.usersBansByAdminRepository.createUserBanInfoByAdmin(
+        newBanInfo,
+        manager,
+      );
+
+    const newBanInfoByBlogger = new BanInfoByBlogger(
+      uuidv4(),
+      false,
+      null,
+      null,
+      null,
     );
 
-    // Создаем пользователя с информацией о бане
+    const userBanByBlogger =
+      await this.usersBansByBloggersRepository.createUserBanInfoByBlogger(
+        newBanInfoByBlogger,
+        manager,
+      );
+
+    // Создаем пользователя с информацией о банах
     const newUser = new User(
       uuidv4(),
       command.createData.login,
@@ -61,7 +82,8 @@ export class CreateUserByRegistrationUseCase
         minutes: 10,
       }),
       false,
-      userBan,
+      userBanByAdmin,
+      userBanByBlogger,
     );
 
     const userId = await this.usersRepository.createUser(newUser, manager);

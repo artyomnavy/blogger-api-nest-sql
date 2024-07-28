@@ -36,7 +36,7 @@ describe('Users testing (e2e)', () => {
     };
 
     const foundUsers = await request(server)
-      .get(Paths.users)
+      .get(Paths.usersSA)
       .auth(basicLogin, basicPassword)
       .query(queryData)
       .expect(HTTP_STATUSES.OK_200);
@@ -46,12 +46,12 @@ describe('Users testing (e2e)', () => {
 
   it('- GET all users database with incorrect basicAuth data', async () => {
     await request(server)
-      .get(Paths.users)
+      .get(Paths.usersSA)
       .auth('wrongLogin', basicPassword)
       .expect(HTTP_STATUSES.UNAUTHORIZED_401);
 
     const foundUsers = await request(server)
-      .get(Paths.users)
+      .get(Paths.usersSA)
       .auth(basicLogin, basicPassword)
       .expect(HTTP_STATUSES.OK_200);
 
@@ -66,7 +66,7 @@ describe('Users testing (e2e)', () => {
     };
 
     const errorsCreateUser = await createEntitiesTestManager.createUserByAdmin(
-      Paths.users,
+      Paths.usersSA,
       createData,
       basicLogin,
       basicPassword,
@@ -82,7 +82,7 @@ describe('Users testing (e2e)', () => {
     });
 
     const foundUsers = await request(server)
-      .get(Paths.users)
+      .get(Paths.usersSA)
       .auth(basicLogin, basicPassword)
       .expect(HTTP_STATUSES.OK_200);
 
@@ -97,7 +97,7 @@ describe('Users testing (e2e)', () => {
     };
 
     const createUser = await createEntitiesTestManager.createUserByAdmin(
-      Paths.users,
+      Paths.usersSA,
       createData,
       basicLogin,
       basicPassword,
@@ -118,7 +118,7 @@ describe('Users testing (e2e)', () => {
     });
 
     const foundUsers = await request(server)
-      .get(Paths.users)
+      .get(Paths.usersSA)
       .auth(basicLogin, basicPassword)
       .expect(HTTP_STATUSES.OK_200);
 
@@ -133,12 +133,12 @@ describe('Users testing (e2e)', () => {
 
   it('- DELETE user by ID with incorrect id', async () => {
     await request(server)
-      .delete(`${Paths.users}/${badUuid}`)
+      .delete(`${Paths.usersSA}/${badUuid}`)
       .auth(basicLogin, basicPassword)
       .expect(HTTP_STATUSES.NOT_FOUND_404);
 
     const foundUsers = await request(server)
-      .get(Paths.users)
+      .get(Paths.usersSA)
       .auth(basicLogin, basicPassword)
       .expect(HTTP_STATUSES.OK_200);
 
@@ -153,12 +153,12 @@ describe('Users testing (e2e)', () => {
 
   it('+ DELETE user by ID with correct id', async () => {
     await request(server)
-      .delete(`${Paths.users}/${newUser!.id}`)
+      .delete(`${Paths.usersSA}/${newUser!.id}`)
       .auth(basicLogin, basicPassword)
       .expect(HTTP_STATUSES.NO_CONTENT_204);
 
     const foundUsers = await request(server)
-      .get(Paths.users)
+      .get(Paths.usersSA)
       .auth(basicLogin, basicPassword)
       .expect(HTTP_STATUSES.OK_200);
 

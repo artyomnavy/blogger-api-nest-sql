@@ -393,7 +393,7 @@ describe('Quiz testing (e2e)', () => {
     };
 
     const createPlayerOne = await createEntitiesTestManager.createUserByAdmin(
-      Paths.users,
+      Paths.usersSA,
       playerOneData,
       basicLogin,
       basicPassword,
@@ -414,7 +414,7 @@ describe('Quiz testing (e2e)', () => {
     });
 
     const createPlayerTwo = await createEntitiesTestManager.createUserByAdmin(
-      Paths.users,
+      Paths.usersSA,
       playerTwoData,
       basicLogin,
       basicPassword,
@@ -435,7 +435,7 @@ describe('Quiz testing (e2e)', () => {
     });
 
     const foundPlayers = await request(server)
-      .get(Paths.users)
+      .get(Paths.usersSA)
       .auth(basicLogin, basicPassword)
       .expect(HTTP_STATUSES.OK_200);
 

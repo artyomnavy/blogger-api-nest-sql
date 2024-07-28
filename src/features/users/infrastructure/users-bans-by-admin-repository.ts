@@ -1,5 +1,5 @@
 import { Injectable } from '@nestjs/common';
-import { BanInfo } from '../api/models/user.output.model';
+import { BanInfoByAdmin } from '../api/models/user.output.model';
 import { InjectRepository } from '@nestjs/typeorm';
 import { EntityManager, Repository } from 'typeorm';
 import { UserBanByAdmin } from '../domain/user-ban-by-admin.entity';
@@ -10,32 +10,32 @@ export class UsersBansByAdminRepository {
     @InjectRepository(UserBanByAdmin)
     private readonly usersBansByAdminRepository: Repository<UserBanByAdmin>,
   ) {}
-  async createUserBanInfo(
-    banInfo: BanInfo,
+  async createUserBanInfoByAdmin(
+    banInfoByAdmin: BanInfoByAdmin,
     manager: EntityManager,
   ): Promise<UserBanByAdmin> {
-    const userBan = new UserBanByAdmin();
+    const userBanByAdmin = new UserBanByAdmin();
 
-    userBan.id = banInfo.id;
-    userBan.isBanned = banInfo.isBanned;
-    userBan.banDate = banInfo.banDate;
-    userBan.banReason = banInfo.banReason;
+    userBanByAdmin.id = banInfoByAdmin.id;
+    userBanByAdmin.isBanned = banInfoByAdmin.isBanned;
+    userBanByAdmin.banDate = banInfoByAdmin.banDate;
+    userBanByAdmin.banReason = banInfoByAdmin.banReason;
 
-    return await manager.save(userBan);
+    return await manager.save(userBanByAdmin);
   }
   async updateUserBanInfoByAdmin(
-    userBan: UserBanByAdmin,
+    userBanByAdmin: UserBanByAdmin,
     isBanned: boolean,
     banReason: string | null,
     banDate: Date | null,
     manager: EntityManager,
   ): Promise<boolean> {
-    userBan.isBanned = isBanned;
-    userBan.banReason = banReason;
-    userBan.banDate = banDate;
+    userBanByAdmin.isBanned = isBanned;
+    userBanByAdmin.banReason = banReason;
+    userBanByAdmin.banDate = banDate;
 
-    const resultUpdateBanInfo = await manager.save(userBan);
+    const resultUpdateBanInfoByAdmin = await manager.save(userBanByAdmin);
 
-    return !!resultUpdateBanInfo;
+    return !!resultUpdateBanInfoByAdmin;
   }
 }

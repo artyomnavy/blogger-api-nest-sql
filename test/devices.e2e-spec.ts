@@ -74,7 +74,7 @@ describe('Devices testing (e2e)', () => {
   // CREATE USER1
   it('+ POST create user by admin with correct data', async () => {
     const createUser1 = await createEntitiesTestManager.createUserByAdmin(
-      Paths.users,
+      Paths.usersSA,
       createUserData[0],
       basicLogin,
       basicPassword,
@@ -95,7 +95,7 @@ describe('Devices testing (e2e)', () => {
     });
 
     await request(server)
-      .get(Paths.users)
+      .get(Paths.usersSA)
       .auth(basicLogin, basicPassword)
       .expect(HTTP_STATUSES.OK_200, {
         pagesCount: 1,
@@ -199,7 +199,7 @@ describe('Devices testing (e2e)', () => {
   it('- DELETE device session by id with incorrect userId', async () => {
     // Create user2 and device session
     const createUser2 = await createEntitiesTestManager.createUserByAdmin(
-      Paths.users,
+      Paths.usersSA,
       createUserData[1],
       basicLogin,
       basicPassword,

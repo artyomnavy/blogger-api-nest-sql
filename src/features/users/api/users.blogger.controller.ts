@@ -1,6 +1,7 @@
 import {
   Body,
   Controller,
+  ForbiddenException,
   Get,
   HttpCode,
   NotFoundException,
@@ -33,13 +34,25 @@ export class UsersBloggerController {
   @Get('/blog/:blogId')
   @UseGuards(JwtBearerAuthGuard)
   async getAllBannedUsersForBlog(
+    @CurrentUserId() blogOwnerId: string,
     @Param('blogId', new ParseUUIDPipe({ version: '4' })) blogId: string,
     @Query() query: PaginatorModel,
-  ): Promise<PaginatorOutputModel<UserOutputModel>> {
+  ): Promise<
+    PaginatorOutputModel<Omit<UserOutputModel, 'email' | 'createdAt'>>
+  > {
     const blog = await this.blogsQueryRepository.getBlogById(blogId);
 
     if (!blog) {
       throw new NotFoundException('Blog not found');
+    }
+
+    const isOwnerBlog = await this.blogsQueryRepository.checkOwnerBlog(
+      blogOwnerId,
+      blogId,
+    );
+
+    if (!isOwnerBlog) {
+      throw new ForbiddenException('Blog not owned by user');
     }
 
     const users = await this.usersQueryRepository.getAllBannedUsersForBlog(
