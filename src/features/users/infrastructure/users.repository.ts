@@ -3,6 +3,8 @@ import { UserAccountModel } from '../api/models/user.output.model';
 import { InjectRepository } from '@nestjs/typeorm';
 import { EntityManager, Repository } from 'typeorm';
 import { User } from '../domain/user.entity';
+import { UserBanByAdmin } from '../domain/user-ban-by-admin.entity';
+import { UserBanByBloggers } from '../domain/user-ban-by-blogger.entity';
 
 @Injectable()
 export class UsersRepository {
@@ -12,20 +14,31 @@ export class UsersRepository {
   ) {}
   async createUser(
     newUser: UserAccountModel,
+    userBanByAdmin: UserBanByAdmin,
+    userBanByBlogger: UserBanByBloggers,
     manager?: EntityManager,
   ): Promise<string> {
-    const queryBuilder = manager
-      ? manager.createQueryBuilder()
-      : this.usersRepository.createQueryBuilder();
+    const usersRepository = manager
+      ? manager.getRepository(User)
+      : this.usersRepository;
 
-    const resultCreateUser = await queryBuilder
-      .createQueryBuilder()
-      .insert()
-      .into(User)
-      .values(newUser)
-      .execute();
+    const user = new User();
 
-    return resultCreateUser.raw[0].id;
+    user.id = newUser.id;
+    user.login = newUser.login;
+    user.email = newUser.email;
+    user.password = newUser.password;
+    user.createdAt = newUser.createdAt;
+    user.confirmationCode = newUser.confirmationCode;
+    user.expirationDate = newUser.expirationDate;
+    user.isConfirmed = newUser.isConfirmed;
+
+    user.userBanByAdmin = userBanByAdmin;
+    user.userBanByBloggers = userBanByBlogger;
+
+    const resultCreateUser = await usersRepository.save(user);
+
+    return resultCreateUser.id;
   }
   async deleteUser(id: string): Promise<boolean> {
     const resultDeleteUser = await this.usersRepository

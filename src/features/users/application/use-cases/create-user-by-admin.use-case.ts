@@ -78,11 +78,14 @@ export class CreateUserByAdminUseCase
       null,
       null,
       true,
-      userBanByAdmin,
-      userBanByBlogger,
     );
 
-    const userId = await this.usersRepository.createUser(newUser, manager);
+    const userId = await this.usersRepository.createUser(
+      newUser,
+      userBanByAdmin,
+      userBanByBlogger,
+      manager,
+    );
 
     const user = await this.usersQueryRepository.getUserById(userId, manager);
 

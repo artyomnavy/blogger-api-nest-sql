@@ -57,7 +57,6 @@ export class UpdateUserBanInfoByBloggerUseCase
       };
     }
 
-    // TO DO: why getOrmUserByIdWithBanInfo not return UserBanByBloggers?
     // Проверяем существует ли такой пользователь для бана/разбана
     const user = await this.usersQueryRepository.getOrmUserByIdWithBanInfo(
       userId,

@@ -82,11 +82,14 @@ export class CreateUserByRegistrationUseCase
         minutes: 10,
       }),
       false,
-      userBanByAdmin,
-      userBanByBlogger,
     );
 
-    const userId = await this.usersRepository.createUser(newUser, manager);
+    const userId = await this.usersRepository.createUser(
+      newUser,
+      userBanByAdmin,
+      userBanByBlogger,
+      manager,
+    );
 
     // Отправляем код подтверждения на электронную почту
     try {

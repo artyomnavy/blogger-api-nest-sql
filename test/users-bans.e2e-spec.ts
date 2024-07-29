@@ -11,15 +11,11 @@ import {
 import { initSettings } from './utils/init-settings';
 import { CreateAndUpdateBlogModel } from '../src/features/blogs/api/models/blog.input.model';
 import { BlogOutputModel } from '../src/features/blogs/api/models/blog.output.model';
-import { Repository } from 'typeorm';
-import { User } from '../src/features/users/domain/user.entity';
-import { getRepositoryToken } from '@nestjs/typeorm';
 
 describe('Users bans testing (e2e)', () => {
   let app: INestApplication;
   let server;
   let createEntitiesTestManager: CreateEntitiesTestManager;
-  let userEntity: Repository<User>;
 
   beforeAll(async () => {
     const testSettings = await initSettings();
@@ -27,8 +23,6 @@ describe('Users bans testing (e2e)', () => {
     app = testSettings.app;
     server = testSettings.server;
     createEntitiesTestManager = testSettings.createEntitiesTestManager;
-
-    userEntity = app.get(getRepositoryToken(User));
   });
 
   let newUser1: UserOutputModel;
@@ -247,11 +241,6 @@ describe('Users bans testing (e2e)', () => {
       banReason: 'bannedUser1ToBlogUser2',
       blogId: newBlogByNewUser2!.id,
     };
-
-    // const user = await userEntity.findOne({
-    //   where: { id: newUser1.id },
-    //   relations: ['userBanByBloggers'],
-    // });
 
     // Banned newUser1 for newBlogByNewUser2
     await request(server)

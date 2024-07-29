@@ -1,6 +1,3 @@
-import { UserBanByAdmin } from '../../domain/user-ban-by-admin.entity';
-import { UserBanByBloggers } from '../../domain/user-ban-by-blogger.entity';
-
 export class UserOutputModel {
   id: string;
   login: string;
@@ -22,7 +19,6 @@ export class UserAccountModel {
   confirmationCode: string | null;
   expirationDate: Date | null;
   isConfirmed: boolean;
-  userBanByAdmin: UserBanByAdmin;
 }
 
 export class User {
@@ -35,8 +31,6 @@ export class User {
     public confirmationCode: string | null,
     public expirationDate: Date | null,
     public isConfirmed: boolean,
-    public userBanByAdmin: UserBanByAdmin,
-    public userBanByBlogger: UserBanByBloggers,
   ) {}
 }
 
