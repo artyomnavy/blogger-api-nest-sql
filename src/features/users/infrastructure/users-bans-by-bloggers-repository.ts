@@ -2,7 +2,7 @@ import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { EntityManager, Repository } from 'typeorm';
 import { UserBanByBloggers } from '../domain/user-ban-by-blogger.entity';
-import { BanInfoByBlogger } from '../api/models/user.output.model';
+import { UserBanInfoByBlogger } from '../api/models/user.output.model';
 
 @Injectable()
 export class UsersBansByBloggersRepository {
@@ -11,7 +11,7 @@ export class UsersBansByBloggersRepository {
     private readonly usersBansByBloggersRepository: Repository<UserBanByBloggers>,
   ) {}
   async createUserBanInfoByBlogger(
-    banInfoByBlogger: BanInfoByBlogger,
+    banInfoByBlogger: UserBanInfoByBlogger,
     manager: EntityManager,
   ): Promise<UserBanByBloggers> {
     const userBanByBlogger = new UserBanByBloggers();
@@ -37,8 +37,9 @@ export class UsersBansByBloggersRepository {
     userBanByBlogger.banDate = banDate;
     userBanByBlogger.blogId = blogId;
 
-    const resultUpdateBanInfoByBlogger = await manager.save(userBanByBlogger);
+    const resultUpdateUserBanInfoByBlogger =
+      await manager.save(userBanByBlogger);
 
-    return !!resultUpdateBanInfoByBlogger;
+    return !!resultUpdateUserBanInfoByBlogger;
   }
 }

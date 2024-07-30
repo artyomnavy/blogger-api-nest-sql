@@ -6,8 +6,8 @@ import { EmailsManager } from '../../managers/emails-manager';
 import { CreateUserModel } from '../../../users/api/models/user.input.model';
 import { UsersRepository } from '../../../users/infrastructure/users.repository';
 import {
-  BanInfoByAdmin,
-  BanInfoByBlogger,
+  UserBanInfoByAdmin,
+  UserBanInfoByBlogger,
   User,
 } from '../../../users/api/models/user.output.model';
 import { ResultType } from '../../../../common/types/result';
@@ -48,7 +48,7 @@ export class CreateUserByRegistrationUseCase
     const passwordHash = await bcrypt.hash(command.createData.password, 10);
 
     // Создаем информацию о банах пользователя
-    const newBanInfo = new BanInfoByAdmin(uuidv4(), false, null, null);
+    const newBanInfo = new UserBanInfoByAdmin(uuidv4(), false, null, null);
 
     const userBanByAdmin =
       await this.usersBansByAdminRepository.createUserBanInfoByAdmin(
@@ -56,7 +56,7 @@ export class CreateUserByRegistrationUseCase
         manager,
       );
 
-    const newBanInfoByBlogger = new BanInfoByBlogger(
+    const newBanInfoByBlogger = new UserBanInfoByBlogger(
       uuidv4(),
       false,
       null,

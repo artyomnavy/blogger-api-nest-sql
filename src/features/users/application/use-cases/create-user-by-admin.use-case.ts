@@ -3,8 +3,8 @@ import { UsersRepository } from '../../infrastructure/users.repository';
 import { CreateUserModel } from '../../api/models/user.input.model';
 import bcrypt from 'bcrypt';
 import {
-  BanInfoByAdmin,
-  BanInfoByBlogger,
+  UserBanInfoByAdmin,
+  UserBanInfoByBlogger,
   User,
   UserOutputModel,
 } from '../../api/models/user.output.model';
@@ -46,15 +46,20 @@ export class CreateUserByAdminUseCase
     const passwordHash = await bcrypt.hash(command.createData.password, 10);
 
     // Создаем информацию о банах пользователя
-    const newBanInfoByAdmin = new BanInfoByAdmin(uuidv4(), false, null, null);
+    const newUserBanInfoByAdmin = new UserBanInfoByAdmin(
+      uuidv4(),
+      false,
+      null,
+      null,
+    );
 
     const userBanByAdmin =
       await this.usersBansByAdminRepository.createUserBanInfoByAdmin(
-        newBanInfoByAdmin,
+        newUserBanInfoByAdmin,
         manager,
       );
 
-    const newBanInfoByBlogger = new BanInfoByBlogger(
+    const newUserBanInfoByBlogger = new UserBanInfoByBlogger(
       uuidv4(),
       false,
       null,
@@ -64,7 +69,7 @@ export class CreateUserByAdminUseCase
 
     const userBanByBlogger =
       await this.usersBansByBloggersRepository.createUserBanInfoByBlogger(
-        newBanInfoByBlogger,
+        newUserBanInfoByBlogger,
         manager,
       );
 

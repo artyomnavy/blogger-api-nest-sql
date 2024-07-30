@@ -123,7 +123,7 @@ export class BlogsBloggerController {
       throw new NotFoundException('Blog not found');
     }
 
-    const posts = await this.postsQueryRepository.getPostsByBlogId({
+    const posts = await this.postsQueryRepository.getPostsForBlog({
       query,
       blogId,
     });

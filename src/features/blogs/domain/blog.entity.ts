@@ -4,10 +4,12 @@ import {
   JoinColumn,
   ManyToOne,
   OneToMany,
+  OneToOne,
   PrimaryGeneratedColumn,
 } from 'typeorm';
 import { Post } from '../../posts/domain/post.entity';
 import { User } from '../../users/domain/user.entity';
+import { BlogBanByAdmin } from './blog-ban-by-admin.entity';
 
 @Entity({ name: 'blogs' })
 export class Blog {
@@ -41,6 +43,10 @@ export class Blog {
 
   @Column('boolean', { name: 'is_membership', default: false })
   isMembership: boolean;
+
+  @OneToOne(() => BlogBanByAdmin, (bba) => bba.blog)
+  @JoinColumn({ name: 'blog_ban_by_admin_id' })
+  blogBanByAdmin: BlogBanByAdmin;
 
   @OneToMany(() => Post, (p) => p.blog)
   posts: Post[];

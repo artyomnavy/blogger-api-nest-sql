@@ -1,5 +1,3 @@
-import { User } from '../../../users/domain/user.entity';
-
 export class Blog {
   constructor(
     public id: string,
@@ -8,7 +6,6 @@ export class Blog {
     public websiteUrl: string,
     public createdAt: Date,
     public isMembership: boolean,
-    public user: User,
   ) {}
 }
 
@@ -29,28 +26,42 @@ export class BlogOutputModel {
   websiteUrl: string;
   createdAt: string;
   isMembership: boolean;
-  blogOwnerInfo?: {
+}
+
+export class BlogWithOwnerAndBanInfoOutputModel {
+  id: string;
+  name: string;
+  description: string;
+  websiteUrl: string;
+  createdAt: string;
+  isMembership: boolean;
+  blogOwnerInfo: {
     userId: string;
     userLogin: string;
   };
+  banInfo: {
+    isBanned: boolean;
+    banDate: string | null;
+  };
 }
 
-export const blogMapper = (blog: BlogModel): BlogOutputModel => {
-  const blogOutput: BlogOutputModel = {
-    id: blog.id,
-    name: blog.name,
-    description: blog.description,
-    websiteUrl: blog.websiteUrl,
-    createdAt: blog.createdAt.toISOString(),
-    isMembership: blog.isMembership,
-  };
+export class BlogWithOwnerAndBanInfoModel {
+  id: string;
+  name: string;
+  description: string;
+  websiteUrl: string;
+  createdAt: Date;
+  isMembership: boolean;
+  userId: string;
+  userLogin: string;
+  isBanned: boolean;
+  banDate: Date | null;
+}
 
-  if (blog.userId && blog.userLogin) {
-    blogOutput.blogOwnerInfo = {
-      userId: blog.userId,
-      userLogin: blog.userLogin,
-    };
-  }
-
-  return blogOutput;
-};
+export class BlogBanInfoByAdmin {
+  constructor(
+    public id: string,
+    public isBanned: boolean,
+    public banDate: Date | null,
+  ) {}
+}

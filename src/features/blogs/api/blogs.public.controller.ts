@@ -55,7 +55,7 @@ export class BlogsPublicController {
       throw new NotFoundException('Blog not found');
     }
 
-    const posts = await this.postsQueryRepository.getPostsByBlogId({
+    const posts = await this.postsQueryRepository.getPostsBlogForPublic({
       query,
       blogId,
       userId,

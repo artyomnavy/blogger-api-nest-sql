@@ -107,6 +107,9 @@ import { UpdateUserBanInfoByBloggerUseCase } from './features/users/application/
 import { UsersBansByBloggersRepository } from './features/users/infrastructure/users-bans-by-bloggers-repository';
 import { UsersBloggerController } from './features/users/api/users.blogger.controller';
 import { UserBanByBloggers } from './features/users/domain/user-ban-by-blogger.entity';
+import { UpdateBlogBanInfoByAdminUseCase } from './features/blogs/application/use-cases/update-blog-ban-by-admin.use-case';
+import { BlogsBansByAdminRepository } from './features/blogs/infrastructure/blogs-bans-by-admin-repository';
+import { BlogBanByAdmin } from './features/blogs/domain/blog-ban-by-admin.entity';
 
 config();
 
@@ -130,6 +133,7 @@ const blogsUseCases = [
   DeleteBlogUseCase,
   CreateBlogUseCase,
   BindBlogWithUserUseCase,
+  UpdateBlogBanInfoByAdminUseCase,
 ];
 
 const commentsUseCases = [
@@ -174,6 +178,7 @@ const servicesProviders = [AppService, JwtService];
 
 const repositoriesProviders = [
   BlogsRepository,
+  BlogsBansByAdminRepository,
   PostsRepository,
   UsersRepository,
   UsersBansByAdminRepository,
@@ -232,6 +237,7 @@ const entities = [
   UserBanByBloggers,
   Device,
   Blog,
+  BlogBanByAdmin,
   Post,
   LikePost,
   Comment,

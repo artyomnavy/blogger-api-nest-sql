@@ -1,10 +1,15 @@
 import { Injectable } from '@nestjs/common';
-import { blogMapper, BlogOutputModel } from '../api/models/blog.output.model';
+import {
+  BlogOutputModel,
+  BlogWithOwnerAndBanInfoModel,
+  BlogWithOwnerAndBanInfoOutputModel,
+} from '../api/models/blog.output.model';
 import { PaginatorModel } from '../../../common/models/paginator.input.model';
 import { PaginatorOutputModel } from '../../../common/models/paginator.output.model';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Repository } from 'typeorm';
+import { EntityManager, Repository } from 'typeorm';
 import { Blog } from '../domain/blog.entity';
+import { User } from '../../users/domain/user.entity';
 
 @Injectable()
 export class BlogsQueryRepository {
@@ -59,7 +64,7 @@ export class BlogsQueryRepository {
       page: pageNumber,
       pageSize: pageSize,
       totalCount: totalCount,
-      items: blogs.map(blogMapper),
+      items: await Promise.all(blogs.map((blog) => this.blogMapper(blog))),
     };
   }
   async getBlogById(id: string): Promise<BlogOutputModel | null> {
@@ -80,12 +85,19 @@ export class BlogsQueryRepository {
     if (!blog) {
       return null;
     } else {
-      return blogMapper(blog);
+      return await this.blogMapper(blog);
     }
   }
-  async checkOwnerBlog(userId: string, blogId: string): Promise<boolean> {
-    const blog = await this.blogsQueryRepository
-      .createQueryBuilder('b')
+  async checkOwnerBlog(
+    userId: string,
+    blogId: string,
+    manager?: EntityManager,
+  ): Promise<boolean> {
+    const queryBuilder = manager
+      ? manager.createQueryBuilder(Blog, 'b')
+      : this.blogsQueryRepository.createQueryBuilder('b');
+
+    const blog = await queryBuilder
       .select(['b.id AS "blogId"', 'u.id AS "userId"'])
       .leftJoin('b.user', 'u')
       .where('b.id = :blogId', { blogId })
@@ -94,9 +106,9 @@ export class BlogsQueryRepository {
 
     return blog != null;
   }
-  async getAllBlogsForAdmin(
+  async getAllBlogsWithOwnerAndBanInfoForAdmin(
     queryData: PaginatorModel,
-  ): Promise<PaginatorOutputModel<BlogOutputModel>> {
+  ): Promise<PaginatorOutputModel<BlogWithOwnerAndBanInfoOutputModel>> {
     const searchNameTerm = queryData.searchNameTerm
       ? queryData.searchNameTerm
       : '';
@@ -118,17 +130,23 @@ export class BlogsQueryRepository {
         'b.isMembership AS "isMembership"',
         'u.id AS "userId"',
         'u.login AS "userLogin"',
+        'bba.isBanned AS "isBanned"',
+        'bba.banDate AS "banDate"',
       ])
       .leftJoin('b.user', 'u')
+      .leftJoin('b.blogBanByAdmin', 'bba')
       .where('b.name ILIKE :name', { name: `%${searchNameTerm}%` })
       .orderBy(`b.${sortBy}`, sortDirection)
       .offset((pageNumber - 1) * pageSize)
       .limit(pageSize)
       .getRawMany();
 
+    console.log(blogs, 'blogs in dla');
+
     const totalCount: number = await this.blogsQueryRepository
       .createQueryBuilder('b')
       .leftJoin('b.user', 'u')
+      .leftJoin('b.blogBanByAdmin', 'bba')
       .select('COUNT(b.id)')
       .where('b.name ILIKE :name', { name: `%${searchNameTerm}%` })
       .getCount();
@@ -140,7 +158,58 @@ export class BlogsQueryRepository {
       page: pageNumber,
       pageSize: pageSize,
       totalCount: totalCount,
-      items: blogs.map(blogMapper),
+      items: await Promise.all(
+        blogs.map((blog) => this.blogWithOwnerAndBanInfoForAdminMapper(blog)),
+      ),
+    };
+  }
+  async getOrmBlogByIdWithBanInfo(
+    blogId: string,
+    manager?: EntityManager,
+  ): Promise<Blog | null> {
+    const blogsQueryRepository = manager
+      ? manager.getRepository(Blog)
+      : this.blogsQueryRepository;
+
+    const blog = await blogsQueryRepository.findOne({
+      where: { id: blogId },
+      relations: ['blogBanByAdmin'],
+    });
+
+    if (!blog) {
+      return null;
+    } else {
+      return blog;
+    }
+  }
+  async blogMapper(blog: Blog): Promise<BlogOutputModel> {
+    return {
+      id: blog.id,
+      name: blog.name,
+      description: blog.description,
+      websiteUrl: blog.websiteUrl,
+      createdAt: blog.createdAt.toISOString(),
+      isMembership: blog.isMembership,
+    };
+  }
+  async blogWithOwnerAndBanInfoForAdminMapper(
+    blog: BlogWithOwnerAndBanInfoModel,
+  ): Promise<BlogWithOwnerAndBanInfoOutputModel> {
+    return {
+      id: blog.id,
+      name: blog.name,
+      description: blog.description,
+      websiteUrl: blog.websiteUrl,
+      createdAt: blog.createdAt.toISOString(),
+      isMembership: blog.isMembership,
+      blogOwnerInfo: {
+        userId: blog.userId,
+        userLogin: blog.userLogin,
+      },
+      banInfo: {
+        isBanned: blog.isBanned,
+        banDate: blog.banDate ? blog.banDate.toISOString() : null,
+      },
     };
   }
 }

@@ -78,7 +78,7 @@ export class UsersQueryRepository {
       pageSize: pageSize,
       totalCount: totalCount,
       items: await Promise.all(
-        users.map((user: User) => this.userMapperWithBanInfoByAdmin(user)),
+        users.map((user: User) => this.userMapperWithBanInfoForAdmin(user)),
       ),
     };
   }
@@ -136,7 +136,7 @@ export class UsersQueryRepository {
       pageSize: pageSize,
       totalCount: totalCount,
       items: await Promise.all(
-        users.map((user: User) => this.userMapperWithBanInfoByBlogger(user)),
+        users.map((user: User) => this.userMapperWithBanInfoForBlogger(user)),
       ),
     };
   }
@@ -287,7 +287,7 @@ export class UsersQueryRepository {
     if (!user) {
       return null;
     } else {
-      return await this.userMapperWithBanInfoByAdmin(user);
+      return await this.userMapperWithBanInfoForAdmin(user);
     }
   }
   async getUserByIdForAuthMe(id: string): Promise<AuthMeOutputModel | null> {
@@ -352,7 +352,7 @@ export class UsersQueryRepository {
       return user;
     }
   }
-  async userMapperWithBanInfoByAdmin(user: User): Promise<UserOutputModel> {
+  async userMapperWithBanInfoForAdmin(user: User): Promise<UserOutputModel> {
     return {
       id: user.id,
       login: user.login,
@@ -367,7 +367,7 @@ export class UsersQueryRepository {
       },
     };
   }
-  async userMapperWithBanInfoByBlogger(
+  async userMapperWithBanInfoForBlogger(
     user: User,
   ): Promise<Omit<UserOutputModel, 'email' | 'createdAt'>> {
     return {

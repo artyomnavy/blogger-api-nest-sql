@@ -34,7 +34,7 @@ export class User {
   ) {}
 }
 
-export class BanInfoByAdmin {
+export class UserBanInfoByAdmin {
   constructor(
     public id: string,
     public isBanned: boolean,
@@ -43,7 +43,7 @@ export class BanInfoByAdmin {
   ) {}
 }
 
-export class BanInfoByBlogger {
+export class UserBanInfoByBlogger {
   constructor(
     public id: string,
     public isBanned: boolean,

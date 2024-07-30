@@ -5,6 +5,11 @@ import { BlogsQueryRepository } from '../../infrastructure/blogs.query-repositor
 import { ResultCode } from '../../../../common/utils';
 
 import { ResultType } from '../../../../common/types/result';
+import { BlogBanInfoByAdmin } from '../../api/models/blog.output.model';
+import { v4 as uuidv4 } from 'uuid';
+import { BlogsBansByAdminRepository } from '../../infrastructure/blogs-bans-by-admin-repository';
+import { TransactionManagerUseCase } from '../../../../common/use-cases/transaction.use-case';
+import { DataSource, EntityManager } from 'typeorm';
 
 export class BindBlogWithUserCommand {
   constructor(
@@ -14,19 +19,32 @@ export class BindBlogWithUserCommand {
 }
 @CommandHandler(BindBlogWithUserCommand)
 export class BindBlogWithUserUseCase
+  extends TransactionManagerUseCase<
+    BindBlogWithUserCommand,
+    ResultType<boolean>
+  >
   implements ICommandHandler<BindBlogWithUserCommand>
 {
   constructor(
     private blogsRepository: BlogsRepository,
     private usersQueryRepository: UsersQueryRepository,
     private blogsQueryRepository: BlogsQueryRepository,
-  ) {}
-  async execute(
+    private blogsBansByAdminRepository: BlogsBansByAdminRepository,
+    protected readonly dataSource: DataSource,
+  ) {
+    super(dataSource);
+  }
+  async doLogic(
     command: BindBlogWithUserCommand,
+    manager: EntityManager,
   ): Promise<ResultType<boolean>> {
     const { blogId, userId } = command;
 
-    const user = await this.usersQueryRepository.getOrmUserById(userId);
+    // Проверяем существует ли пользователь
+    const user = await this.usersQueryRepository.getOrmUserById(
+      userId,
+      manager,
+    );
 
     if (!user) {
       return {
@@ -37,9 +55,11 @@ export class BindBlogWithUserUseCase
       };
     }
 
+    // Проверяем существует ли блог и есть ли у него владелец
     const isBindBlog: boolean = await this.blogsQueryRepository.checkOwnerBlog(
       userId,
       blogId,
+      manager,
     );
 
     if (isBindBlog) {
@@ -51,7 +71,22 @@ export class BindBlogWithUserUseCase
       };
     }
 
-    await this.blogsRepository.bindBlogWithUser(blogId, user);
+    // Создаем информацию о бане блога
+    const newBlogBanInfoByAdmin = new BlogBanInfoByAdmin(uuidv4(), false, null);
+
+    const blogBanByAdmin =
+      await this.blogsBansByAdminRepository.createBlogBanInfoByAdmin(
+        newBlogBanInfoByAdmin,
+        manager,
+      );
+
+    // Привязываем блог к пользователю
+    await this.blogsRepository.bindBlogWithUser(
+      blogId,
+      user,
+      blogBanByAdmin,
+      manager,
+    );
 
     return {
       data: true,

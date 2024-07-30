@@ -1,11 +1,18 @@
 import { BlogsRepository } from '../../infrastructure/blogs.repository';
 import { CreateAndUpdateBlogModel } from '../../api/models/blog.input.model';
-import { Blog, BlogOutputModel } from '../../api/models/blog.output.model';
+import {
+  Blog,
+  BlogBanInfoByAdmin,
+  BlogOutputModel,
+} from '../../api/models/blog.output.model';
 import { CommandHandler, ICommandHandler } from '@nestjs/cqrs';
 import { v4 as uuidv4 } from 'uuid';
 import { UsersQueryRepository } from '../../../users/infrastructure/users.query-repository';
 import { Notice } from '../../../../common/notification/notice';
 import { HTTP_STATUSES } from '../../../../common/utils';
+import { DataSource, EntityManager } from 'typeorm';
+import { TransactionManagerUseCase } from '../../../../common/use-cases/transaction.use-case';
+import { BlogsBansByAdminRepository } from '../../infrastructure/blogs-bans-by-admin-repository';
 
 export class CreateBlogCommand {
   constructor(
@@ -14,23 +21,47 @@ export class CreateBlogCommand {
   ) {}
 }
 @CommandHandler(CreateBlogCommand)
-export class CreateBlogUseCase implements ICommandHandler<CreateBlogCommand> {
+export class CreateBlogUseCase
+  extends TransactionManagerUseCase<CreateBlogCommand, Notice<BlogOutputModel>>
+  implements ICommandHandler<CreateBlogCommand>
+{
   constructor(
     private readonly blogsRepository: BlogsRepository,
     private readonly usersQueryRepository: UsersQueryRepository,
-  ) {}
-  async execute(command: CreateBlogCommand) {
+    private readonly blogsBansByAdminRepository: BlogsBansByAdminRepository,
+    protected readonly dataSource: DataSource,
+  ) {
+    super(dataSource);
+  }
+  async doLogic(
+    command: CreateBlogCommand,
+    manager: EntityManager,
+  ): Promise<Notice<BlogOutputModel>> {
     const notice = new Notice<BlogOutputModel>();
 
     const { createData, userId } = command;
 
-    const user = await this.usersQueryRepository.getOrmUserById(userId);
+    // Проверяем существует ли такой пользователь
+    const user = await this.usersQueryRepository.getOrmUserById(
+      userId,
+      manager,
+    );
 
     if (!user) {
       notice.addError(HTTP_STATUSES.NOT_FOUND_404, 'User not found');
       return notice;
     }
 
+    // Создаем информацию о бане блога
+    const newBlogBanInfoByAdmin = new BlogBanInfoByAdmin(uuidv4(), false, null);
+
+    const blogBanByAdmin =
+      await this.blogsBansByAdminRepository.createBlogBanInfoByAdmin(
+        newBlogBanInfoByAdmin,
+        manager,
+      );
+
+    // Создаем блог с пользователем и информацией о бане
     const newBlog = new Blog(
       uuidv4(),
       createData.name,
@@ -38,10 +69,14 @@ export class CreateBlogUseCase implements ICommandHandler<CreateBlogCommand> {
       createData.websiteUrl,
       new Date(),
       false,
-      user,
     );
 
-    const createdBlog = await this.blogsRepository.createBlog(newBlog);
+    const createdBlog = await this.blogsRepository.createBlog(
+      newBlog,
+      user,
+      blogBanByAdmin,
+      manager,
+    );
 
     notice.addData(createdBlog);
 
