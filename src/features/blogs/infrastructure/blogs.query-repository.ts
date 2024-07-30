@@ -9,7 +9,6 @@ import { PaginatorOutputModel } from '../../../common/models/paginator.output.mo
 import { InjectRepository } from '@nestjs/typeorm';
 import { EntityManager, Repository } from 'typeorm';
 import { Blog } from '../domain/blog.entity';
-import { User } from '../../users/domain/user.entity';
 
 @Injectable()
 export class BlogsQueryRepository {
