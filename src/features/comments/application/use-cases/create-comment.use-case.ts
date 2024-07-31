@@ -32,7 +32,7 @@ export class CreateCommentUseCase
   ): Promise<ResultType<CommentOutputModel | null>> {
     const { postId, userId, content } = command;
 
-    const post = await this.postsQueryRepository.getPostById(postId);
+    const post = await this.postsQueryRepository.getPostByIdForPublic(postId);
 
     if (!post) {
       return {

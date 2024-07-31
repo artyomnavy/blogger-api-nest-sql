@@ -462,13 +462,6 @@ describe('Blogs testing (e2e)', () => {
       .auth(basicLogin, basicPassword)
       .expect(HTTP_STATUSES.NO_CONTENT_204);
 
-    const testBlog = await blogEntity.findOne({
-      where: { id: blogWithoutUser.id },
-      relations: ['user'],
-    });
-
-    console.log(testBlog, 'testBlog');
-
     const foundBlogsWithOwners = await request(server)
       .get(`${Paths.blogsSA}`)
       .auth(basicLogin, basicPassword)

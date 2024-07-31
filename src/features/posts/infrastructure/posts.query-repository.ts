@@ -17,7 +17,7 @@ export class PostsQueryRepository {
     @InjectRepository(Post)
     private readonly postsQueryRepository: Repository<Post>,
   ) {}
-  async getAllPosts(queryData: {
+  async getAllPostsForPublic(queryData: {
     query: PaginatorModel;
     userId?: string;
   }): Promise<PaginatorOutputModel<PostOutputModel>> {
@@ -39,6 +39,7 @@ export class PostsQueryRepository {
     const posts = await this.postsQueryRepository
       .createQueryBuilder('p')
       .leftJoin('p.blog', 'b')
+      .leftJoin('b.blogBanByAdmin', 'bba')
       .leftJoin('b.user', 'u')
       .leftJoin('u.userBanByAdmin', 'uba')
       .select([
@@ -115,7 +116,8 @@ export class PostsQueryRepository {
             'sub_lp',
           );
       }, 'newestLikes')
-      .where('uba.isBanned = :ban', { ban: false })
+      .where('(uba.isBanned = :ban)', { ban: false })
+      .andWhere('(uba.isBanned = :ban)', { ban: false })
       .orderBy(order, sortDirection)
       .offset((pageNumber - 1) * pageSize)
       .limit(pageSize)
@@ -124,10 +126,12 @@ export class PostsQueryRepository {
     const totalCount: number = await this.postsQueryRepository
       .createQueryBuilder('p')
       .leftJoin('p.blog', 'b')
+      .leftJoin('b.blogBanByAdmin', 'bba')
       .leftJoin('b.user', 'u')
       .leftJoin('u.userBanByAdmin', 'uba')
       .select('COUNT(p.id)')
-      .where('uba.isBanned = :ban', { ban: false })
+      .where('(uba.isBanned = :ban)', { ban: false })
+      .andWhere('(uba.isBanned = :ban)', { ban: false })
       .getCount();
 
     const pagesCount = Math.ceil(totalCount / pageSize);
@@ -368,6 +372,105 @@ export class PostsQueryRepository {
         posts.map((post: PostMapperModel) => this.postMapper(post)),
       ),
     };
+  }
+  async getPostByIdForPublic(
+    id: string,
+    userId?: string,
+  ): Promise<PostOutputModel | null> {
+    const post = await this.postsQueryRepository
+      .createQueryBuilder('p')
+      .leftJoin('p.blog', 'b')
+      .leftJoin('b.blogBanByAdmin', 'bba')
+      .leftJoin('b.user', 'u')
+      .leftJoin('u.userBanByAdmin', 'uba')
+      .select([
+        'p.id AS "id"',
+        'p.title AS "title"',
+        'p.shortDescription AS "shortDescription"',
+        'p.content AS "content"',
+        'p.blogId AS "blogId"',
+        'p.createdAt AS "createdAt"',
+        'b.name AS "blogName"',
+      ])
+      // Подзапрос количества лайков поста
+      .addSelect((subQuery) => {
+        return subQuery
+          .select('COUNT(lp.id)')
+          .from(LikePost, 'lp')
+          .leftJoin('lp.user', 'u')
+          .leftJoin('u.userBanByAdmin', 'uba')
+          .where('lp.postId = :id AND lp.status = :like', {
+            id,
+            like: LikeStatuses.LIKE,
+          })
+          .andWhere('(uba.isBanned = :ban)', {
+            ban: false,
+          });
+      }, 'likesCount')
+      // Подзапрос количества дизлайков поста
+      .addSelect((subQuery) => {
+        return subQuery
+          .select('COUNT(lp.id)')
+          .from(LikePost, 'lp')
+          .leftJoin('lp.user', 'u')
+          .leftJoin('u.userBanByAdmin', 'uba')
+          .where('lp.postId = :id AND lp.status = :dislike', {
+            id,
+            dislike: LikeStatuses.DISLIKE,
+          })
+          .andWhere('(uba.isBanned = :ban)', {
+            ban: false,
+          });
+      }, 'dislikesCount')
+      // Подзапрос статуса пользователя (лайк или дизлайк) для поста
+      // Если userId не придет (запрос идет от посетителя), то подзапрос не будет выполняться
+      .addSelect((subQuery) => {
+        return subQuery
+          .select('lp.status')
+          .from(LikePost, 'lp')
+          .where(
+            'lp.postId = :id AND lp.userId = :userId AND :userId IS NOT NULL',
+            {
+              id,
+              userId: userId,
+            },
+          );
+      }, 'myStatus')
+      // Подзапрос последних 3 (трех) лайков поста с информацией о пользователях, которые поставили лайк
+      .addSelect((subQuery) => {
+        return subQuery
+          .select(
+            "json_agg(json_build_object('addedAt', sub_lp.added_at, 'userId', sub_lp.user_id, 'login', sub_lp.login))",
+          )
+          .from(
+            (subQuery) =>
+              subQuery
+                .select('lp.addedAt, lp.userId, u.login')
+                .from(LikePost, 'lp')
+                .leftJoin('lp.user', 'u')
+                .leftJoin('u.userBanByAdmin', 'uba')
+                .where('lp.postId = :id AND lp.status = :status', {
+                  id,
+                  status: LikeStatuses.LIKE,
+                })
+                .andWhere('(uba.isBanned = :ban)', {
+                  ban: false,
+                })
+                .orderBy('lp.addedAt', 'DESC')
+                .limit(3),
+            'sub_lp',
+          );
+      }, 'newestLikes')
+      .where('(p.id = :id)', { id })
+      .andWhere('(bba.isBanned = :ban)', { ban: false })
+      .andWhere('(uba.isBanned = :ban)', { ban: false })
+      .getRawOne();
+
+    if (!post) {
+      return null;
+    } else {
+      return await this.postMapper(post);
+    }
   }
   async getPostsBlogForPublic(queryData: {
     query: PaginatorModel;

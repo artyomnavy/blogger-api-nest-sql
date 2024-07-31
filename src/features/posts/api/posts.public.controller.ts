@@ -44,7 +44,7 @@ export class PostsController {
   ): Promise<PaginatorOutputModel<PostOutputModel>> {
     const userId = req.userId;
 
-    const posts = await this.postsQueryRepository.getAllPosts({
+    const posts = await this.postsQueryRepository.getAllPostsForPublic({
       query,
       userId,
     });
@@ -58,7 +58,10 @@ export class PostsController {
   ): Promise<PostOutputModel> {
     const userId = req.userId;
 
-    const post = await this.postsQueryRepository.getPostById(postId, userId);
+    const post = await this.postsQueryRepository.getPostByIdForPublic(
+      postId,
+      userId,
+    );
 
     if (!post) {
       throw new NotFoundException('Post not found');
@@ -74,7 +77,7 @@ export class PostsController {
   ): Promise<PaginatorOutputModel<CommentOutputModel>> {
     const userId = req.userId;
 
-    const post = await this.postsQueryRepository.getPostById(postId);
+    const post = await this.postsQueryRepository.getPostByIdForPublic(postId);
 
     if (!post) {
       throw new NotFoundException('Post not found');

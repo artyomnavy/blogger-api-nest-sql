@@ -27,7 +27,10 @@ export class ChangeLikeStatusForPostUseCase
   ): Promise<ResultType<boolean>> {
     const { userId, postId, likeStatus } = command;
 
-    const post = await this.postsQueryRepository.getPostById(postId, userId);
+    const post = await this.postsQueryRepository.getPostByIdForPublic(
+      postId,
+      userId,
+    );
 
     if (!post) {
       return {

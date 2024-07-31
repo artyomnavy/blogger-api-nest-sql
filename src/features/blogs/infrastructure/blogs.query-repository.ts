@@ -40,9 +40,11 @@ export class BlogsQueryRepository {
         'b.createdAt',
         'b.isMembership',
       ])
+      .leftJoin('b.blogBanByAdmin', 'bba')
       .leftJoin('b.user', 'u')
-      .where('b.name ILIKE :name', { name: `%${searchNameTerm}%` })
-      .andWhere(userId ? 'u.id = :userId' : 'TRUE', { userId })
+      .where('(b.name ILIKE :name)', { name: `%${searchNameTerm}%` })
+      .andWhere(userId ? '(u.id = :userId)' : '(TRUE)', { userId })
+      .andWhere('(bba.isBanned = :ban)', { ban: false })
       .orderBy(`b.${sortBy}`, sortDirection)
       .skip((pageNumber - 1) * pageSize)
       .take(pageSize)
@@ -52,8 +54,10 @@ export class BlogsQueryRepository {
       .createQueryBuilder('b')
       .select('COUNT(b.id)')
       .leftJoin('b.user', 'u')
-      .where('b.name ILIKE :name', { name: `%${searchNameTerm}%` })
-      .andWhere(userId ? 'u.id = :userId' : 'TRUE', { userId })
+      .leftJoin('b.blogBanByAdmin', 'bba')
+      .where('(b.name ILIKE :name)', { name: `%${searchNameTerm}%` })
+      .andWhere(userId ? '(u.id = :userId)' : '(TRUE)', { userId })
+      .andWhere('(bba.isBanned = :ban)', { ban: false })
       .getCount();
 
     const pagesCount = Math.ceil(totalCount / pageSize);
@@ -78,7 +82,9 @@ export class BlogsQueryRepository {
         'b.isMembership',
       ])
       .from(Blog, 'b')
+      .leftJoin('b.blogBanByAdmin', 'bba')
       .where('b.id = :id', { id })
+      .andWhere('(bba.isBanned = :ban)', { ban: false })
       .getOne();
 
     if (!blog) {
@@ -139,8 +145,6 @@ export class BlogsQueryRepository {
       .offset((pageNumber - 1) * pageSize)
       .limit(pageSize)
       .getRawMany();
-
-    console.log(blogs, 'blogs in dla');
 
     const totalCount: number = await this.blogsQueryRepository
       .createQueryBuilder('b')
