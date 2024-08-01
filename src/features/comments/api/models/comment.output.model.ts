@@ -5,6 +5,7 @@ export class CommentModel {
   createdAt: Date;
   postId: string;
 }
+
 export class CommentOutputModel {
   id: string;
   content: string;
@@ -17,6 +18,27 @@ export class CommentOutputModel {
     likesCount: number;
     dislikesCount: number;
     myStatus: string;
+  };
+}
+
+export class CommentOutputForBloggerModel {
+  id: string;
+  content: string;
+  commentatorInfo: {
+    userId: string;
+    userLogin: string;
+  };
+  createdAt: string;
+  likesInfo: {
+    likesCount: number;
+    dislikesCount: number;
+    myStatus: string;
+  };
+  postInfo: {
+    id: string;
+    title: string;
+    blogId: string;
+    blogName: string;
   };
 }
 
@@ -39,4 +61,19 @@ export class CommentMapperModel {
   likesCount: string;
   dislikesCount: string;
   myStatus: string;
+}
+
+export class CommentMapperModelForBlogger {
+  id: string;
+  content: string;
+  userId: string;
+  userLogin: string;
+  createdAt: Date;
+  likesCount: string;
+  dislikesCount: string;
+  myStatus: string;
+  postId: string;
+  postTitle: string;
+  blogId: string;
+  blogName: string;
 }

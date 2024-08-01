@@ -31,12 +31,18 @@ import { UuidPipe } from '../../../common/pipes/uuid.pipe';
 import { CreatePostCommand } from '../../posts/application/use-cases/create-post.use-case';
 import { JwtBearerAuthGuard } from '../../../common/guards/jwt-bearer-auth-guard.service';
 import { CurrentUserId } from '../../../common/decorators/current-user-id.param.decorator';
+import {
+  CommentOutputForBloggerModel,
+  CommentOutputModel,
+} from '../../comments/api/models/comment.output.model';
+import { CommentsQueryRepository } from '../../comments/infrastructure/comments.query-repository';
 
 @Controller('blogger/blogs')
 export class BlogsBloggerController {
   constructor(
     protected blogsQueryRepository: BlogsQueryRepository,
     protected postsQueryRepository: PostsQueryRepository,
+    protected commentsQueryRepository: CommentsQueryRepository,
     private readonly commandBus: CommandBus,
   ) {}
   @Get()
@@ -201,5 +207,19 @@ export class BlogsBloggerController {
     }
 
     return;
+  }
+  @Get('/comments')
+  @UseGuards(JwtBearerAuthGuard)
+  async getAllCommentsForPosts(
+    @CurrentUserId() userId: string,
+    @Query() query: PaginatorModel,
+  ): Promise<PaginatorOutputModel<CommentOutputForBloggerModel>> {
+    const comments =
+      await this.commentsQueryRepository.getAllCommentsPostsForBlogger(
+        query,
+        userId,
+      );
+
+    return comments;
   }
 }
