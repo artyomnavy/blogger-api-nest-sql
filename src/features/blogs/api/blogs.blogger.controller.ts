@@ -31,10 +31,7 @@ import { UuidPipe } from '../../../common/pipes/uuid.pipe';
 import { CreatePostCommand } from '../../posts/application/use-cases/create-post.use-case';
 import { JwtBearerAuthGuard } from '../../../common/guards/jwt-bearer-auth-guard.service';
 import { CurrentUserId } from '../../../common/decorators/current-user-id.param.decorator';
-import {
-  CommentOutputForBloggerModel,
-  CommentOutputModel,
-} from '../../comments/api/models/comment.output.model';
+import { CommentOutputForBloggerModel } from '../../comments/api/models/comment.output.model';
 import { CommentsQueryRepository } from '../../comments/infrastructure/comments.query-repository';
 
 @Controller('blogger/blogs')
