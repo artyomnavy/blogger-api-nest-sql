@@ -2,7 +2,7 @@ import { INestApplication } from '@nestjs/common';
 import request from 'supertest';
 import { HTTP_STATUSES, LikeStatuses } from '../src/common/utils';
 import { UserOutputModel } from '../src/features/users/api/models/user.output.model';
-import { badId, Paths, responseNullData } from './utils/test-constants';
+import { Paths } from './utils/test-constants';
 import { CreateEntitiesTestManager } from './utils/test-manager';
 import {
   basicLogin,
