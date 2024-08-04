@@ -211,13 +211,13 @@ export class CommentsQueryRepository {
 
     const order = sortBy === 'userLogin' ? `u.login` : `c.${sortBy}`;
 
-    // TO DO: fix query, because return null array
     const comments = await this.commentsQueryRepository
       .createQueryBuilder('c')
+      .leftJoin('c.post', 'p')
       .leftJoin('c.user', 'u')
-      .leftJoin('u.userBanByAdmin', 'uba')
-      .leftJoin('u.blogs', 'b')
-      .leftJoin('b.posts', 'p')
+      .leftJoin('p.blog', 'b')
+      .leftJoin('b.user', 'bu')
+      .leftJoin('bu.userBanByAdmin', 'uba')
       .select([
         'c.id AS "id"',
         'c.content AS "content"',
@@ -270,11 +270,10 @@ export class CommentsQueryRepository {
             },
           );
       }, 'myStatus')
-      .where('u.id = :userId AND uba.isBanned = :ban', {
+      .where('(bu.id = :userId AND uba.isBanned = :ban)', {
         userId: userId,
         ban: false,
       })
-      .andWhere('(c.postId = p.id)')
       .orderBy(order, sortDirection)
       .offset((pageNumber - 1) * pageSize)
       .limit(pageSize)
@@ -283,15 +282,15 @@ export class CommentsQueryRepository {
     const totalCount: number = await this.commentsQueryRepository
       .createQueryBuilder('c')
       .select('COUNT(c.id)')
+      .leftJoin('c.post', 'p')
       .leftJoin('c.user', 'u')
-      .leftJoin('u.userBanByAdmin', 'uba')
-      .leftJoin('u.blogs', 'b')
-      .leftJoin('b.posts', 'p')
-      .where('u.id = :userId AND uba.isBanned = :ban', {
+      .leftJoin('p.blog', 'b')
+      .leftJoin('b.user', 'bu')
+      .leftJoin('bu.userBanByAdmin', 'uba')
+      .where('(bu.id = :userId AND uba.isBanned = :ban)', {
         userId: userId,
         ban: false,
       })
-      .andWhere('(c.postId = p.id)')
       .getCount();
 
     const pagesCount = Math.ceil(totalCount / pageSize);

@@ -8,6 +8,7 @@ import {
 } from 'typeorm';
 import { Blog } from '../../blogs/domain/blog.entity';
 import { LikePost } from '../../likes/domain/like-post.entity';
+import { Comment } from '../../comments/domain/comment.entity';
 
 @Entity({ name: 'posts' })
 export class Post {
@@ -48,4 +49,7 @@ export class Post {
   @ManyToOne(() => Blog, (b) => b.posts, { onDelete: 'CASCADE' })
   @JoinColumn({ name: 'blog_id' })
   blog: Blog;
+
+  @OneToMany(() => Comment, (c) => c.post)
+  comments: Comment[];
 }
