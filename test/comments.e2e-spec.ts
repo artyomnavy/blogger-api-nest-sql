@@ -317,6 +317,32 @@ describe('Comments testing (e2e)', () => {
     });
   });
 
+  // CHECK GET ALL COMMENTS FOR ALL POSTS
+  it('+ GET all comments for all posts by blogger', async () => {
+    const foundComments = await request(server)
+      .get(`${Paths.blogsBlogger}/comments`)
+      .auth(token1, { type: 'bearer' })
+      .expect(HTTP_STATUSES.OK_200);
+
+    expect(foundComments.body).toStrictEqual({
+      pagesCount: 1,
+      page: 1,
+      pageSize: 10,
+      totalCount: 1,
+      items: [
+        {
+          ...newComment,
+          postInfo: {
+            id: expect.any(String),
+            title: expect.any(String),
+            blogId: expect.any(String),
+            blogName: expect.any(String),
+          },
+        },
+      ],
+    });
+  });
+
   // CHECK GET, UPDATE AND DELETE COMMENTS BY ID
   it('- GET comment by incorrect id', async () => {
     await request(server)
