@@ -7,10 +7,13 @@ import {
   HttpCode,
   NotFoundException,
   Param,
+  ParseFilePipeBuilder,
   Post,
   Put,
   Query,
+  UploadedFile,
   UseGuards,
+  UseInterceptors,
 } from '@nestjs/common';
 import { BlogsQueryRepository } from '../infrastructure/blogs.query-repository';
 import { PostsQueryRepository } from '../../posts/infrastructure/posts.query-repository';
@@ -33,6 +36,8 @@ import { JwtBearerAuthGuard } from '../../../common/guards/jwt-bearer-auth-guard
 import { CurrentUserId } from '../../../common/decorators/current-user-id.param.decorator';
 import { CommentOutputForBloggerModel } from '../../comments/api/models/comment.output.model';
 import { CommentsQueryRepository } from '../../comments/infrastructure/comments.query-repository';
+import { FileInterceptor } from '@nestjs/platform-express';
+import { ImageSizeFileValidator } from '../../../common/files-validators/image-size.file-validator';
 
 @Controller('blogger/blogs')
 export class BlogsBloggerController {
@@ -218,5 +223,39 @@ export class BlogsBloggerController {
       );
 
     return comments;
+  }
+  @Post(':blogId/images/wallpaper')
+  @UseInterceptors(FileInterceptor('file'))
+  @UseGuards(JwtBearerAuthGuard)
+  @HttpCode(HTTP_STATUSES.CREATED_201)
+  async uploadWallpaperForBlog(
+    @CurrentUserId() userId: string,
+    @UploadedFile(
+      new ParseFilePipeBuilder()
+        .addFileTypeValidator({
+          fileType: 'png' || 'jpeg' || 'jpg',
+        })
+        .addMaxSizeValidator({
+          maxSize: 100000,
+        })
+        .addValidator(new ImageSizeFileValidator(1024, 312))
+        .build(),
+    )
+    file: Express.Multer.File,
+  ) {
+    // TO DO: write logic upload wallpaper for blog
+    //   const createCommand = new CreateWallpaperForBlogCommand(userId);
+    //
+    //   const notice = await this.commandBus.execute(createCommand);
+    //
+    //   if (notice.hasError()) {
+    //     if (notice.code === HTTP_STATUSES.NOT_FOUND_404) {
+    //       throw new NotFoundException(notice.messages[0]);
+    //     } else {
+    //       throw new ForbiddenException(notice.messages[0]);
+    //     }
+    //   }
+    //
+    //   return notice.data;
   }
 }
