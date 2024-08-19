@@ -5,11 +5,11 @@ import { BlogsQueryRepository } from '../../infrastructure/blogs.query-repositor
 import { ResultCode } from '../../../../common/utils';
 
 import { ResultType } from '../../../../common/types/result';
-import { BlogBanInfoByAdmin } from '../../api/models/blog.output.model';
 import { v4 as uuidv4 } from 'uuid';
-import { BlogsBansByAdminRepository } from '../../infrastructure/blogs-bans-by-admin-repository';
+import { BlogsBansByAdminRepository } from '../../../bans/infrastructure/blogs-bans-by-admin-repository';
 import { TransactionManagerUseCase } from '../../../../common/use-cases/transaction.use-case';
 import { DataSource, EntityManager } from 'typeorm';
+import { BlogBanInfoByAdmin } from '../../../bans/api/models/ban.output.model';
 
 export class BindBlogWithUserCommand {
   constructor(

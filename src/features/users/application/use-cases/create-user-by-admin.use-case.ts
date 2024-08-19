@@ -2,20 +2,19 @@ import { CommandHandler, ICommandHandler } from '@nestjs/cqrs';
 import { UsersRepository } from '../../infrastructure/users.repository';
 import { CreateUserModel } from '../../api/models/user.input.model';
 import bcrypt from 'bcrypt';
-import {
-  UserBanInfoByAdmin,
-  UserBanInfoByBlogger,
-  User,
-  UserOutputModel,
-} from '../../api/models/user.output.model';
+import { User, UserOutputModel } from '../../api/models/user.output.model';
 import { v4 as uuidv4 } from 'uuid';
 import { UsersQueryRepository } from '../../infrastructure/users.query-repository';
 import { ResultCode } from '../../../../common/utils';
 import { ResultType } from '../../../../common/types/result';
 import { TransactionManagerUseCase } from '../../../../common/use-cases/transaction.use-case';
 import { DataSource, EntityManager } from 'typeorm';
-import { UsersBansByAdminRepository } from '../../infrastructure/users-bans-by-admin-repository';
-import { UsersBansByBloggersRepository } from '../../infrastructure/users-bans-by-bloggers-repository';
+import { UsersBansByAdminRepository } from '../../../bans/infrastructure/users-bans-by-admin-repository';
+import { UsersBansByBloggersRepository } from '../../../bans/infrastructure/users-bans-by-bloggers-repository';
+import {
+  UserBanInfoByAdmin,
+  UserBanInfoByBlogger,
+} from '../../../bans/api/models/ban.output.model';
 
 export class CreateUserByAdminCommand {
   constructor(public readonly createData: CreateUserModel) {}

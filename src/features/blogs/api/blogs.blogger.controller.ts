@@ -238,7 +238,7 @@ export class BlogsBloggerController {
         .addMaxSizeValidator({
           maxSize: 100000,
         })
-        .addValidator(new ImageSizeFileValidator(1024, 312))
+        .addValidator(new ImageSizeFileValidator(1028, 312))
         .build(),
     )
     file: Express.Multer.File,

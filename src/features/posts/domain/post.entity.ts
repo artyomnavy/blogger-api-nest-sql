@@ -4,11 +4,13 @@ import {
   JoinColumn,
   ManyToOne,
   OneToMany,
+  OneToOne,
   PrimaryGeneratedColumn,
 } from 'typeorm';
 import { Blog } from '../../blogs/domain/blog.entity';
 import { LikePost } from '../../likes/domain/like-post.entity';
 import { Comment } from '../../comments/domain/comment.entity';
+import { PostMainImage } from '../../images/domain/main-image-post.entity';
 
 @Entity({ name: 'posts' })
 export class Post {
@@ -52,4 +54,8 @@ export class Post {
 
   @OneToMany(() => Comment, (c) => c.post)
   comments: Comment[];
+
+  @OneToOne(() => PostMainImage, (pmi) => pmi.post)
+  @JoinColumn({ name: 'post_main_image_id' })
+  postMainImage: PostMainImage;
 }

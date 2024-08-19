@@ -12,8 +12,8 @@ import { LikeComment } from '../../likes/domain/like-comment.entity';
 import { LikePost } from '../../likes/domain/like-post.entity';
 import { Blog } from '../../blogs/domain/blog.entity';
 import { PlayerSession } from '../../quiz/domain/player-session.entity';
-import { UserBanByAdmin } from './user-ban-by-admin.entity';
-import { UserBanByBloggers } from './user-ban-by-blogger.entity';
+import { UserBanByAdmin } from '../../bans/domain/user-ban-by-admin.entity';
+import { UserBanByBloggers } from '../../bans/domain/user-ban-by-blogger.entity';
 
 @Entity({ name: 'users' })
 export class User {

@@ -1,12 +1,4 @@
-import {
-  IsBoolean,
-  IsNotEmpty,
-  IsString,
-  IsUUID,
-  Length,
-  Matches,
-  MinLength,
-} from 'class-validator';
+import { IsNotEmpty, IsString, Length, Matches } from 'class-validator';
 import { Transform } from 'class-transformer';
 import {
   IsEmailExist,
@@ -38,34 +30,4 @@ export class CreateUserModel {
   @IsString()
   @IsNotEmpty()
   email: string;
-}
-
-export class UpdateUserBanByAdminModel {
-  @IsBoolean()
-  @IsNotEmpty()
-  isBanned: boolean;
-
-  @MinLength(20, { message: 'Invalid banReason length' })
-  @Transform(({ value }) => value?.trim())
-  @IsString()
-  @IsNotEmpty()
-  banReason: string;
-}
-
-export class UpdateUserBanByBloggerModel {
-  @IsBoolean()
-  @IsNotEmpty()
-  isBanned: boolean;
-
-  @MinLength(20, { message: 'Invalid banReason length' })
-  @Transform(({ value }) => value?.trim())
-  @IsString()
-  @IsNotEmpty()
-  banReason: string;
-
-  @IsUUID('4', { message: 'Invalid blogId value' })
-  @Transform(({ value }) => value?.trim())
-  @IsString()
-  @IsNotEmpty()
-  blogId: string;
 }

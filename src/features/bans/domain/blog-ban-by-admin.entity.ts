@@ -5,7 +5,7 @@ import {
   OneToOne,
   PrimaryGeneratedColumn,
 } from 'typeorm';
-import { Blog } from './blog.entity';
+import { Blog } from '../../blogs/domain/blog.entity';
 
 @Entity({ name: 'blogs_bans_by_admin' })
 export class BlogBanByAdmin {

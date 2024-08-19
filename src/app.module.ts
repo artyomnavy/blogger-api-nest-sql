@@ -100,16 +100,19 @@ import { QuizQuestion } from './features/quiz/domain/quiz-question.entity';
 import { ScheduleModule } from '@nestjs/schedule';
 import { BlogsBloggerController } from './features/blogs/api/blogs.blogger.controller';
 import { BindBlogWithUserUseCase } from './features/blogs/application/use-cases/bind-blog.use-case';
-import { UserBanByAdmin } from './features/users/domain/user-ban-by-admin.entity';
+import { UserBanByAdmin } from './features/bans/domain/user-ban-by-admin.entity';
 import { UpdateUserBanInfoByAdminUseCase } from './features/users/application/use-cases/update-user-ban-by-admin.use-case';
-import { UsersBansByAdminRepository } from './features/users/infrastructure/users-bans-by-admin-repository';
+import { UsersBansByAdminRepository } from './features/bans/infrastructure/users-bans-by-admin-repository';
 import { UpdateUserBanInfoByBloggerUseCase } from './features/users/application/use-cases/update-user-ban-by-blogger.use-case';
-import { UsersBansByBloggersRepository } from './features/users/infrastructure/users-bans-by-bloggers-repository';
+import { UsersBansByBloggersRepository } from './features/bans/infrastructure/users-bans-by-bloggers-repository';
 import { UsersBloggerController } from './features/users/api/users.blogger.controller';
-import { UserBanByBloggers } from './features/users/domain/user-ban-by-blogger.entity';
+import { UserBanByBloggers } from './features/bans/domain/user-ban-by-blogger.entity';
 import { UpdateBlogBanInfoByAdminUseCase } from './features/blogs/application/use-cases/update-blog-ban-by-admin.use-case';
-import { BlogsBansByAdminRepository } from './features/blogs/infrastructure/blogs-bans-by-admin-repository';
-import { BlogBanByAdmin } from './features/blogs/domain/blog-ban-by-admin.entity';
+import { BlogsBansByAdminRepository } from './features/bans/infrastructure/blogs-bans-by-admin-repository';
+import { BlogBanByAdmin } from './features/bans/domain/blog-ban-by-admin.entity';
+import { BlogWallpaper } from './features/images/domain/wallpaper-blog.entity';
+import { BlogMainImage } from './features/images/domain/main-image-blog.entity';
+import { PostMainImage } from './features/images/domain/main-image-post.entity';
 
 config();
 
@@ -238,7 +241,10 @@ const entities = [
   Device,
   Blog,
   BlogBanByAdmin,
+  BlogWallpaper,
+  BlogMainImage,
   Post,
+  PostMainImage,
   LikePost,
   Comment,
   LikeComment,

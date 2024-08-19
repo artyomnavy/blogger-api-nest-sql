@@ -1,0 +1,90 @@
+import { readFile, writeFile } from 'node:fs';
+import { promises as fsPromises } from 'node:fs';
+import { join, dirname } from 'node:path';
+
+// relativePath - относительный путь до файла
+
+const readFileAsync = (relativePath: string) => {
+  return new Promise<Buffer>((resolve, reject) => {
+    // Получение корневого модуля, с которого было начато выполнение приложения
+    const mainFile = require.main;
+
+    if (!mainFile) {
+      // Скрипт не был запущен напрямую
+      return reject(new Error('require.main is undefined'));
+    }
+
+    // Получение корневого пути приложения
+    const rootDirPath = dirname(mainFile.filename);
+
+    // Формирование абсолютного пути к файлу
+    const filePath = join(rootDirPath, relativePath);
+
+    // Чтение файла по указанному абсолютному пути
+    readFile(filePath, (error, file) => {
+      if (error) {
+        console.error(error);
+        reject(error);
+      }
+
+      resolve(file);
+    });
+  });
+};
+
+const saveFileAsync = (relativePath: string, data: Buffer) => {
+  return new Promise<void>((resolve, reject) => {
+    // Получение корневого модуля, с которого было начато выполнение приложения
+    const mainFile = require.main;
+
+    if (!mainFile) {
+      // Скрипт не был запущен напрямую
+      return reject(new Error('require.main is undefined'));
+    }
+
+    // Получение корневого пути приложения
+    const rootDirPath = dirname(mainFile.filename);
+
+    // Формирование абсолютного пути к файлу
+    const filePath = join(rootDirPath, relativePath);
+
+    // Запись файла по указанному абсолютному пути
+    writeFile(filePath, data, (error) => {
+      if (error) {
+        console.error(error);
+        reject(error);
+      }
+      resolve();
+    });
+  });
+};
+
+const ensureDirAsync = async (relativePath: string): Promise<void> => {
+  // Получение корневого модуля, с которого было начато выполнение приложения
+  const mainFile = require.main;
+
+  if (!mainFile) {
+    // Скрипт не был запущен напрямую
+    throw new Error('require.main is undefined');
+  }
+
+  // Получение корневого пути приложения
+  const rootDirPath = dirname(mainFile.filename);
+
+  // Формирование абсолютного пути к файлу
+  const dirPath = join(rootDirPath, relativePath);
+
+  try {
+    // Если access не выбросил ошибку - директория существует и создавать ее не нужно
+    await fsPromises.access(dirPath);
+  } catch (errorAccess) {
+    console.error(errorAccess);
+    // Если access выбрасывает ошибку - создаем директорию
+    try {
+      // Создание директории ({ recursive: true } - создает все необходимые поддиректории)
+      await fsPromises.mkdir(dirPath, { recursive: true });
+    } catch (errorMkDir) {
+      console.error(errorMkDir);
+    }
+  }
+};

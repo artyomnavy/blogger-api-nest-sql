@@ -9,7 +9,9 @@ import {
 } from 'typeorm';
 import { Post } from '../../posts/domain/post.entity';
 import { User } from '../../users/domain/user.entity';
-import { BlogBanByAdmin } from './blog-ban-by-admin.entity';
+import { BlogBanByAdmin } from '../../bans/domain/blog-ban-by-admin.entity';
+import { BlogWallpaper } from '../../images/domain/wallpaper-blog.entity';
+import { BlogMainImage } from '../../images/domain/main-image-blog.entity';
 
 @Entity({ name: 'blogs' })
 export class Blog {
@@ -54,4 +56,12 @@ export class Blog {
   @ManyToOne(() => User, (u) => u.blogs, { onDelete: 'CASCADE' })
   @JoinColumn({ name: 'user_id' })
   user: User;
+
+  @OneToOne(() => BlogWallpaper, (bw) => bw.blog)
+  @JoinColumn({ name: 'blog_wallpaper_id' })
+  blogWallpaper: BlogWallpaper;
+
+  @OneToOne(() => BlogMainImage, (bmi) => bmi.blog)
+  @JoinColumn({ name: 'blog_main_image_id' })
+  blogMainImage: BlogMainImage;
 }

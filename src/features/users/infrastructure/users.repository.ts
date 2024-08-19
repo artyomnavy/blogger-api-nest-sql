@@ -3,8 +3,8 @@ import { UserAccountModel } from '../api/models/user.output.model';
 import { InjectRepository } from '@nestjs/typeorm';
 import { EntityManager, Repository } from 'typeorm';
 import { User } from '../domain/user.entity';
-import { UserBanByAdmin } from '../domain/user-ban-by-admin.entity';
-import { UserBanByBloggers } from '../domain/user-ban-by-blogger.entity';
+import { UserBanByAdmin } from '../../bans/domain/user-ban-by-admin.entity';
+import { UserBanByBloggers } from '../../bans/domain/user-ban-by-blogger.entity';
 
 @Injectable()
 export class UsersRepository {

@@ -5,18 +5,18 @@ import { add } from 'date-fns';
 import { EmailsManager } from '../../managers/emails-manager';
 import { CreateUserModel } from '../../../users/api/models/user.input.model';
 import { UsersRepository } from '../../../users/infrastructure/users.repository';
-import {
-  UserBanInfoByAdmin,
-  UserBanInfoByBlogger,
-  User,
-} from '../../../users/api/models/user.output.model';
+import { User } from '../../../users/api/models/user.output.model';
 import { ResultType } from '../../../../common/types/result';
 import { TransactionManagerUseCase } from '../../../../common/use-cases/transaction.use-case';
 import { DataSource, EntityManager } from 'typeorm';
 import { ResultCode } from '../../../../common/utils';
 import { UsersQueryRepository } from '../../../users/infrastructure/users.query-repository';
-import { UsersBansByAdminRepository } from '../../../users/infrastructure/users-bans-by-admin-repository';
-import { UsersBansByBloggersRepository } from '../../../users/infrastructure/users-bans-by-bloggers-repository';
+import { UsersBansByAdminRepository } from '../../../bans/infrastructure/users-bans-by-admin-repository';
+import { UsersBansByBloggersRepository } from '../../../bans/infrastructure/users-bans-by-bloggers-repository';
+import {
+  UserBanInfoByAdmin,
+  UserBanInfoByBlogger,
+} from '../../../bans/api/models/ban.output.model';
 
 export class CreateUserByRegistrationCommand {
   constructor(public readonly createData: CreateUserModel) {}

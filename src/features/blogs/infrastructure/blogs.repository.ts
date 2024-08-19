@@ -5,7 +5,7 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { EntityManager, Repository } from 'typeorm';
 import { Blog } from '../domain/blog.entity';
 import { User } from '../../users/domain/user.entity';
-import { BlogBanByAdmin } from '../domain/blog-ban-by-admin.entity';
+import { BlogBanByAdmin } from '../../bans/domain/blog-ban-by-admin.entity';
 import { BlogsQueryRepository } from './blogs.query-repository';
 
 @Injectable()

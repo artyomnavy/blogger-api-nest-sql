@@ -57,11 +57,3 @@ export class BlogWithOwnerAndBanInfoModel {
   isBanned: boolean;
   banDate: Date | null;
 }
-
-export class BlogBanInfoByAdmin {
-  constructor(
-    public id: string,
-    public isBanned: boolean,
-    public banDate: Date | null,
-  ) {}
-}

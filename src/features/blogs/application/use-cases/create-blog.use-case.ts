@@ -1,10 +1,6 @@
 import { BlogsRepository } from '../../infrastructure/blogs.repository';
 import { CreateAndUpdateBlogModel } from '../../api/models/blog.input.model';
-import {
-  Blog,
-  BlogBanInfoByAdmin,
-  BlogOutputModel,
-} from '../../api/models/blog.output.model';
+import { Blog, BlogOutputModel } from '../../api/models/blog.output.model';
 import { CommandHandler, ICommandHandler } from '@nestjs/cqrs';
 import { v4 as uuidv4 } from 'uuid';
 import { UsersQueryRepository } from '../../../users/infrastructure/users.query-repository';
@@ -12,7 +8,8 @@ import { Notice } from '../../../../common/notification/notice';
 import { HTTP_STATUSES } from '../../../../common/utils';
 import { DataSource, EntityManager } from 'typeorm';
 import { TransactionManagerUseCase } from '../../../../common/use-cases/transaction.use-case';
-import { BlogsBansByAdminRepository } from '../../infrastructure/blogs-bans-by-admin-repository';
+import { BlogsBansByAdminRepository } from '../../../bans/infrastructure/blogs-bans-by-admin-repository';
+import { BlogBanInfoByAdmin } from '../../../bans/api/models/ban.output.model';
 
 export class CreateBlogCommand {
   constructor(

@@ -13,10 +13,7 @@ import {
   UseGuards,
 } from '@nestjs/common';
 import { UsersQueryRepository } from '../infrastructure/users.query-repository';
-import {
-  CreateUserModel,
-  UpdateUserBanByAdminModel,
-} from './models/user.input.model';
+import { CreateUserModel } from './models/user.input.model';
 import { PaginatorModel } from '../../../common/models/paginator.input.model';
 import { PaginatorOutputModel } from '../../../common/models/paginator.output.model';
 import { UserOutputModel } from './models/user.output.model';
@@ -28,6 +25,7 @@ import { CreateUserByAdminCommand } from '../application/use-cases/create-user-b
 import { UuidPipe } from '../../../common/pipes/uuid.pipe';
 import { resultCodeToHttpException } from '../../../common/exceptions/result-code-to-http-exception';
 import { UpdateUserBanInfoByAdminCommand } from '../application/use-cases/update-user-ban-by-admin.use-case';
+import { UpdateUserBanByAdminModel } from '../../bans/api/models/ban.input.model';
 
 @Controller('sa/users')
 export class UsersSAController {

@@ -1,12 +1,12 @@
 import { CommandHandler, ICommandHandler } from '@nestjs/cqrs';
-import { UpdateUserBanByAdminModel } from '../../api/models/user.input.model';
 import { UsersQueryRepository } from '../../infrastructure/users.query-repository';
 import { ResultCode } from '../../../../common/utils';
 import { ResultType } from '../../../../common/types/result';
 import { DevicesRepository } from '../../../devices/infrastrucure/devices.repository';
-import { UsersBansByAdminRepository } from '../../infrastructure/users-bans-by-admin-repository';
+import { UsersBansByAdminRepository } from '../../../bans/infrastructure/users-bans-by-admin-repository';
 import { DataSource, EntityManager } from 'typeorm';
 import { TransactionManagerUseCase } from '../../../../common/use-cases/transaction.use-case';
+import { UpdateUserBanByAdminModel } from '../../../bans/api/models/ban.input.model';
 
 export class UpdateUserBanInfoByAdminCommand {
   constructor(

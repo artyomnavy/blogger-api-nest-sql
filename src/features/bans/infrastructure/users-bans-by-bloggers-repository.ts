@@ -2,7 +2,8 @@ import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { EntityManager, Repository } from 'typeorm';
 import { UserBanByBloggers } from '../domain/user-ban-by-blogger.entity';
-import { UserBanInfoByBlogger } from '../api/models/user.output.model';
+
+import { UserBanInfoByBlogger } from '../api/models/ban.output.model';
 
 @Injectable()
 export class UsersBansByBloggersRepository {

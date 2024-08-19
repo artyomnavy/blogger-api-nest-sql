@@ -12,7 +12,6 @@ import {
   UseGuards,
 } from '@nestjs/common';
 import { UsersQueryRepository } from '../infrastructure/users.query-repository';
-import { UpdateUserBanByBloggerModel } from './models/user.input.model';
 import { PaginatorModel } from '../../../common/models/paginator.input.model';
 import { PaginatorOutputModel } from '../../../common/models/paginator.output.model';
 import { UserOutputModel } from './models/user.output.model';
@@ -23,6 +22,7 @@ import { JwtBearerAuthGuard } from '../../../common/guards/jwt-bearer-auth-guard
 import { BlogsQueryRepository } from '../../blogs/infrastructure/blogs.query-repository';
 import { UpdateUserBanInfoByBloggerCommand } from '../application/use-cases/update-user-ban-by-blogger.use-case';
 import { CurrentUserId } from '../../../common/decorators/current-user-id.param.decorator';
+import { UpdateUserBanByBloggerModel } from '../../bans/api/models/ban.input.model';
 
 @Controller('blogger/users')
 export class UsersBloggerController {

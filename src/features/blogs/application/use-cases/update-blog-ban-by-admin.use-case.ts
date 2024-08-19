@@ -3,9 +3,9 @@ import { ResultCode } from '../../../../common/utils';
 import { ResultType } from '../../../../common/types/result';
 import { DataSource, EntityManager } from 'typeorm';
 import { TransactionManagerUseCase } from '../../../../common/use-cases/transaction.use-case';
-import { UpdateBlogBanByAdminModel } from '../../api/models/blog.input.model';
-import { BlogsBansByAdminRepository } from '../../infrastructure/blogs-bans-by-admin-repository';
+import { BlogsBansByAdminRepository } from '../../../bans/infrastructure/blogs-bans-by-admin-repository';
 import { BlogsQueryRepository } from '../../infrastructure/blogs.query-repository';
+import { UpdateBlogBanByAdminModel } from '../../../bans/api/models/ban.input.model';
 
 export class UpdateBlogBanInfoByAdminCommand {
   constructor(
