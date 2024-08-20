@@ -15,6 +15,7 @@ import { Repository } from 'typeorm';
 import { Blog } from '../src/features/blogs/domain/blog.entity';
 import { getRepositoryToken } from '@nestjs/typeorm';
 import { v4 as uuidv4 } from 'uuid';
+import { BlogBanByAdmin } from '../src/features/bans/domain/blog-ban-by-admin.entity';
 
 describe('Blogs testing (e2e)', () => {
   let app: INestApplication;
@@ -23,6 +24,7 @@ describe('Blogs testing (e2e)', () => {
   let user: UserOutputModel;
   let accessToken: any;
   let blogEntity: Repository<Blog>;
+  let blogBanEntity: Repository<BlogBanByAdmin>;
 
   beforeAll(async () => {
     const testSettings = await initSettings();
@@ -32,6 +34,7 @@ describe('Blogs testing (e2e)', () => {
     createEntitiesTestManager = testSettings.createEntitiesTestManager;
 
     blogEntity = app.get(getRepositoryToken(Blog));
+    blogBanEntity = app.get(getRepositoryToken(BlogBanByAdmin));
   });
 
   let newBlog: BlogOutputModel | null = null;
@@ -428,8 +431,23 @@ describe('Blogs testing (e2e)', () => {
       items: [userForBind, user],
     });
 
+    // Create BanInfoByAdmin for blog without user
+    const createDataForBan = {
+      id: uuidv4(),
+      isBanned: false,
+      banDate: null,
+    };
+
+    const blogBanInfoByAdmin = new BlogBanByAdmin();
+
+    blogBanInfoByAdmin.id = createDataForBan.id;
+    blogBanInfoByAdmin.isBanned = createDataForBan.isBanned;
+    blogBanInfoByAdmin.banDate = createDataForBan.banDate;
+
+    const blogBanInfo = await blogBanEntity.save(blogBanInfoByAdmin);
+
     // Create blog without user
-    const blogWithoutUser = {
+    const createDataForBlog = {
       id: uuidv4(),
       name: 'New blog',
       description: 'Blog without user',
@@ -438,20 +456,24 @@ describe('Blogs testing (e2e)', () => {
       isMembership: false,
     };
 
-    await blogEntity
-      .createQueryBuilder()
-      .insert()
-      .into(Blog)
-      .values(blogWithoutUser)
-      .execute();
+    const blogWithoutUser = new Blog();
+    blogWithoutUser.id = createDataForBlog.id;
+    blogWithoutUser.name = createDataForBlog.name;
+    blogWithoutUser.description = createDataForBlog.description;
+    blogWithoutUser.websiteUrl = createDataForBlog.websiteUrl;
+    blogWithoutUser.createdAt = createDataForBlog.createdAt;
+    blogWithoutUser.isMembership = createDataForBlog.isMembership;
+    blogWithoutUser.blogBanByAdmin = blogBanInfo;
+
+    await blogEntity.save(blogWithoutUser);
 
     const foundBlogWithoutUser = await request(server)
       .get(`${Paths.blogs}/${blogWithoutUser.id}`)
       .expect(HTTP_STATUSES.OK_200);
 
     expect(foundBlogWithoutUser.body).toStrictEqual({
-      ...blogWithoutUser,
-      createdAt: blogWithoutUser.createdAt.toISOString(),
+      ...createDataForBlog,
+      createdAt: createDataForBlog.createdAt.toISOString(),
     });
 
     // Bind blog to user
