@@ -24,7 +24,7 @@ import { CommandBus } from '@nestjs/cqrs';
 import { CreateUserByAdminCommand } from '../application/use-cases/create-user-by-admin.use-case';
 import { UuidPipe } from '../../../common/pipes/uuid.pipe';
 import { resultCodeToHttpException } from '../../../common/exceptions/result-code-to-http-exception';
-import { UpdateUserBanInfoByAdminCommand } from '../application/use-cases/update-user-ban-by-admin.use-case';
+import { UpdateUserBanInfoByAdminCommand } from '../../bans/application/use-cases/update-user-ban-by-admin.use-case';
 import { UpdateUserBanByAdminModel } from '../../bans/api/models/ban.input.model';
 
 @Controller('sa/users')

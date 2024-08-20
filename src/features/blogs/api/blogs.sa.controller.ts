@@ -19,7 +19,7 @@ import { HTTP_STATUSES, ResultCode } from '../../../common/utils';
 import { UsersQueryRepository } from '../../users/infrastructure/users.query-repository';
 import { BindBlogWithUserCommand } from '../application/use-cases/bind-blog.use-case';
 import { resultCodeToHttpException } from '../../../common/exceptions/result-code-to-http-exception';
-import { UpdateBlogBanInfoByAdminCommand } from '../application/use-cases/update-blog-ban-by-admin.use-case';
+import { UpdateBlogBanInfoByAdminCommand } from '../../bans/application/use-cases/update-blog-ban-by-admin.use-case';
 import { UpdateBlogBanByAdminModel } from '../../bans/api/models/ban.input.model';
 
 @Controller('sa/blogs')

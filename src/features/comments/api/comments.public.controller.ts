@@ -18,7 +18,7 @@ import { JwtBearerAuthGuard } from '../../../common/guards/jwt-bearer-auth-guard
 import { CurrentUserId } from '../../../common/decorators/current-user-id.param.decorator';
 import { CommandBus } from '@nestjs/cqrs';
 import { DeleteCommentCommand } from '../application/use-cases/delete-comment.use-case';
-import { ChangeLikeStatusForCommentCommand } from '../application/use-cases/change-like-status-comment.use-case';
+import { ChangeLikeStatusForCommentCommand } from '../../likes/application/use-cases/change-like-status-comment.use-case';
 import { UpdateCommentCommand } from '../application/use-cases/update-comment.use-case';
 import { UuidPipe } from '../../../common/pipes/uuid.pipe';
 import { resultCodeToHttpException } from '../../../common/exceptions/result-code-to-http-exception';

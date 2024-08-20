@@ -41,7 +41,7 @@ import { CreateBlogUseCase } from './features/blogs/application/use-cases/create
 import { UpdateCommentUseCase } from './features/comments/application/use-cases/update-comment.use-case';
 import { DeleteCommentUseCase } from './features/comments/application/use-cases/delete-comment.use-case';
 import { CreateCommentUseCase } from './features/comments/application/use-cases/create-comment.use-case';
-import { ChangeLikeStatusForCommentUseCase } from './features/comments/application/use-cases/change-like-status-comment.use-case';
+import { ChangeLikeStatusForCommentUseCase } from './features/likes/application/use-cases/change-like-status-comment.use-case';
 import { UpdateDeviceSessionUseCase } from './features/devices/application/use-cases/update-device.use-case';
 import { TerminateDeviceSessionByLogoutUseCase } from './features/devices/application/use-cases/terminate-device-by-logout.use-case';
 import { TerminateDeviceSessionByIdUseCase } from './features/devices/application/use-cases/terminate-device-by-id.use-case';
@@ -49,7 +49,7 @@ import { TerminateAllOthersDevicesSessionsUseCase } from './features/devices/app
 import { CreateDeviceSessionUseCase } from './features/devices/application/use-cases/create-device.use-case';
 import { UpdatePostUseCase } from './features/posts/application/use-cases/update-post.use-case';
 import { DeletePostUseCase } from './features/posts/application/use-cases/delete-post.use-case';
-import { ChangeLikeStatusForPostUseCase } from './features/posts/application/use-cases/change-like-status-for-post-use.case';
+import { ChangeLikeStatusForPostUseCase } from './features/likes/application/use-cases/change-like-status-for-post-use.case';
 import { DeleteUserUseCase } from './features/users/application/use-cases/delete-user.use-case';
 import { CreateUserByAdminUseCase } from './features/users/application/use-cases/create-user-by-admin.use-case';
 import { TypeOrmModule, TypeOrmModuleOptions } from '@nestjs/typeorm';
@@ -101,18 +101,20 @@ import { ScheduleModule } from '@nestjs/schedule';
 import { BlogsBloggerController } from './features/blogs/api/blogs.blogger.controller';
 import { BindBlogWithUserUseCase } from './features/blogs/application/use-cases/bind-blog.use-case';
 import { UserBanByAdmin } from './features/bans/domain/user-ban-by-admin.entity';
-import { UpdateUserBanInfoByAdminUseCase } from './features/users/application/use-cases/update-user-ban-by-admin.use-case';
+import { UpdateUserBanInfoByAdminUseCase } from './features/bans/application/use-cases/update-user-ban-by-admin.use-case';
 import { UsersBansByAdminRepository } from './features/bans/infrastructure/users-bans-by-admin-repository';
-import { UpdateUserBanInfoByBloggerUseCase } from './features/users/application/use-cases/update-user-ban-by-blogger.use-case';
+import { UpdateUserBanInfoByBloggerUseCase } from './features/bans/application/use-cases/update-user-ban-by-blogger.use-case';
 import { UsersBansByBloggersRepository } from './features/bans/infrastructure/users-bans-by-bloggers-repository';
 import { UsersBloggerController } from './features/users/api/users.blogger.controller';
 import { UserBanByBloggers } from './features/bans/domain/user-ban-by-blogger.entity';
-import { UpdateBlogBanInfoByAdminUseCase } from './features/blogs/application/use-cases/update-blog-ban-by-admin.use-case';
+import { UpdateBlogBanInfoByAdminUseCase } from './features/bans/application/use-cases/update-blog-ban-by-admin.use-case';
 import { BlogsBansByAdminRepository } from './features/bans/infrastructure/blogs-bans-by-admin-repository';
 import { BlogBanByAdmin } from './features/bans/domain/blog-ban-by-admin.entity';
 import { BlogWallpaper } from './features/images/domain/wallpaper-blog.entity';
 import { BlogMainImage } from './features/images/domain/main-image-blog.entity';
 import { PostMainImage } from './features/images/domain/main-image-post.entity';
+import { UploadBlogWallpaperToFsUseCase } from './features/images/application/use-cases/upload-blog-wallpaper.use-case';
+import { FilesStorageAdapter } from './features/images/adapters/files-storage-adapter';
 
 config();
 
@@ -137,6 +139,7 @@ const blogsUseCases = [
   CreateBlogUseCase,
   BindBlogWithUserUseCase,
   UpdateBlogBanInfoByAdminUseCase,
+  UploadBlogWallpaperToFsUseCase,
 ];
 
 const commentsUseCases = [
@@ -205,6 +208,8 @@ const queryRepositoriesProviders = [
   QuestionsQueryRepository,
   QuizzesQueryRepository,
 ];
+
+const imagesProviders = [FilesStorageAdapter];
 
 const emailsProviders = [EmailsManager, EmailsAdapter];
 
@@ -300,6 +305,7 @@ const options: TypeOrmModuleOptions = {
     ...emailsProviders,
     ...constraintsProviders,
     ...strategiesProviders,
+    ...imagesProviders,
   ],
 })
 export class AppModule implements NestModule {

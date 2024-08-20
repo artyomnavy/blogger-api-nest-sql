@@ -38,6 +38,7 @@ import { CommentOutputForBloggerModel } from '../../comments/api/models/comment.
 import { CommentsQueryRepository } from '../../comments/infrastructure/comments.query-repository';
 import { FileInterceptor } from '@nestjs/platform-express';
 import { ImageSizeFileValidator } from '../../../common/files-validators/image-size.file-validator';
+import { UploadBlogWallpaperToFsCommand } from '../../images/application/use-cases/upload-blog-wallpaper.use-case';
 
 @Controller('blogger/blogs')
 export class BlogsBloggerController {
@@ -230,6 +231,7 @@ export class BlogsBloggerController {
   @HttpCode(HTTP_STATUSES.CREATED_201)
   async uploadWallpaperForBlog(
     @CurrentUserId() userId: string,
+    @Param('blogId', UuidPipe) blogId: string,
     @UploadedFile(
       new ParseFilePipeBuilder()
         .addFileTypeValidator({
@@ -243,11 +245,16 @@ export class BlogsBloggerController {
     )
     file: Express.Multer.File,
   ) {
-    // TO DO: write logic upload wallpaper for blog
-    //   const createCommand = new CreateWallpaperForBlogCommand(userId);
-    //
-    //   const notice = await this.commandBus.execute(createCommand);
-    //
+    const uploadCommand = new UploadBlogWallpaperToFsCommand(
+      userId,
+      blogId,
+      file.originalname,
+      file.buffer,
+    );
+
+    const notice = await this.commandBus.execute(uploadCommand);
+
+    // TO DO: fix output logic for response
     //   if (notice.hasError()) {
     //     if (notice.code === HTTP_STATUSES.NOT_FOUND_404) {
     //       throw new NotFoundException(notice.messages[0]);

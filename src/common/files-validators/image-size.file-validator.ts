@@ -1,13 +1,13 @@
 import { FileValidator, Injectable } from '@nestjs/common';
 import sharp from 'sharp';
 
-type ImageSize = {
+type ImageSizeType = {
   width: number;
   height: number;
 };
 
 @Injectable()
-export class ImageSizeFileValidator extends FileValidator<ImageSize> {
+export class ImageSizeFileValidator extends FileValidator<ImageSizeType> {
   constructor(
     protected width: number,
     protected height: number,

@@ -1,9 +1,9 @@
 import { CommandHandler, ICommandHandler } from '@nestjs/cqrs';
 import { LikeStatuses, ResultCode } from '../../../../common/utils';
-import { LikesCommentsRepository } from '../../../likes/infrastructure/likes-comments.repository';
-import { LikeComment } from '../../../likes/api/models/like-comment.output.model';
+import { LikesCommentsRepository } from '../../infrastructure/likes-comments.repository';
+import { LikeComment } from '../../api/models/like-comment.output.model';
 import { v4 as uuidv4 } from 'uuid';
-import { CommentsQueryRepository } from '../../infrastructure/comments.query-repository';
+import { CommentsQueryRepository } from '../../../comments/infrastructure/comments.query-repository';
 import { ResultType } from '../../../../common/types/result';
 
 export class ChangeLikeStatusForCommentCommand {

@@ -4,7 +4,7 @@ import { join, dirname } from 'node:path';
 
 // relativePath - относительный путь до файла
 
-const readFileAsync = (relativePath: string) => {
+export const readFileAsync = (relativePath: string) => {
   return new Promise<Buffer>((resolve, reject) => {
     // Получение корневого модуля, с которого было начато выполнение приложения
     const mainFile = require.main;
@@ -21,18 +21,18 @@ const readFileAsync = (relativePath: string) => {
     const filePath = join(rootDirPath, relativePath);
 
     // Чтение файла по указанному абсолютному пути
-    readFile(filePath, (error, file) => {
+    readFile(filePath, (error, data) => {
       if (error) {
         console.error(error);
         reject(error);
       }
 
-      resolve(file);
+      resolve(data);
     });
   });
 };
 
-const saveFileAsync = (relativePath: string, data: Buffer) => {
+export const saveFileAsync = (relativePath: string, data: Buffer) => {
   return new Promise<void>((resolve, reject) => {
     // Получение корневого модуля, с которого было начато выполнение приложения
     const mainFile = require.main;
@@ -59,7 +59,7 @@ const saveFileAsync = (relativePath: string, data: Buffer) => {
   });
 };
 
-const ensureDirAsync = async (relativePath: string): Promise<void> => {
+export const ensureDirAsync = async (relativePath: string): Promise<void> => {
   // Получение корневого модуля, с которого было начато выполнение приложения
   const mainFile = require.main;
 

@@ -20,7 +20,7 @@ import { CommandBus } from '@nestjs/cqrs';
 import { resultCodeToHttpException } from '../../../common/exceptions/result-code-to-http-exception';
 import { JwtBearerAuthGuard } from '../../../common/guards/jwt-bearer-auth-guard.service';
 import { BlogsQueryRepository } from '../../blogs/infrastructure/blogs.query-repository';
-import { UpdateUserBanInfoByBloggerCommand } from '../application/use-cases/update-user-ban-by-blogger.use-case';
+import { UpdateUserBanInfoByBloggerCommand } from '../../bans/application/use-cases/update-user-ban-by-blogger.use-case';
 import { CurrentUserId } from '../../../common/decorators/current-user-id.param.decorator';
 import { UpdateUserBanByBloggerModel } from '../../bans/api/models/ban.input.model';
 

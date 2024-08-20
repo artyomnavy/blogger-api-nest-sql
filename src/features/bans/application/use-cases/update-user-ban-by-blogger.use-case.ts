@@ -1,12 +1,12 @@
 import { CommandHandler, ICommandHandler } from '@nestjs/cqrs';
-import { UsersQueryRepository } from '../../infrastructure/users.query-repository';
+import { UsersQueryRepository } from '../../../users/infrastructure/users.query-repository';
 import { ResultCode } from '../../../../common/utils';
 import { ResultType } from '../../../../common/types/result';
 import { DataSource, EntityManager } from 'typeorm';
 import { TransactionManagerUseCase } from '../../../../common/use-cases/transaction.use-case';
 import { BlogsQueryRepository } from '../../../blogs/infrastructure/blogs.query-repository';
-import { UsersBansByBloggersRepository } from '../../../bans/infrastructure/users-bans-by-bloggers-repository';
-import { UpdateUserBanByBloggerModel } from '../../../bans/api/models/ban.input.model';
+import { UsersBansByBloggersRepository } from '../../infrastructure/users-bans-by-bloggers-repository';
+import { UpdateUserBanByBloggerModel } from '../../api/models/ban.input.model';
 
 export class UpdateUserBanInfoByBloggerCommand {
   constructor(

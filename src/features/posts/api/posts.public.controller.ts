@@ -23,7 +23,7 @@ import { UpdateLikeModel } from '../../likes/api/models/like.input.model';
 import { JwtBearerAuthGuard } from '../../../common/guards/jwt-bearer-auth-guard.service';
 import { CurrentUserId } from '../../../common/decorators/current-user-id.param.decorator';
 import { CommandBus } from '@nestjs/cqrs';
-import { ChangeLikeStatusForPostCommand } from '../application/use-cases/change-like-status-for-post-use.case';
+import { ChangeLikeStatusForPostCommand } from '../../likes/application/use-cases/change-like-status-for-post-use.case';
 import { CreateCommentCommand } from '../../comments/application/use-cases/create-comment.use-case';
 import { UuidPipe } from '../../../common/pipes/uuid.pipe';
 import { UsersQueryRepository } from '../../users/infrastructure/users.query-repository';
