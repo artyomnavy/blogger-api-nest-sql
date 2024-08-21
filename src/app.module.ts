@@ -110,11 +110,12 @@ import { UserBanByBloggers } from './features/bans/domain/user-ban-by-blogger.en
 import { UpdateBlogBanInfoByAdminUseCase } from './features/bans/application/use-cases/update-blog-ban-by-admin.use-case';
 import { BlogsBansByAdminRepository } from './features/bans/infrastructure/blogs-bans-by-admin-repository';
 import { BlogBanByAdmin } from './features/bans/domain/blog-ban-by-admin.entity';
-import { BlogWallpaper } from './features/images/domain/wallpaper-blog.entity';
-import { BlogMainImage } from './features/images/domain/main-image-blog.entity';
-import { PostMainImage } from './features/images/domain/main-image-post.entity';
-import { UploadBlogWallpaperToFsUseCase } from './features/images/application/use-cases/upload-blog-wallpaper.use-case';
-import { FilesStorageAdapter } from './features/images/adapters/files-storage-adapter';
+import { BlogWallpaper } from './features/files/domain/wallpaper-blog.entity';
+import { BlogMainImage } from './features/files/domain/main-image-blog.entity';
+import { PostMainImage } from './features/files/domain/main-image-post.entity';
+import { UploadBlogWallpaperToFsUseCase } from './features/files/application/use-cases/upload-blog-wallpaper.use-case';
+import { FilesStorageAdapter } from './features/files/adapters/files-storage-adapter';
+import { BlogsWallpapersRepository } from './features/files/infrastructure/blogs-wallpapers.repository';
 
 config();
 
@@ -197,6 +198,7 @@ const repositoriesProviders = [
   QuizzesRepository,
   PlayersSessionsRepository,
   AnswersRepository,
+  BlogsWallpapersRepository,
 ];
 
 const queryRepositoriesProviders = [

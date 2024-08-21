@@ -10,7 +10,7 @@ import {
 import { Blog } from '../../blogs/domain/blog.entity';
 import { LikePost } from '../../likes/domain/like-post.entity';
 import { Comment } from '../../comments/domain/comment.entity';
-import { PostMainImage } from '../../images/domain/main-image-post.entity';
+import { PostMainImage } from '../../files/domain/main-image-post.entity';
 
 @Entity({ name: 'posts' })
 export class Post {

@@ -38,7 +38,7 @@ import { CommentOutputForBloggerModel } from '../../comments/api/models/comment.
 import { CommentsQueryRepository } from '../../comments/infrastructure/comments.query-repository';
 import { FileInterceptor } from '@nestjs/platform-express';
 import { ImageSizeFileValidator } from '../../../common/files-validators/image-size.file-validator';
-import { UploadBlogWallpaperToFsCommand } from '../../images/application/use-cases/upload-blog-wallpaper.use-case';
+import { UploadBlogWallpaperToFsCommand } from '../../files/application/use-cases/upload-blog-wallpaper.use-case';
 
 @Controller('blogger/blogs')
 export class BlogsBloggerController {
@@ -254,15 +254,14 @@ export class BlogsBloggerController {
 
     const notice = await this.commandBus.execute(uploadCommand);
 
-    // TO DO: fix output logic for response
-    //   if (notice.hasError()) {
-    //     if (notice.code === HTTP_STATUSES.NOT_FOUND_404) {
-    //       throw new NotFoundException(notice.messages[0]);
-    //     } else {
-    //       throw new ForbiddenException(notice.messages[0]);
-    //     }
-    //   }
-    //
-    //   return notice.data;
+    if (notice.hasError()) {
+      if (notice.code === HTTP_STATUSES.NOT_FOUND_404) {
+        throw new NotFoundException(notice.messages[0]);
+      } else {
+        throw new ForbiddenException(notice.messages[0]);
+      }
+    }
+
+    return await this.blogsQueryRepository.getBlogImages(blogId);
   }
 }

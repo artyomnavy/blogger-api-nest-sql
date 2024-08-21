@@ -6,9 +6,13 @@ import { DataSource, EntityManager } from 'typeorm';
 import { TransactionManagerUseCase } from '../../../../common/use-cases/transaction.use-case';
 import { BlogsQueryRepository } from '../../../blogs/infrastructure/blogs.query-repository';
 import { FilesStorageAdapter } from '../../adapters/files-storage-adapter';
-import { BlogWallpaper } from '../../api/models/blog-image.output.model';
+import {
+  BlogWallpaper,
+  BlogWallpaperOutputModel,
+} from '../../api/models/blog-image.output.model';
 import { v4 as uuidv4 } from 'uuid';
 import sharp from 'sharp';
+import { BlogsWallpapersRepository } from '../../infrastructure/blogs-wallpapers.repository';
 
 export class UploadBlogWallpaperToFsCommand {
   constructor(
@@ -22,7 +26,7 @@ export class UploadBlogWallpaperToFsCommand {
 export class UploadBlogWallpaperToFsUseCase
   extends TransactionManagerUseCase<
     UploadBlogWallpaperToFsCommand,
-    Notice<boolean>
+    Notice<BlogWallpaperOutputModel>
   >
   implements ICommandHandler<UploadBlogWallpaperToFsCommand>
 {
@@ -30,6 +34,7 @@ export class UploadBlogWallpaperToFsUseCase
     private readonly blogsQueryRepository: BlogsQueryRepository,
     private readonly usersQueryRepository: UsersQueryRepository,
     private readonly filesStorageAdapter: FilesStorageAdapter,
+    private readonly blogsWallpapersRepository: BlogsWallpapersRepository,
     protected readonly dataSource: DataSource,
   ) {
     super(dataSource);
@@ -37,8 +42,8 @@ export class UploadBlogWallpaperToFsUseCase
   async doLogic(
     command: UploadBlogWallpaperToFsCommand,
     manager: EntityManager,
-  ): Promise<Notice<boolean>> {
-    const notice = new Notice<boolean>();
+  ): Promise<Notice<BlogWallpaperOutputModel>> {
+    const notice = new Notice<BlogWallpaperOutputModel>();
 
     const { userId, blogId, originalName, buffer } = command;
 
@@ -76,15 +81,18 @@ export class UploadBlogWallpaperToFsUseCase
       return notice;
     }
 
+    // Загружаем обои блога в файловое хранилище
     const fsUrl = await this.filesStorageAdapter.uploadBlogWallpaper(
       blogId,
       originalName,
       buffer,
     );
 
+    // Получаем метаданные о загруженных обоях блога
     const metadata = await sharp(buffer).metadata();
 
-    const blogWallpaper = new BlogWallpaper(
+    // Записываем в БД информацию об обоях блога
+    const wallpaper = new BlogWallpaper(
       uuidv4(),
       fsUrl,
       metadata.width ?? 0,
@@ -92,9 +100,16 @@ export class UploadBlogWallpaperToFsUseCase
       metadata.size ?? 0,
     );
 
-    // TO DO: write insert blogWallpaper in repo and fix output data
+    const blogWallpaper =
+      await this.blogsWallpapersRepository.uploadBlogWallpaper(
+        {
+          ...wallpaper,
+          blog: blog,
+        },
+        manager,
+      );
 
-    notice.addData(true);
+    notice.addData(blogWallpaper);
 
     return notice;
   }

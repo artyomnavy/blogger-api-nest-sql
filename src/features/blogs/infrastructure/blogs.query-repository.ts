@@ -185,6 +185,23 @@ export class BlogsQueryRepository {
       return blog;
     }
   }
+  async getBlogImages(blogId: string) {
+    const blogImages = await this.blogsQueryRepository
+      .createQueryBuilder()
+      .select(['b.id'])
+      .from(Blog, 'b')
+      .leftJoin('b.blogWallpaper', 'bw')
+      .leftJoin('b.blogMainImage', 'bmi')
+      .where('b.id = :blogId', { blogId })
+      .getOne();
+
+    if (!blogImages) {
+      return null;
+    } else {
+      // TO DO: after write tests and testing, write mapper (add path to url from env)
+      // return await this.blogMapper(blog);
+    }
+  }
   async blogMapper(blog: Blog): Promise<BlogOutputModel> {
     return {
       id: blog.id,

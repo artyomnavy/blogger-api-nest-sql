@@ -10,8 +10,8 @@ import {
 import { Post } from '../../posts/domain/post.entity';
 import { User } from '../../users/domain/user.entity';
 import { BlogBanByAdmin } from '../../bans/domain/blog-ban-by-admin.entity';
-import { BlogWallpaper } from '../../images/domain/wallpaper-blog.entity';
-import { BlogMainImage } from '../../images/domain/main-image-blog.entity';
+import { BlogWallpaper } from '../../files/domain/wallpaper-blog.entity';
+import { BlogMainImage } from '../../files/domain/main-image-blog.entity';
 
 @Entity({ name: 'blogs' })
 export class Blog {
