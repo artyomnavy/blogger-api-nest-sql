@@ -1,6 +1,7 @@
 import { readFile, writeFile } from 'node:fs';
 import { promises as fsPromises } from 'node:fs';
 import { join, dirname } from 'node:path';
+import { stat } from 'fs/promises';
 
 // relativePath - относительный путь до файла
 
@@ -75,16 +76,9 @@ export const ensureDirAsync = async (relativePath: string): Promise<void> => {
   const dirPath = join(rootDirPath, relativePath);
 
   try {
-    // Если access не выбросил ошибку - директория существует и создавать ее не нужно
-    await fsPromises.access(dirPath);
-  } catch (errorAccess) {
-    console.error(errorAccess);
-    // Если access выбрасывает ошибку - создаем директорию
-    try {
-      // Создание директории ({ recursive: true } - создает все необходимые поддиректории)
-      await fsPromises.mkdir(dirPath, { recursive: true });
-    } catch (errorMkDir) {
-      console.error(errorMkDir);
-    }
+    // Создание директории ({ recursive: true } - создает все необходимые поддиректории)
+    await fsPromises.mkdir(dirPath, { recursive: true });
+  } catch (errorMkDir) {
+    console.error(errorMkDir);
   }
 };

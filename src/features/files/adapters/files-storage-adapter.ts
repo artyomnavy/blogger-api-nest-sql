@@ -17,6 +17,6 @@ export class FilesStorageAdapter {
 
     await saveFileAsync(relativePath, buffer);
 
-    return `views/blogs/${blogId}/wallpapers/${originalName}`;
+    return relativePath;
   }
 }

@@ -10,7 +10,7 @@ export abstract class TransactionManagerUseCase<I, O> {
   protected abstract doLogic(command: I, manager: EntityManager): Promise<O>;
 
   // Метод, который вызывается в контроллере commandBus
-  public async execute(command: I): Promise<O | null> {
+  public async execute(command: I): Promise<O> {
     const queryRunner = this.dataSource.createQueryRunner();
     await queryRunner.connect();
     await queryRunner.startTransaction();
@@ -22,7 +22,7 @@ export abstract class TransactionManagerUseCase<I, O> {
     } catch (error) {
       await queryRunner.rollbackTransaction();
       console.error('Transaction rollback:', error);
-      return null;
+      throw error;
     } finally {
       if (!this.timeoutAdded) {
         await queryRunner.release();

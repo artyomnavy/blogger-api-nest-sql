@@ -11,6 +11,7 @@ import {
 import { initSettings } from './utils/init-settings';
 import { CreateAndUpdateBlogModel } from '../src/features/blogs/api/models/blog.input.model';
 import { BlogOutputModel } from '../src/features/blogs/api/models/blog.output.model';
+import { join } from 'node:path';
 
 describe('Images testing (e2e)', () => {
   let app: INestApplication;
@@ -68,7 +69,7 @@ describe('Images testing (e2e)', () => {
       pagesCount: 1,
       page: 1,
       pageSize: 10,
-      totalCount: 2,
+      totalCount: 1,
       items: [newUser],
     });
 
@@ -134,7 +135,16 @@ describe('Images testing (e2e)', () => {
     });
   });
 
-  // TO DO: write tests for upload wallpaper blog's
+  // TO DO: write delete image after upload
+  it('+ POST upload to fs wallpaper for blog', async () => {
+    const testImagePath = join(__dirname, 'test-images', '+blog_wallpaper.png');
+
+    await request(server)
+      .post(`${Paths.blogsBlogger}/${newBlog!.id}/images/wallpaper`)
+      .auth(accessToken, { type: 'bearer' })
+      .attach('file', testImagePath)
+      .expect(HTTP_STATUSES.CREATED_201);
+  });
 
   afterAll(async () => {
     await request(server)

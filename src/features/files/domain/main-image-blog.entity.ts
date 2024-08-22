@@ -12,7 +12,7 @@ export class BlogMainImage {
   @PrimaryGeneratedColumn('uuid')
   id: string;
 
-  @Column({ type: 'int' })
+  @Column({ type: 'character varying' })
   url: string;
 
   @Column({ type: 'int' })

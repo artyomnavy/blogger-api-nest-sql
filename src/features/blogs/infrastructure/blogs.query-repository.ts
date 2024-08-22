@@ -187,18 +187,19 @@ export class BlogsQueryRepository {
   }
   async getBlogImages(blogId: string) {
     const blogImages = await this.blogsQueryRepository
-      .createQueryBuilder()
-      .select(['b.id'])
-      .from(Blog, 'b')
-      .leftJoin('b.blogWallpaper', 'bw')
-      .leftJoin('b.blogMainImage', 'bmi')
+      .createQueryBuilder('b')
+      .select()
+      .leftJoinAndSelect('b.blogWallpaper', 'bw')
+      .leftJoinAndSelect('b.blogMainImage', 'bmi')
       .where('b.id = :blogId', { blogId })
       .getOne();
+
+    console.log(blogImages, 'blogImages');
 
     if (!blogImages) {
       return null;
     } else {
-      // TO DO: after write tests and testing, write mapper (add path to url from env)
+      // TO DO: fix - why blogWallpaper and blogMainImage null?
       // return await this.blogMapper(blog);
     }
   }
