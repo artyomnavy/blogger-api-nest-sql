@@ -17,6 +17,6 @@ export class FilesStorageAdapter {
 
     await saveFileAsync(relativePath, buffer);
 
-    return relativePath;
+    return relativePath.replace(/\\/g, '/');
   }
 }

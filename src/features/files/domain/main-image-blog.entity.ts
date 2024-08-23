@@ -2,6 +2,7 @@ import {
   Column,
   Entity,
   JoinColumn,
+  ManyToOne,
   OneToOne,
   PrimaryGeneratedColumn,
 } from 'typeorm';
@@ -24,10 +25,7 @@ export class BlogMainImage {
   @Column({ name: 'file_size', type: 'int' })
   fileSize: number;
 
-  @OneToOne(() => Blog, (b) => b.blogMainImage, {
-    cascade: true,
-    onDelete: 'CASCADE',
-  })
+  @ManyToOne(() => Blog, (b) => b.blogMainImage, { onDelete: 'CASCADE' })
   @JoinColumn({ name: 'blog_id' })
   blog: Blog;
 }

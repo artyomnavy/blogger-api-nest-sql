@@ -1,7 +1,6 @@
 import {
   Column,
   Entity,
-  JoinColumn,
   OneToMany,
   OneToOne,
   PrimaryGeneratedColumn,
@@ -54,11 +53,9 @@ export class User {
   isConfirmed: boolean;
 
   @OneToOne(() => UserBanByAdmin, (uba) => uba.user)
-  @JoinColumn({ name: 'user_ban_by_admin_id' })
   userBanByAdmin: UserBanByAdmin;
 
   @OneToOne(() => UserBanByBloggers, (ubb) => ubb.user)
-  @JoinColumn({ name: 'user_ban_by_blogger_id' })
   userBanByBloggers: UserBanByBloggers;
 
   @OneToMany(() => Device, (d) => d.user)

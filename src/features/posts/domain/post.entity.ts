@@ -55,7 +55,6 @@ export class Post {
   @OneToMany(() => Comment, (c) => c.post)
   comments: Comment[];
 
-  @OneToOne(() => PostMainImage, (pmi) => pmi.post)
-  @JoinColumn({ name: 'post_main_image_id' })
-  postMainImage: PostMainImage;
+  @OneToMany(() => PostMainImage, (pmi) => pmi.post)
+  postMainImage: PostMainImage[];
 }

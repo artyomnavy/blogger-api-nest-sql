@@ -2,6 +2,7 @@ import {
   Column,
   Entity,
   JoinColumn,
+  ManyToOne,
   OneToOne,
   PrimaryGeneratedColumn,
 } from 'typeorm';
@@ -27,10 +28,7 @@ export class PostMainImage {
   @Column({ name: 'image_size', type: 'int' })
   imageSize: string;
 
-  @OneToOne(() => Post, (p) => p.postMainImage, {
-    cascade: true,
-    onDelete: 'CASCADE',
-  })
+  @ManyToOne(() => Post, (p) => p.postMainImage, { onDelete: 'CASCADE' })
   @JoinColumn({ name: 'post_id' })
   post: Post;
 }

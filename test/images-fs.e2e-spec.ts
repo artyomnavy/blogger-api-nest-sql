@@ -12,6 +12,7 @@ import { initSettings } from './utils/init-settings';
 import { CreateAndUpdateBlogModel } from '../src/features/blogs/api/models/blog.input.model';
 import { BlogOutputModel } from '../src/features/blogs/api/models/blog.output.model';
 import { join } from 'node:path';
+import { access, unlink } from 'node:fs/promises';
 
 describe('Images testing (e2e)', () => {
   let app: INestApplication;
@@ -29,6 +30,16 @@ describe('Images testing (e2e)', () => {
   let newUser: UserOutputModel;
   let newBlog: BlogOutputModel | null = null;
   let accessToken: any;
+
+  async function checkFileExists(path) {
+    try {
+      await access(path);
+      return true;
+    } catch (error) {
+      console.error(error);
+      return false;
+    }
+  }
 
   // Create by admin and log in newUser
   it('+ POST create by admin and log in user for blogs', async () => {
@@ -135,15 +146,33 @@ describe('Images testing (e2e)', () => {
     });
   });
 
-  // TO DO: write delete image after upload
   it('+ POST upload to fs wallpaper for blog', async () => {
     const testImagePath = join(__dirname, 'test-images', '+blog_wallpaper.png');
 
-    await request(server)
+    const uploadImage = await request(server)
       .post(`${Paths.blogsBlogger}/${newBlog!.id}/images/wallpaper`)
       .auth(accessToken, { type: 'bearer' })
       .attach('file', testImagePath)
       .expect(HTTP_STATUSES.CREATED_201);
+
+    expect(uploadImage.body.wallpaper.url).toContain(
+      `/views/blogs/${newBlog!.id}/wallpapers/+blog_wallpaper.png`,
+    );
+
+    const uploadedImagePath = join(
+      __dirname,
+      'views',
+      'blogs',
+      newBlog!.id,
+      'wallpapers',
+      '+blog_wallpaper.png',
+    );
+
+    const isExistImage = await checkFileExists(uploadedImagePath);
+
+    expect(isExistImage).toBe(true);
+
+    await unlink(uploadedImagePath);
   });
 
   afterAll(async () => {

@@ -23,6 +23,26 @@ export class BlogMainImageOutputModel {
 }
 
 export class BlogImagesOutputModel {
-  wallpaper: BlogWallpaperOutputModel;
+  wallpaper: BlogWallpaperOutputModel | null;
   main: BlogMainImageOutputModel[];
 }
+
+export const updateBlogImagesUrlsForOutput = (
+  protocol: string,
+  host: string,
+  blogImages: BlogImagesOutputModel,
+): BlogImagesOutputModel => {
+  return {
+    ...blogImages,
+    wallpaper: blogImages.wallpaper
+      ? {
+          ...blogImages.wallpaper,
+          url: `${protocol}://${host}/${blogImages.wallpaper.url}`,
+        }
+      : null,
+    main: blogImages.main.map((mainImage) => ({
+      ...mainImage,
+      url: `${protocol}://${host}/${mainImage.url}`,
+    })),
+  };
+};

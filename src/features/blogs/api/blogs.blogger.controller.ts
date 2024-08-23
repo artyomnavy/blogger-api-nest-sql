@@ -11,6 +11,7 @@ import {
   Post,
   Put,
   Query,
+  Req,
   UploadedFile,
   UseGuards,
   UseInterceptors,
@@ -39,6 +40,11 @@ import { CommentsQueryRepository } from '../../comments/infrastructure/comments.
 import { FileInterceptor } from '@nestjs/platform-express';
 import { ImageSizeFileValidator } from '../../../common/files-validators/image-size.file-validator';
 import { UploadBlogWallpaperToFsCommand } from '../../files/application/use-cases/upload-blog-wallpaper.use-case';
+import {
+  BlogImagesOutputModel,
+  updateBlogImagesUrlsForOutput,
+} from '../../files/api/models/blog-image.output.model';
+import { Request } from 'express';
 
 @Controller('blogger/blogs')
 export class BlogsBloggerController {
@@ -230,6 +236,7 @@ export class BlogsBloggerController {
   @UseGuards(JwtBearerAuthGuard)
   @HttpCode(HTTP_STATUSES.CREATED_201)
   async uploadWallpaperForBlog(
+    @Req() req,
     @CurrentUserId() userId: string,
     @Param('blogId', UuidPipe) blogId: string,
     @UploadedFile(
@@ -244,7 +251,7 @@ export class BlogsBloggerController {
         .build(),
     )
     file: Express.Multer.File,
-  ) {
+  ): Promise<BlogImagesOutputModel> {
     const uploadCommand = new UploadBlogWallpaperToFsCommand(
       userId,
       blogId,
@@ -262,6 +269,16 @@ export class BlogsBloggerController {
       }
     }
 
-    return await this.blogsQueryRepository.getBlogImages(blogId);
+    const blogImages = await this.blogsQueryRepository.getBlogImages(blogId);
+
+    if (!blogImages) {
+      throw new NotFoundException('Blog images not found');
+    }
+
+    return updateBlogImagesUrlsForOutput(
+      req.protocol,
+      req.get('host'),
+      blogImages,
+    );
   }
 }

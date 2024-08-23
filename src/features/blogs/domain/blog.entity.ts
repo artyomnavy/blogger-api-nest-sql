@@ -47,7 +47,6 @@ export class Blog {
   isMembership: boolean;
 
   @OneToOne(() => BlogBanByAdmin, (bba) => bba.blog)
-  @JoinColumn({ name: 'blog_ban_by_admin_id' })
   blogBanByAdmin: BlogBanByAdmin;
 
   @OneToMany(() => Post, (p) => p.blog)
@@ -58,10 +57,8 @@ export class Blog {
   user: User;
 
   @OneToOne(() => BlogWallpaper, (bw) => bw.blog)
-  @JoinColumn({ name: 'blog_wallpaper_id' })
   blogWallpaper: BlogWallpaper;
 
-  @OneToOne(() => BlogMainImage, (bmi) => bmi.blog)
-  @JoinColumn({ name: 'blog_main_image_id' })
-  blogMainImage: BlogMainImage;
+  @OneToMany(() => BlogMainImage, (bmi) => bmi.blog)
+  blogMainImage: BlogMainImage[];
 }

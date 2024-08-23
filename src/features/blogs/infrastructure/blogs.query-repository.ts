@@ -9,6 +9,8 @@ import { PaginatorOutputModel } from '../../../common/models/paginator.output.mo
 import { InjectRepository } from '@nestjs/typeorm';
 import { EntityManager, Repository } from 'typeorm';
 import { Blog } from '../domain/blog.entity';
+import { BlogImagesOutputModel } from '../../files/api/models/blog-image.output.model';
+import { BlogMainImage } from '../../files/domain/main-image-blog.entity';
 
 @Injectable()
 export class BlogsQueryRepository {
@@ -185,22 +187,19 @@ export class BlogsQueryRepository {
       return blog;
     }
   }
-  async getBlogImages(blogId: string) {
+  async getBlogImages(blogId: string): Promise<BlogImagesOutputModel | null> {
     const blogImages = await this.blogsQueryRepository
       .createQueryBuilder('b')
-      .select()
+      .select('b.id')
       .leftJoinAndSelect('b.blogWallpaper', 'bw')
       .leftJoinAndSelect('b.blogMainImage', 'bmi')
       .where('b.id = :blogId', { blogId })
       .getOne();
 
-    console.log(blogImages, 'blogImages');
-
     if (!blogImages) {
       return null;
     } else {
-      // TO DO: fix - why blogWallpaper and blogMainImage null?
-      // return await this.blogMapper(blog);
+      return await this.blogWithImagesMapper(blogImages);
     }
   }
   async blogMapper(blog: Blog): Promise<BlogOutputModel> {
@@ -231,6 +230,28 @@ export class BlogsQueryRepository {
         isBanned: blog.isBanned,
         banDate: blog.banDate ? blog.banDate.toISOString() : null,
       },
+    };
+  }
+  async blogWithImagesMapper(blog: Blog): Promise<BlogImagesOutputModel> {
+    return {
+      wallpaper: blog.blogWallpaper
+        ? {
+            url: blog.blogWallpaper.url,
+            width: blog.blogWallpaper.width,
+            height: blog.blogWallpaper.height,
+            fileSize: blog.blogWallpaper.fileSize,
+          }
+        : null,
+      main: blog.blogMainImage
+        ? blog.blogMainImage.map((mainImage: BlogMainImage) => {
+            return {
+              url: mainImage.url,
+              width: mainImage.width,
+              height: mainImage.height,
+              fileSize: mainImage.fileSize,
+            };
+          })
+        : [],
     };
   }
 }

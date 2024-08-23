@@ -1,7 +1,6 @@
 import { readFile, writeFile } from 'node:fs';
 import { promises as fsPromises } from 'node:fs';
 import { join, dirname } from 'node:path';
-import { stat } from 'fs/promises';
 
 // relativePath - относительный путь до файла
 
