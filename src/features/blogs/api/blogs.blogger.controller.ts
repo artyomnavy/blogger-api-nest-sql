@@ -242,7 +242,7 @@ export class BlogsBloggerController {
     @UploadedFile(
       new ParseFilePipeBuilder()
         .addFileTypeValidator({
-          fileType: 'png' || 'jpeg' || 'jpg',
+          fileType: 'png|jpeg|jpg',
         })
         .addMaxSizeValidator({
           maxSize: 100000,

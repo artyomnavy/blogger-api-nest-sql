@@ -11,6 +11,7 @@ import { EntityManager, Repository } from 'typeorm';
 import { Blog } from '../domain/blog.entity';
 import { BlogImagesOutputModel } from '../../files/api/models/blog-image.output.model';
 import { BlogMainImage } from '../../files/domain/main-image-blog.entity';
+import { BlogWallpaper } from '../../files/domain/wallpaper-blog.entity';
 
 @Injectable()
 export class BlogsQueryRepository {
@@ -199,7 +200,28 @@ export class BlogsQueryRepository {
     if (!blogImages) {
       return null;
     } else {
-      return await this.blogWithImagesMapper(blogImages);
+      return await this.blogImagesMapper(blogImages);
+    }
+  }
+  async getBlogWallpaperFsUrl(
+    blogId: string,
+    manager?: EntityManager,
+  ): Promise<BlogWallpaper | null> {
+    const blogsQueryRepository = manager
+      ? manager.getRepository(Blog)
+      : this.blogsQueryRepository;
+
+    const blogWithWallpaper = await blogsQueryRepository
+      .createQueryBuilder('b')
+      .select('b.id')
+      .leftJoinAndSelect('b.blogWallpaper', 'bw')
+      .where('b.id = :blogId', { blogId })
+      .getOne();
+
+    if (!blogWithWallpaper || !blogWithWallpaper.blogWallpaper) {
+      return null;
+    } else {
+      return blogWithWallpaper.blogWallpaper;
     }
   }
   async blogMapper(blog: Blog): Promise<BlogOutputModel> {
@@ -232,7 +254,7 @@ export class BlogsQueryRepository {
       },
     };
   }
-  async blogWithImagesMapper(blog: Blog): Promise<BlogImagesOutputModel> {
+  async blogImagesMapper(blog: Blog): Promise<BlogImagesOutputModel> {
     return {
       wallpaper: blog.blogWallpaper
         ? {

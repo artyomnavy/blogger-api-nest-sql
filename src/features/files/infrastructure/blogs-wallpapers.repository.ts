@@ -37,4 +37,17 @@ export class BlogsWallpapersRepository {
       fileSize: uploadBlogWallpaper.fileSize,
     };
   }
+  async deleteBlogWallpaper(
+    id: string,
+    manager?: EntityManager,
+  ): Promise<boolean> {
+    const blogsWallpapersRepository = manager
+      ? manager.getRepository(BlogWallpaper)
+      : this.blogsWallpapersRepository;
+
+    const resultDeleteBlogWallpaper =
+      await blogsWallpapersRepository.delete(id);
+
+    return resultDeleteBlogWallpaper.affected === 1;
+  }
 }

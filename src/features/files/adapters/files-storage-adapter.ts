@@ -1,6 +1,6 @@
 import { Injectable } from '@nestjs/common';
 import { join } from 'node:path';
-import { ensureDirAsync, saveFileAsync } from '../fs-utils';
+import { deleteFileAsync, ensureDirAsync, saveFileAsync } from '../fs-utils';
 
 @Injectable()
 export class FilesStorageAdapter {
@@ -18,5 +18,8 @@ export class FilesStorageAdapter {
     await saveFileAsync(relativePath, buffer);
 
     return relativePath.replace(/\\/g, '/');
+  }
+  async deleteBlogWallpaper(url: string) {
+    await deleteFileAsync(url);
   }
 }

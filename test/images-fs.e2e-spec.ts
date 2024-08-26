@@ -13,11 +13,19 @@ import { CreateAndUpdateBlogModel } from '../src/features/blogs/api/models/blog.
 import { BlogOutputModel } from '../src/features/blogs/api/models/blog.output.model';
 import { join } from 'node:path';
 import { access, unlink } from 'node:fs/promises';
+import { Repository } from 'typeorm';
+import { BlogWallpaper } from '../src/features/files/domain/wallpaper-blog.entity';
+import { getRepositoryToken } from '@nestjs/typeorm';
 
 describe('Images testing (e2e)', () => {
   let app: INestApplication;
   let server;
   let createEntitiesTestManager: CreateEntitiesTestManager;
+  let blogWallpaperEntity: Repository<BlogWallpaper>;
+
+  let newUser: UserOutputModel;
+  let newBlog: BlogOutputModel | null = null;
+  let accessToken: any;
 
   beforeAll(async () => {
     const testSettings = await initSettings();
@@ -25,11 +33,9 @@ describe('Images testing (e2e)', () => {
     app = testSettings.app;
     server = testSettings.server;
     createEntitiesTestManager = testSettings.createEntitiesTestManager;
-  });
 
-  let newUser: UserOutputModel;
-  let newBlog: BlogOutputModel | null = null;
-  let accessToken: any;
+    blogWallpaperEntity = app.get(getRepositoryToken(BlogWallpaper));
+  });
 
   async function checkFileExists(path) {
     try {
@@ -146,7 +152,7 @@ describe('Images testing (e2e)', () => {
     });
   });
 
-  it('+ POST upload to fs wallpaper for blog', async () => {
+  it('+ POST upload to fs wallpaper png type for blog', async () => {
     const testImagePath = join(__dirname, 'test-images', '+blog_wallpaper.png');
 
     const uploadImage = await request(server)
@@ -170,9 +176,115 @@ describe('Images testing (e2e)', () => {
 
     const isExistImage = await checkFileExists(uploadedImagePath);
 
-    expect(isExistImage).toBe(true);
+    expect(isExistImage).toBeTruthy();
+  });
+
+  it('+ POST upload to fs wallpaper jpeg type for blog', async () => {
+    const testImagePath = join(
+      __dirname,
+      'test-images',
+      '+blog_wallpaper.jpeg',
+    );
+
+    const uploadImage = await request(server)
+      .post(`${Paths.blogsBlogger}/${newBlog!.id}/images/wallpaper`)
+      .auth(accessToken, { type: 'bearer' })
+      .attach('file', testImagePath)
+      .expect(HTTP_STATUSES.CREATED_201);
+
+    expect(uploadImage.body.wallpaper.url).toContain(
+      `/views/blogs/${newBlog!.id}/wallpapers/+blog_wallpaper.jpeg`,
+    );
+
+    const uploadedImagePath = join(
+      __dirname,
+      'views',
+      'blogs',
+      newBlog!.id,
+      'wallpapers',
+      '+blog_wallpaper.jpeg',
+    );
+
+    const isExistImage = await checkFileExists(uploadedImagePath);
+
+    expect(isExistImage).toBeTruthy();
+  });
+
+  it('+ POST upload to fs wallpaper jpg type for blog', async () => {
+    const testImagePath = join(__dirname, 'test-images', '+blog_wallpaper.jpg');
+
+    const uploadImage = await request(server)
+      .post(`${Paths.blogsBlogger}/${newBlog!.id}/images/wallpaper`)
+      .auth(accessToken, { type: 'bearer' })
+      .attach('file', testImagePath)
+      .expect(HTTP_STATUSES.CREATED_201);
+
+    expect(uploadImage.body.wallpaper.url).toContain(
+      `/views/blogs/${newBlog!.id}/wallpapers/+blog_wallpaper.jpg`,
+    );
+
+    const uploadedImagePath = join(
+      __dirname,
+      'views',
+      'blogs',
+      newBlog!.id,
+      'wallpapers',
+      '+blog_wallpaper.jpg',
+    );
+
+    const isExistImage = await checkFileExists(uploadedImagePath);
+
+    expect(isExistImage).toBeTruthy();
 
     await unlink(uploadedImagePath);
+
+    await blogWallpaperEntity
+      .createQueryBuilder()
+      .delete()
+      .from(BlogWallpaper)
+      .execute();
+  });
+
+  it('- POST upload to fs wallpaper for blog with incorrect width', async () => {
+    const testImagePath = join(
+      __dirname,
+      'test-images',
+      '-width_blog_wallpaper.png',
+    );
+
+    await request(server)
+      .post(`${Paths.blogsBlogger}/${newBlog!.id}/images/wallpaper`)
+      .auth(accessToken, { type: 'bearer' })
+      .attach('file', testImagePath)
+      .expect(HTTP_STATUSES.BAD_REQUEST_400);
+  });
+
+  it('- POST upload to fs wallpaper for blog with incorrect height', async () => {
+    const testImagePath = join(
+      __dirname,
+      'test-images',
+      '-height_blog_wallpaper.png',
+    );
+
+    await request(server)
+      .post(`${Paths.blogsBlogger}/${newBlog!.id}/images/wallpaper`)
+      .auth(accessToken, { type: 'bearer' })
+      .attach('file', testImagePath)
+      .expect(HTTP_STATUSES.BAD_REQUEST_400);
+  });
+
+  it('- POST upload to fs wallpaper for blog with incorrect type svg', async () => {
+    const testImagePath = join(
+      __dirname,
+      'test-images',
+      '-type_blog_wallpaper.svg',
+    );
+
+    await request(server)
+      .post(`${Paths.blogsBlogger}/${newBlog!.id}/images/wallpaper`)
+      .auth(accessToken, { type: 'bearer' })
+      .attach('file', testImagePath)
+      .expect(HTTP_STATUSES.BAD_REQUEST_400);
   });
 
   afterAll(async () => {

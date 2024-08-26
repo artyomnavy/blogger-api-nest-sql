@@ -1,6 +1,7 @@
 import { readFile, writeFile } from 'node:fs';
 import { promises as fsPromises } from 'node:fs';
 import { join, dirname } from 'node:path';
+import { unlink } from 'node:fs/promises';
 
 // relativePath - относительный путь до файла
 
@@ -57,6 +58,29 @@ export const saveFileAsync = (relativePath: string, data: Buffer) => {
       resolve();
     });
   });
+};
+
+export const deleteFileAsync = async (relativePath: string): Promise<void> => {
+  // Получение корневого модуля, с которого было начато выполнение приложения
+  const mainFile = require.main;
+
+  if (!mainFile) {
+    // Скрипт не был запущен напрямую
+    throw new Error('require.main is undefined');
+  }
+
+  // Получение корневого пути приложения
+  const rootDirPath = dirname(mainFile.filename);
+
+  // Формирование абсолютного пути к файлу
+  const filePath = join(rootDirPath, relativePath);
+
+  // Удаление файла по указанному абсолютному пути
+  try {
+    await unlink(filePath);
+  } catch (error) {
+    console.error(error);
+  }
 };
 
 export const ensureDirAsync = async (relativePath: string): Promise<void> => {

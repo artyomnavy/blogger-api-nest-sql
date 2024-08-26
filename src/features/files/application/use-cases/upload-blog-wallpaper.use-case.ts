@@ -81,6 +81,21 @@ export class UploadBlogWallpaperToFsUseCase
       return notice;
     }
 
+    // Проверяем существуют ли уже обои блога
+    const existingBlogWallpaper =
+      await this.blogsQueryRepository.getBlogWallpaperFsUrl(blogId);
+
+    // Если обои блога уже есть, то удаляем в файловом хранилище и в БД
+    if (existingBlogWallpaper) {
+      await this.filesStorageAdapter.deleteBlogWallpaper(
+        existingBlogWallpaper.url,
+      );
+
+      await this.blogsWallpapersRepository.deleteBlogWallpaper(
+        existingBlogWallpaper.id,
+      );
+    }
+
     // Загружаем обои блога в файловое хранилище
     const fsUrl = await this.filesStorageAdapter.uploadBlogWallpaper(
       blogId,
