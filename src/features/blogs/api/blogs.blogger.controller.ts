@@ -44,7 +44,7 @@ import {
   BlogImagesOutputModel,
   updateBlogImagesUrlsForOutput,
 } from '../../files/api/models/blog-image.output.model';
-import { Request } from 'express';
+import { UploadBlogMainImageToFsCommand } from '../../files/application/use-cases/upload-blog-main-image.use-case';
 
 @Controller('blogger/blogs')
 export class BlogsBloggerController {
@@ -253,6 +253,56 @@ export class BlogsBloggerController {
     file: Express.Multer.File,
   ): Promise<BlogImagesOutputModel> {
     const uploadCommand = new UploadBlogWallpaperToFsCommand(
+      userId,
+      blogId,
+      file.originalname,
+      file.buffer,
+    );
+
+    const notice = await this.commandBus.execute(uploadCommand);
+
+    if (notice.hasError()) {
+      if (notice.code === HTTP_STATUSES.NOT_FOUND_404) {
+        throw new NotFoundException(notice.messages[0]);
+      } else {
+        throw new ForbiddenException(notice.messages[0]);
+      }
+    }
+
+    const blogImages = await this.blogsQueryRepository.getBlogImages(blogId);
+
+    if (!blogImages) {
+      throw new NotFoundException('Blog images not found');
+    }
+
+    return updateBlogImagesUrlsForOutput(
+      req.protocol,
+      req.get('host'),
+      blogImages,
+    );
+  }
+  @Post(':blogId/images/main')
+  @UseInterceptors(FileInterceptor('file'))
+  @UseGuards(JwtBearerAuthGuard)
+  @HttpCode(HTTP_STATUSES.CREATED_201)
+  async uploadMainImageForBlog(
+    @Req() req,
+    @CurrentUserId() userId: string,
+    @Param('blogId', UuidPipe) blogId: string,
+    @UploadedFile(
+      new ParseFilePipeBuilder()
+        .addFileTypeValidator({
+          fileType: 'png|jpeg|jpg',
+        })
+        .addMaxSizeValidator({
+          maxSize: 100000,
+        })
+        .addValidator(new ImageSizeFileValidator(156, 156))
+        .build(),
+    )
+    file: Express.Multer.File,
+  ): Promise<BlogImagesOutputModel> {
+    const uploadCommand = new UploadBlogMainImageToFsCommand(
       userId,
       blogId,
       file.originalname,

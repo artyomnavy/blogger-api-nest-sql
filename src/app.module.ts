@@ -116,6 +116,8 @@ import { PostMainImage } from './features/files/domain/main-image-post.entity';
 import { UploadBlogWallpaperToFsUseCase } from './features/files/application/use-cases/upload-blog-wallpaper.use-case';
 import { FilesStorageAdapter } from './features/files/adapters/files-storage-adapter';
 import { BlogsWallpapersRepository } from './features/files/infrastructure/blogs-wallpapers.repository';
+import { UploadBlogMainImageToFsUseCase } from './features/files/application/use-cases/upload-blog-main-image.use-case';
+import { BlogsMainImagesRepository } from './features/files/infrastructure/blogs-main-images.repository';
 
 config();
 
@@ -141,6 +143,7 @@ const blogsUseCases = [
   BindBlogWithUserUseCase,
   UpdateBlogBanInfoByAdminUseCase,
   UploadBlogWallpaperToFsUseCase,
+  UploadBlogMainImageToFsUseCase,
 ];
 
 const commentsUseCases = [
@@ -199,6 +202,7 @@ const repositoriesProviders = [
   PlayersSessionsRepository,
   AnswersRepository,
   BlogsWallpapersRepository,
+  BlogsMainImagesRepository,
 ];
 
 const queryRepositoriesProviders = [

@@ -8,6 +8,16 @@ export class BlogWallpaper {
   ) {}
 }
 
+export class BlogMainImage {
+  constructor(
+    public id: string,
+    public url: string,
+    public width: number,
+    public height: number,
+    public fileSize: number,
+  ) {}
+}
+
 export class BlogWallpaperOutputModel {
   url: string;
   width: number;
