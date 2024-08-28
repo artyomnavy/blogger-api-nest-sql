@@ -232,6 +232,26 @@ export class BlogsQueryRepository {
       websiteUrl: blog.websiteUrl,
       createdAt: blog.createdAt.toISOString(),
       isMembership: blog.isMembership,
+      images: {
+        wallpaper: blog.blogWallpaper
+          ? {
+              url: blog.blogWallpaper.url,
+              width: blog.blogWallpaper.width,
+              height: blog.blogWallpaper.height,
+              fileSize: blog.blogWallpaper.fileSize,
+            }
+          : null,
+        main: blog.blogMainImage
+          ? blog.blogMainImage.map((mainImage: BlogMainImage) => {
+              return {
+                url: mainImage.url,
+                width: mainImage.width,
+                height: mainImage.height,
+                fileSize: mainImage.fileSize,
+              };
+            })
+          : [],
+      },
     };
   }
   async blogWithOwnerAndBanInfoForAdminMapper(

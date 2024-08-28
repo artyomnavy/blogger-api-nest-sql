@@ -70,7 +70,6 @@ export class BlogsRepository {
   async bindBlogWithUser(
     blogId: string,
     user: User,
-    blogBanByAdmin: BlogBanByAdmin,
     manager?: EntityManager,
   ): Promise<boolean> {
     const queryBuilder = manager
@@ -79,7 +78,7 @@ export class BlogsRepository {
 
     const resultBind = await queryBuilder
       .update(Blog)
-      .set({ user: user, blogBanByAdmin: blogBanByAdmin })
+      .set({ user: user })
       .where('id = :blogId', { blogId })
       .execute();
 

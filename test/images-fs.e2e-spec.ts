@@ -118,6 +118,8 @@ describe('Images testing (e2e)', () => {
       websiteUrl: createData.websiteUrl,
       createdAt: expect.any(String),
       isMembership: false,
+      wallpaper: null,
+      main: [],
     });
 
     const queryData = {

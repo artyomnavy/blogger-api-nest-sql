@@ -3,13 +3,9 @@ import { BlogsRepository } from '../../infrastructure/blogs.repository';
 import { UsersQueryRepository } from '../../../users/infrastructure/users.query-repository';
 import { BlogsQueryRepository } from '../../infrastructure/blogs.query-repository';
 import { ResultCode } from '../../../../common/utils';
-
 import { ResultType } from '../../../../common/types/result';
-import { v4 as uuidv4 } from 'uuid';
-import { BlogsBansByAdminRepository } from '../../../bans/infrastructure/blogs-bans-by-admin-repository';
 import { TransactionManagerUseCase } from '../../../../common/use-cases/transaction.use-case';
 import { DataSource, EntityManager } from 'typeorm';
-import { BlogBanInfoByAdmin } from '../../../bans/api/models/ban.output.model';
 
 export class BindBlogWithUserCommand {
   constructor(
@@ -29,7 +25,6 @@ export class BindBlogWithUserUseCase
     private blogsRepository: BlogsRepository,
     private usersQueryRepository: UsersQueryRepository,
     private blogsQueryRepository: BlogsQueryRepository,
-    private blogsBansByAdminRepository: BlogsBansByAdminRepository,
     protected readonly dataSource: DataSource,
   ) {
     super(dataSource);
@@ -71,22 +66,8 @@ export class BindBlogWithUserUseCase
       };
     }
 
-    // Создаем информацию о бане блога
-    const newBlogBanInfoByAdmin = new BlogBanInfoByAdmin(uuidv4(), false, null);
-
-    const blogBanByAdmin =
-      await this.blogsBansByAdminRepository.createBlogBanInfoByAdmin(
-        newBlogBanInfoByAdmin,
-        manager,
-      );
-
     // Привязываем блог к пользователю
-    await this.blogsRepository.bindBlogWithUser(
-      blogId,
-      user,
-      blogBanByAdmin,
-      manager,
-    );
+    await this.blogsRepository.bindBlogWithUser(blogId, user, manager);
 
     return {
       data: true,

@@ -110,6 +110,10 @@ describe('Blogs bans testing (e2e)', () => {
       websiteUrl: createData.websiteUrl,
       createdAt: expect.any(String),
       isMembership: false,
+      images: {
+        wallpaper: null,
+        main: [],
+      },
     });
 
     const queryData = {

@@ -1,3 +1,5 @@
+import { BlogImagesOutputModel } from '../../../files/api/models/blog-image.output.model';
+
 export class Blog {
   constructor(
     public id: string,
@@ -26,6 +28,7 @@ export class BlogOutputModel {
   websiteUrl: string;
   createdAt: string;
   isMembership: boolean;
+  images: BlogImagesOutputModel;
 }
 
 export class BlogWithOwnerAndBanInfoOutputModel {

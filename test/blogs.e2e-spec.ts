@@ -207,6 +207,10 @@ describe('Blogs testing (e2e)', () => {
       websiteUrl: createData.websiteUrl,
       createdAt: expect.any(String),
       isMembership: false,
+      images: {
+        wallpaper: null,
+        main: [],
+      },
     });
 
     const queryData = {
@@ -474,6 +478,10 @@ describe('Blogs testing (e2e)', () => {
     expect(foundBlogWithoutUser.body).toStrictEqual({
       ...createDataForBlog,
       createdAt: createDataForBlog.createdAt.toISOString(),
+      images: {
+        wallpaper: null,
+        main: [],
+      },
     });
 
     // Bind blog to user

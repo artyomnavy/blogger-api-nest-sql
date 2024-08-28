@@ -171,6 +171,10 @@ describe('Comments testing (e2e)', () => {
       websiteUrl: 'https://website1.com',
       createdAt: expect.any(String),
       isMembership: false,
+      images: {
+        wallpaper: null,
+        main: [],
+      },
     });
 
     const foundBlogs = await request(server)
