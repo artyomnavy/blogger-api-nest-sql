@@ -27,14 +27,14 @@ export class BlogsMainImagesRepository {
     blogMainImage.fileSize = mainImage.fileSize;
     blogMainImage.blog = mainImage.blog;
 
-    const uploadBlogWallpaper =
+    const uploadBlogMainImage =
       await blogsMainImagesRepository.save(blogMainImage);
 
     return {
-      url: uploadBlogWallpaper.url,
-      width: uploadBlogWallpaper.width,
-      height: uploadBlogWallpaper.height,
-      fileSize: uploadBlogWallpaper.fileSize,
+      url: uploadBlogMainImage.url,
+      width: uploadBlogMainImage.width,
+      height: uploadBlogMainImage.height,
+      fileSize: uploadBlogMainImage.fileSize,
     };
   }
 }

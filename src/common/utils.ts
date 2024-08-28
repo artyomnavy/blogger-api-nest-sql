@@ -44,6 +44,12 @@ export enum BanStatus {
   NOT_BANNED = 'notBanned',
 }
 
+export enum PostMainImageSize {
+  ORIGINAL = 'original',
+  MIDDLE = 'middle',
+  SMALL = 'small',
+}
+
 export enum ResultCode {
   SUCCESS,
   FORBIDDEN,

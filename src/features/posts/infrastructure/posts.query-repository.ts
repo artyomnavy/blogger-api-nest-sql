@@ -7,7 +7,7 @@ import { PaginatorModel } from '../../../common/models/paginator.input.model';
 import { PaginatorOutputModel } from '../../../common/models/paginator.output.model';
 import { LikeStatuses } from '../../../common/utils';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Repository } from 'typeorm';
+import { EntityManager, Repository } from 'typeorm';
 import { Post } from '../domain/post.entity';
 import { LikePost } from '../../likes/domain/like-post.entity';
 
@@ -606,6 +606,25 @@ export class PostsQueryRepository {
       ),
     };
   }
+  async getOrmPostById(
+    postId: string,
+    manager?: EntityManager,
+  ): Promise<Post | null> {
+    const postsQueryRepository = manager
+      ? manager.getRepository(Post)
+      : this.postsQueryRepository;
+
+    const post = await postsQueryRepository.findOne({
+      where: { id: postId },
+    });
+
+    if (!post) {
+      return null;
+    } else {
+      return post;
+    }
+  }
+
   async postMapper(post: PostMapperModel): Promise<PostOutputModel> {
     return {
       id: post.id,

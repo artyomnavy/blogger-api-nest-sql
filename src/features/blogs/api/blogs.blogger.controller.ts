@@ -45,6 +45,8 @@ import {
   updateBlogImagesUrlsForOutput,
 } from '../../files/api/models/blog-image.output.model';
 import { UploadBlogMainImageToFsCommand } from '../../files/application/use-cases/upload-blog-main-image.use-case';
+import { UploadPostMainImageToFsCommand } from '../../files/application/use-cases/upload-post-main-image.use-case';
+import { PostMainImageOutputModel } from '../../files/api/models/post-image.output.model';
 
 @Controller('blogger/blogs')
 export class BlogsBloggerController {
@@ -330,5 +332,61 @@ export class BlogsBloggerController {
       req.get('host'),
       blogImages,
     );
+  }
+  @Post(':blogId/posts/:postId/images/main')
+  @UseInterceptors(FileInterceptor('file'))
+  @UseGuards(JwtBearerAuthGuard)
+  @HttpCode(HTTP_STATUSES.CREATED_201)
+  async uploadMainImageForPost(
+    @Req() req,
+    @CurrentUserId() userId: string,
+    @Param('blogId', UuidPipe) blogId: string,
+    @Param('postId', UuidPipe) postId: string,
+    @UploadedFile(
+      new ParseFilePipeBuilder()
+        .addFileTypeValidator({
+          fileType: 'png|jpeg|jpg',
+        })
+        .addMaxSizeValidator({
+          maxSize: 100000,
+        })
+        .addValidator(new ImageSizeFileValidator(940, 432))
+        .build(),
+    )
+    file: Express.Multer.File,
+  ): Promise<PostMainImageOutputModel[]> {
+    const uploadCommand = new UploadPostMainImageToFsCommand(
+      userId,
+      blogId,
+      postId,
+      file.originalname,
+      file.buffer,
+    );
+
+    const notice = await this.commandBus.execute(uploadCommand);
+
+    if (notice.hasError()) {
+      if (notice.code === HTTP_STATUSES.NOT_FOUND_404) {
+        throw new NotFoundException(notice.messages[0]);
+      } else {
+        throw new ForbiddenException(notice.messages[0]);
+      }
+    }
+
+    // TO DO: write handling result use case for output
+
+    // const blogImages = await this.blogsQueryRepository.getBlogImages(blogId);
+    //
+    // if (!blogImages) {
+    //   throw new NotFoundException('Blog images not found');
+    // }
+    //
+    // return updateBlogImagesUrlsForOutput(
+    //   req.protocol,
+    //   req.get('host'),
+    //   blogImages,
+    // );
+
+    return [];
   }
 }

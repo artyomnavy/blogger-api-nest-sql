@@ -118,6 +118,8 @@ import { FilesStorageAdapter } from './features/files/adapters/files-storage-ada
 import { BlogsWallpapersRepository } from './features/files/infrastructure/blogs-wallpapers.repository';
 import { UploadBlogMainImageToFsUseCase } from './features/files/application/use-cases/upload-blog-main-image.use-case';
 import { BlogsMainImagesRepository } from './features/files/infrastructure/blogs-main-images.repository';
+import { PostsMainImagesRepository } from './features/files/infrastructure/posts-main-images.repository';
+import { UploadPostMainImageToFsUseCase } from './features/files/application/use-cases/upload-post-main-image.use-case';
 
 config();
 
@@ -166,6 +168,7 @@ const postsUseCases = [
   UpdatePostUseCase,
   DeletePostUseCase,
   ChangeLikeStatusForPostUseCase,
+  UploadPostMainImageToFsUseCase,
 ];
 
 const authUseCases = [
@@ -203,6 +206,7 @@ const repositoriesProviders = [
   AnswersRepository,
   BlogsWallpapersRepository,
   BlogsMainImagesRepository,
+  PostsMainImagesRepository,
 ];
 
 const queryRepositoriesProviders = [
