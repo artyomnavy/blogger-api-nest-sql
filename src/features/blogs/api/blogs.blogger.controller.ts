@@ -46,7 +46,12 @@ import {
 } from '../../files/api/models/blog-image.output.model';
 import { UploadBlogMainImageToFsCommand } from '../../files/application/use-cases/upload-blog-main-image.use-case';
 import { UploadPostMainImageToFsCommand } from '../../files/application/use-cases/upload-post-main-image.use-case';
-import { PostMainImageOutputModel } from '../../files/api/models/post-image.output.model';
+import {
+  PostMainImagesOutputModel,
+  updatePostImagesUrlsForOutput,
+} from '../../files/api/models/post-image.output.model';
+
+// TO DO: add protocol + host for output blog/blogs and post/posts
 
 @Controller('blogger/blogs')
 export class BlogsBloggerController {
@@ -354,7 +359,7 @@ export class BlogsBloggerController {
         .build(),
     )
     file: Express.Multer.File,
-  ): Promise<PostMainImageOutputModel[]> {
+  ): Promise<PostMainImagesOutputModel> {
     const uploadCommand = new UploadPostMainImageToFsCommand(
       userId,
       blogId,
@@ -373,20 +378,10 @@ export class BlogsBloggerController {
       }
     }
 
-    // TO DO: write handling result use case for output
-
-    // const blogImages = await this.blogsQueryRepository.getBlogImages(blogId);
-    //
-    // if (!blogImages) {
-    //   throw new NotFoundException('Blog images not found');
-    // }
-    //
-    // return updateBlogImagesUrlsForOutput(
-    //   req.protocol,
-    //   req.get('host'),
-    //   blogImages,
-    // );
-
-    return [];
+    return updatePostImagesUrlsForOutput(
+      req.protocol,
+      req.get('host'),
+      notice.data,
+    );
   }
 }

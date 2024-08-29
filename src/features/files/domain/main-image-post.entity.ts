@@ -24,7 +24,7 @@ export class PostMainImage {
   @Column({ name: 'file_size', type: 'int' })
   fileSize: number;
 
-  @Column({ name: 'image_size', type: 'int' })
+  @Column({ name: 'image_size', type: 'character varying' })
   imageSize: string;
 
   @ManyToOne(() => Post, (p) => p.postMainImage, { onDelete: 'CASCADE' })

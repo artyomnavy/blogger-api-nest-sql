@@ -11,7 +11,7 @@ import sharp from 'sharp';
 import { PostsQueryRepository } from '../../../posts/infrastructure/posts.query-repository';
 import {
   PostMainImage,
-  PostMainImageOutputModel,
+  PostMainImageModel,
 } from '../../api/models/post-image.output.model';
 import { PostsMainImagesRepository } from '../../infrastructure/posts-main-images.repository';
 
@@ -28,7 +28,7 @@ export class UploadPostMainImageToFsCommand {
 export class UploadPostMainImageToFsUseCase
   extends TransactionManagerUseCase<
     UploadPostMainImageToFsCommand,
-    Notice<PostMainImageOutputModel[]>
+    Notice<PostMainImageModel[]>
   >
   implements ICommandHandler<UploadPostMainImageToFsCommand>
 {
@@ -45,8 +45,8 @@ export class UploadPostMainImageToFsUseCase
   async doLogic(
     command: UploadPostMainImageToFsCommand,
     manager: EntityManager,
-  ): Promise<Notice<PostMainImageOutputModel[]>> {
-    const notice = new Notice<PostMainImageOutputModel[]>();
+  ): Promise<Notice<PostMainImageModel[]>> {
+    const notice = new Notice<PostMainImageModel[]>();
 
     const { userId, blogId, postId, originalName, buffer } = command;
 

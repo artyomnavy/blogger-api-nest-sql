@@ -1,3 +1,5 @@
+import { BlogImagesOutputModel } from './blog-image.output.model';
+
 export class PostMainImage {
   constructor(
     public id: string,
@@ -9,9 +11,28 @@ export class PostMainImage {
   ) {}
 }
 
-export class PostMainImageOutputModel {
+export class PostMainImageModel {
   url: string;
   width: number;
   height: number;
   fileSize: number;
 }
+
+export class PostMainImagesOutputModel {
+  main: PostMainImageModel[];
+}
+
+export const updatePostImagesUrlsForOutput = (
+  protocol: string,
+  host: string,
+  postMainImages: PostMainImageModel[],
+): PostMainImagesOutputModel => {
+  return {
+    main: [
+      ...postMainImages.map((mainImage) => ({
+        ...mainImage,
+        url: `${protocol}://${host}/${mainImage.url}`,
+      })),
+    ],
+  };
+};

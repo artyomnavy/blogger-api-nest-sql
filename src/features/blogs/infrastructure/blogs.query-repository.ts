@@ -43,6 +43,8 @@ export class BlogsQueryRepository {
         'b.createdAt',
         'b.isMembership',
       ])
+      .leftJoinAndSelect('b.blogWallpaper', 'bw')
+      .leftJoinAndSelect('b.blogMainImage', 'bmi')
       .leftJoin('b.blogBanByAdmin', 'bba')
       .leftJoin('b.user', 'u')
       .where('(b.name ILIKE :name)', { name: `%${searchNameTerm}%` })
@@ -85,6 +87,8 @@ export class BlogsQueryRepository {
         'b.isMembership',
       ])
       .from(Blog, 'b')
+      .leftJoinAndSelect('b.blogWallpaper', 'bw')
+      .leftJoinAndSelect('b.blogMainImage', 'bmi')
       .leftJoin('b.blogBanByAdmin', 'bba')
       .where('b.id = :id', { id })
       .andWhere('(bba.isBanned = :ban)', { ban: false })

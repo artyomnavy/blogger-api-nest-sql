@@ -11,6 +11,8 @@ import { EntityManager, Repository } from 'typeorm';
 import { Post } from '../domain/post.entity';
 import { LikePost } from '../../likes/domain/like-post.entity';
 
+// TO DO: add main images for query posts and post
+
 @Injectable()
 export class PostsQueryRepository {
   constructor(
@@ -155,6 +157,7 @@ export class PostsQueryRepository {
       .leftJoin('p.blog', 'b')
       .leftJoin('b.user', 'u')
       .leftJoin('u.userBanByAdmin', 'uba')
+      .leftJoinAndSelect('p.postMainImage', 'pmi')
       .select([
         'p.id AS "id"',
         'p.title AS "title"',
@@ -268,6 +271,7 @@ export class PostsQueryRepository {
       .leftJoin('p.blog', 'b')
       .leftJoin('b.user', 'u')
       .leftJoin('u.userBanByAdmin', 'uba')
+      .leftJoin('p.postMainImage', 'pmi')
       .select([
         'p.id AS "id"',
         'p.title AS "title"',

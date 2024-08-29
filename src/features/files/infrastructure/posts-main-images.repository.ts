@@ -2,7 +2,7 @@ import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { EntityManager, Repository } from 'typeorm';
 import { PostMainImage } from '../domain/main-image-post.entity';
-import { PostMainImageOutputModel } from '../api/models/post-image.output.model';
+import { PostMainImageModel } from '../api/models/post-image.output.model';
 
 @Injectable()
 export class PostsMainImagesRepository {
@@ -13,7 +13,7 @@ export class PostsMainImagesRepository {
   async uploadPostMainImage(
     mainImage: PostMainImage,
     manager?: EntityManager,
-  ): Promise<PostMainImageOutputModel> {
+  ): Promise<PostMainImageModel> {
     const postsMainImagesRepository = manager
       ? manager.getRepository(PostMainImage)
       : this.postsMainImagesRepository;

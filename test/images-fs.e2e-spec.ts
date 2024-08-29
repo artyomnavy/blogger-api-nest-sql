@@ -1,6 +1,6 @@
 import { INestApplication } from '@nestjs/common';
 import request from 'supertest';
-import { HTTP_STATUSES } from '../src/common/utils';
+import { HTTP_STATUSES, LikeStatuses } from '../src/common/utils';
 import { UserOutputModel } from '../src/features/users/api/models/user.output.model';
 import { Paths } from './utils/test-constants';
 import { CreateEntitiesTestManager } from './utils/test-manager';
@@ -17,6 +17,8 @@ import { Repository } from 'typeorm';
 import { BlogWallpaper } from '../src/features/files/domain/wallpaper-blog.entity';
 import { getRepositoryToken } from '@nestjs/typeorm';
 import { checkFileExists, deleteEmptyFolders } from './utils/test-image-utils';
+import { PostOutputModel } from '../src/features/posts/api/models/post.output.model';
+import { CreateAndUpdatePostModel } from '../src/features/posts/api/models/post.input.model';
 
 describe('Images testing (e2e)', () => {
   let app: INestApplication;
@@ -26,6 +28,7 @@ describe('Images testing (e2e)', () => {
 
   let newUser: UserOutputModel;
   let newBlog: BlogOutputModel | null = null;
+  let newPost: PostOutputModel | null = null;
   let accessToken: any;
 
   beforeAll(async () => {
@@ -96,6 +99,8 @@ describe('Images testing (e2e)', () => {
     accessToken = createAccessTokenForUser.body.accessToken;
   });
 
+  // Create new blog
+
   it('+ POST create blog by blogger with correct data', async () => {
     const createData: CreateAndUpdateBlogModel = {
       name: 'New blog 1',
@@ -118,8 +123,10 @@ describe('Images testing (e2e)', () => {
       websiteUrl: createData.websiteUrl,
       createdAt: expect.any(String),
       isMembership: false,
-      wallpaper: null,
-      main: [],
+      images: {
+        wallpaper: null,
+        main: [],
+      },
     });
 
     const queryData = {
@@ -142,6 +149,59 @@ describe('Images testing (e2e)', () => {
       pageSize: 10,
       totalCount: 1,
       items: [newBlog],
+    });
+  });
+
+  // Create new post
+
+  it('+ POST (blogger) create post with correct data for correct blogId)', async () => {
+    const createData: CreateAndUpdatePostModel = {
+      title: 'New post 1',
+      shortDescription: 'New shortDescription 1',
+      content: 'New content 1',
+    };
+
+    const createPost = await createEntitiesTestManager.createPost(
+      `${Paths.blogsBlogger}/${newBlog!.id}/posts`,
+      createData,
+      accessToken,
+    );
+
+    newPost = createPost.body;
+
+    expect(newPost).toEqual({
+      id: expect.any(String),
+      title: createData.title,
+      shortDescription: createData.shortDescription,
+      content: createData.content,
+      blogId: expect.any(String),
+      blogName: expect.any(String),
+      createdAt: expect.any(String),
+      extendedLikesInfo: {
+        likesCount: 0,
+        dislikesCount: 0,
+        myStatus: LikeStatuses.NONE,
+        newestLikes: [],
+      },
+    });
+
+    const queryData = {
+      sortBy: 'blogName',
+      sortDirection: 'ASC',
+    };
+
+    const foundPosts = await request(server)
+      .get(`${Paths.blogsBlogger}/${newBlog!.id}/posts`)
+      .auth(accessToken, { type: 'bearer' })
+      .query(queryData)
+      .expect(HTTP_STATUSES.OK_200);
+
+    expect(foundPosts.body).toStrictEqual({
+      pagesCount: 1,
+      page: 1,
+      pageSize: 10,
+      totalCount: 1,
+      items: [newPost],
     });
   });
 
@@ -421,6 +481,253 @@ describe('Images testing (e2e)', () => {
     expect(isExistImage).toBeTruthy();
 
     await unlink(uploadedImagePath);
+  });
+
+  // CHECK UPLOAD POST MAIN IMAGE
+
+  it('- POST upload to fs main image for post with incorrect width', async () => {
+    const testImagePath = join(
+      __dirname,
+      'test-images',
+      '-width_post_main.png',
+    );
+
+    await request(server)
+      .post(
+        `${Paths.blogsBlogger}/${newBlog!.id}/posts/${newPost!.id}/images/main`,
+      )
+      .auth(accessToken, { type: 'bearer' })
+      .attach('file', testImagePath)
+      .expect(HTTP_STATUSES.BAD_REQUEST_400);
+  });
+
+  it('- POST upload to fs main image for post with incorrect height', async () => {
+    const testImagePath = join(
+      __dirname,
+      'test-images',
+      '-height_post_main.png',
+    );
+
+    await request(server)
+      .post(
+        `${Paths.blogsBlogger}/${newBlog!.id}/posts/${newPost!.id}/images/main`,
+      )
+      .auth(accessToken, { type: 'bearer' })
+      .attach('file', testImagePath)
+      .expect(HTTP_STATUSES.BAD_REQUEST_400);
+  });
+
+  it('- POST upload to fs main image for post with incorrect type svg', async () => {
+    const testImagePath = join(__dirname, 'test-images', '-type_post_main.svg');
+
+    await request(server)
+      .post(
+        `${Paths.blogsBlogger}/${newBlog!.id}/posts/${newPost!.id}/images/main`,
+      )
+      .auth(accessToken, { type: 'bearer' })
+      .attach('file', testImagePath)
+      .expect(HTTP_STATUSES.BAD_REQUEST_400);
+  });
+
+  it('- POST upload to fs main image for post with incorrect size', async () => {
+    const testImagePath = join(__dirname, 'test-images', '-size_post_main.jpg');
+
+    await request(server)
+      .post(
+        `${Paths.blogsBlogger}/${newBlog!.id}/posts/${newPost!.id}/images/main`,
+      )
+      .auth(accessToken, { type: 'bearer' })
+      .attach('file', testImagePath)
+      .expect(HTTP_STATUSES.BAD_REQUEST_400);
+  });
+
+  it('+ POST upload to fs main image png type for post', async () => {
+    const testImagePath = join(__dirname, 'test-images', '+post_main.png');
+
+    const uploadImage = await request(server)
+      .post(
+        `${Paths.blogsBlogger}/${newBlog!.id}/posts/${newPost!.id}/images/main`,
+      )
+      .auth(accessToken, { type: 'bearer' })
+      .attach('file', testImagePath)
+      .expect(HTTP_STATUSES.CREATED_201);
+
+    expect(uploadImage.body.main[0].url).toContain(
+      `/views/posts/${newPost!.id}/main/+post_main.png`,
+    );
+
+    expect(uploadImage.body.main[1].url).toContain(
+      `/views/posts/${newPost!.id}/main/middle_+post_main.png`,
+    );
+
+    expect(uploadImage.body.main[2].url).toContain(
+      `/views/posts/${newPost!.id}/main/small_+post_main.png`,
+    );
+
+    const originalImagePath = join(
+      __dirname,
+      'views',
+      'posts',
+      newPost!.id,
+      'main',
+      '+post_main.png',
+    );
+
+    const middleImagePath = join(
+      __dirname,
+      'views',
+      'posts',
+      newPost!.id,
+      'main',
+      'middle_+post_main.png',
+    );
+
+    const smallImagePath = join(
+      __dirname,
+      'views',
+      'posts',
+      newPost!.id,
+      'main',
+      'small_+post_main.png',
+    );
+
+    const isExistOriginalImage = await checkFileExists(originalImagePath);
+    const isExistMiddleImage = await checkFileExists(middleImagePath);
+    const isExistSmallImage = await checkFileExists(smallImagePath);
+
+    expect(isExistOriginalImage).toBeTruthy();
+    expect(isExistMiddleImage).toBeTruthy();
+    expect(isExistSmallImage).toBeTruthy();
+
+    await unlink(originalImagePath);
+    await unlink(middleImagePath);
+    await unlink(smallImagePath);
+  });
+
+  it('+ POST upload to fs main image jpeg type for post', async () => {
+    const testImagePath = join(__dirname, 'test-images', '+post_main.jpeg');
+
+    const uploadImage = await request(server)
+      .post(
+        `${Paths.blogsBlogger}/${newBlog!.id}/posts/${newPost!.id}/images/main`,
+      )
+      .auth(accessToken, { type: 'bearer' })
+      .attach('file', testImagePath)
+      .expect(HTTP_STATUSES.CREATED_201);
+
+    expect(uploadImage.body.main[0].url).toContain(
+      `/views/posts/${newPost!.id}/main/+post_main.jpeg`,
+    );
+
+    expect(uploadImage.body.main[1].url).toContain(
+      `/views/posts/${newPost!.id}/main/middle_+post_main.jpeg`,
+    );
+
+    expect(uploadImage.body.main[2].url).toContain(
+      `/views/posts/${newPost!.id}/main/small_+post_main.jpeg`,
+    );
+
+    const originalImagePath = join(
+      __dirname,
+      'views',
+      'posts',
+      newPost!.id,
+      'main',
+      '+post_main.jpeg',
+    );
+
+    const middleImagePath = join(
+      __dirname,
+      'views',
+      'posts',
+      newPost!.id,
+      'main',
+      'middle_+post_main.jpeg',
+    );
+
+    const smallImagePath = join(
+      __dirname,
+      'views',
+      'posts',
+      newPost!.id,
+      'main',
+      'small_+post_main.jpeg',
+    );
+
+    const isExistOriginalImage = await checkFileExists(originalImagePath);
+    const isExistMiddleImage = await checkFileExists(middleImagePath);
+    const isExistSmallImage = await checkFileExists(smallImagePath);
+
+    expect(isExistOriginalImage).toBeTruthy();
+    expect(isExistMiddleImage).toBeTruthy();
+    expect(isExistSmallImage).toBeTruthy();
+
+    await unlink(originalImagePath);
+    await unlink(middleImagePath);
+    await unlink(smallImagePath);
+  });
+
+  it('+ POST upload to fs main image jpg type for post', async () => {
+    const testImagePath = join(__dirname, 'test-images', '+post_main.jpg');
+
+    const uploadImage = await request(server)
+      .post(
+        `${Paths.blogsBlogger}/${newBlog!.id}/posts/${newPost!.id}/images/main`,
+      )
+      .auth(accessToken, { type: 'bearer' })
+      .attach('file', testImagePath)
+      .expect(HTTP_STATUSES.CREATED_201);
+
+    expect(uploadImage.body.main[0].url).toContain(
+      `/views/posts/${newPost!.id}/main/+post_main.jpg`,
+    );
+
+    expect(uploadImage.body.main[1].url).toContain(
+      `/views/posts/${newPost!.id}/main/middle_+post_main.jpg`,
+    );
+
+    expect(uploadImage.body.main[2].url).toContain(
+      `/views/posts/${newPost!.id}/main/small_+post_main.jpg`,
+    );
+
+    const originalImagePath = join(
+      __dirname,
+      'views',
+      'posts',
+      newPost!.id,
+      'main',
+      '+post_main.jpg',
+    );
+
+    const middleImagePath = join(
+      __dirname,
+      'views',
+      'posts',
+      newPost!.id,
+      'main',
+      'middle_+post_main.jpg',
+    );
+
+    const smallImagePath = join(
+      __dirname,
+      'views',
+      'posts',
+      newPost!.id,
+      'main',
+      'small_+post_main.jpg',
+    );
+
+    const isExistOriginalImage = await checkFileExists(originalImagePath);
+    const isExistMiddleImage = await checkFileExists(middleImagePath);
+    const isExistSmallImage = await checkFileExists(smallImagePath);
+
+    expect(isExistOriginalImage).toBeTruthy();
+    expect(isExistMiddleImage).toBeTruthy();
+    expect(isExistSmallImage).toBeTruthy();
+
+    await unlink(originalImagePath);
+    await unlink(middleImagePath);
+    await unlink(smallImagePath);
   });
 
   afterAll(async () => {
