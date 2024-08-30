@@ -1,5 +1,3 @@
-import { BlogImagesOutputModel } from './blog-image.output.model';
-
 export class PostMainImage {
   constructor(
     public id: string,

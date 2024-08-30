@@ -1,3 +1,8 @@
+import {
+  PostMainImageModel,
+  PostMainImagesOutputModel,
+} from '../../../files/api/models/post-image.output.model';
+
 export class Post {
   constructor(
     public id: string,
@@ -29,6 +34,7 @@ export class PostOutputModel {
     myStatus: string;
     newestLikes: NewestLikesOutputModel[];
   };
+  images: PostMainImagesOutputModel;
 }
 
 export class PostModel {
@@ -57,4 +63,5 @@ export class PostMapperModel {
     userId: string;
     login: string;
   }[];
+  mainImages: PostMainImageModel[];
 }

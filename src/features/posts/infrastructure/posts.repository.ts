@@ -37,6 +37,9 @@ export class PostsRepository {
         myStatus: LikeStatuses.NONE,
         newestLikes: [],
       },
+      images: {
+        main: [],
+      },
     };
   }
   async updatePost(

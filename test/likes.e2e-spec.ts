@@ -220,6 +220,9 @@ describe('Likes testing (e2e)', () => {
         myStatus: LikeStatuses.NONE,
         newestLikes: [],
       },
+      images: {
+        main: [],
+      },
     });
 
     const foundPosts = await request(server)
@@ -555,6 +558,9 @@ describe('Likes testing (e2e)', () => {
           },
         ],
       },
+      images: {
+        main: [],
+      },
     });
 
     await request(server)
@@ -584,6 +590,9 @@ describe('Likes testing (e2e)', () => {
         myStatus: LikeStatuses.DISLIKE,
         newestLikes: [],
       },
+      images: {
+        main: [],
+      },
     });
 
     await request(server)
@@ -612,6 +621,9 @@ describe('Likes testing (e2e)', () => {
         dislikesCount: 1,
         myStatus: LikeStatuses.DISLIKE,
         newestLikes: [],
+      },
+      images: {
+        main: [],
       },
     });
   });
@@ -644,6 +656,9 @@ describe('Likes testing (e2e)', () => {
         dislikesCount: 1,
         myStatus: LikeStatuses.NONE,
         newestLikes: [],
+      },
+      images: {
+        main: [],
       },
     });
 
@@ -680,6 +695,9 @@ describe('Likes testing (e2e)', () => {
           },
         ],
       },
+      images: {
+        main: [],
+      },
     });
 
     await request(server)
@@ -709,6 +727,9 @@ describe('Likes testing (e2e)', () => {
         myStatus: LikeStatuses.DISLIKE,
         newestLikes: [],
       },
+      images: {
+        main: [],
+      },
     });
   });
 
@@ -731,6 +752,9 @@ describe('Likes testing (e2e)', () => {
         dislikesCount: 2,
         myStatus: LikeStatuses.NONE,
         newestLikes: [],
+      },
+      images: {
+        main: [],
       },
     });
   });
@@ -759,6 +783,9 @@ describe('Likes testing (e2e)', () => {
             dislikesCount: 2,
             myStatus: LikeStatuses.NONE,
             newestLikes: [],
+          },
+          images: {
+            main: [],
           },
         },
       ],

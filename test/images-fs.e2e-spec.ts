@@ -183,6 +183,9 @@ describe('Images testing (e2e)', () => {
         myStatus: LikeStatuses.NONE,
         newestLikes: [],
       },
+      images: {
+        main: [],
+      },
     });
 
     const queryData = {

@@ -64,17 +64,29 @@ export class BlogsBloggerController {
   @Get()
   @UseGuards(JwtBearerAuthGuard)
   async getAllBlogs(
+    @Req() req,
     @CurrentUserId() userId: string,
     @Query() query: PaginatorModel,
   ): Promise<PaginatorOutputModel<BlogOutputModel>> {
     const blogs = await this.blogsQueryRepository.getAllBlogs(query, userId);
 
-    return blogs;
+    return {
+      ...blogs,
+      items: blogs.items.map((blog) => ({
+        ...blog,
+        images: updateBlogImagesUrlsForOutput(
+          req.protocol,
+          req.get('host'),
+          blog.images,
+        ),
+      })),
+    };
   }
   @Post()
   @UseGuards(JwtBearerAuthGuard)
   @HttpCode(HTTP_STATUSES.CREATED_201)
   async createBlog(
+    @Req() req,
     @CurrentUserId() userId: string,
     @Body() createModel: CreateAndUpdateBlogModel,
   ): Promise<BlogOutputModel> {
@@ -86,7 +98,14 @@ export class BlogsBloggerController {
       throw new NotFoundException(notice.messages[0]);
     }
 
-    return notice.data;
+    return {
+      ...notice.data,
+      images: updateBlogImagesUrlsForOutput(
+        req.protocol,
+        req.get('host'),
+        notice.data.images,
+      ),
+    };
   }
   @Put(':blogId')
   @UseGuards(JwtBearerAuthGuard)
@@ -136,6 +155,7 @@ export class BlogsBloggerController {
   @Get(':blogId/posts')
   @UseGuards(JwtBearerAuthGuard)
   async getPostsForBlog(
+    @Req() req,
     @Param('blogId', UuidPipe) blogId: string,
     @Query() query: PaginatorModel,
   ): Promise<PaginatorOutputModel<PostOutputModel>> {
@@ -150,12 +170,25 @@ export class BlogsBloggerController {
       blogId,
     });
 
-    return posts;
+    return {
+      ...posts,
+      items: posts.items.map((post) => ({
+        ...post,
+        images: {
+          main: updatePostImagesUrlsForOutput(
+            req.protocol,
+            req.get('host'),
+            post.images.main,
+          ).main,
+        },
+      })),
+    };
   }
   @Post(':blogId/posts')
   @UseGuards(JwtBearerAuthGuard)
   @HttpCode(HTTP_STATUSES.CREATED_201)
   async createPostForBlog(
+    @Req() req,
     @CurrentUserId() userId: string,
     @Param('blogId', UuidPipe) blogId: string,
     @Body() createModel: CreateAndUpdatePostModel,
@@ -172,7 +205,16 @@ export class BlogsBloggerController {
       }
     }
 
-    return notice.data;
+    return {
+      ...notice.data,
+      images: {
+        main: updatePostImagesUrlsForOutput(
+          req.protocol,
+          req.get('host'),
+          notice.data.images.main,
+        ).main,
+      },
+    };
   }
   @Put(':blogId/posts/:postId')
   @UseGuards(JwtBearerAuthGuard)

@@ -10,8 +10,7 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { EntityManager, Repository } from 'typeorm';
 import { Post } from '../domain/post.entity';
 import { LikePost } from '../../likes/domain/like-post.entity';
-
-// TO DO: add main images for query posts and post
+import { PostMainImage } from '../../files/domain/main-image-post.entity';
 
 @Injectable()
 export class PostsQueryRepository {
@@ -118,6 +117,21 @@ export class PostsQueryRepository {
             'sub_lp',
           );
       }, 'newestLikes')
+      // Подзапрос иконок поста
+      .addSelect((subQuery) => {
+        return subQuery
+          .select(
+            "json_agg(json_build_object('url', sub_pmi.url, 'width', sub_pmi.width, 'height', sub_pmi.height, 'fileSize', sub_pmi.file_size))",
+          )
+          .from(
+            (subQuery) =>
+              subQuery
+                .select('pmi.url, pmi.width, pmi.height, pmi.file_size')
+                .from(PostMainImage, 'pmi')
+                .where('pmi.post_id = p.id'),
+            'sub_pmi',
+          );
+      }, 'mainImages')
       .where('(uba.isBanned = :ban)', { ban: false })
       .andWhere('(uba.isBanned = :ban)', { ban: false })
       .orderBy(order, sortDirection)
@@ -236,6 +250,21 @@ export class PostsQueryRepository {
             'sub_lp',
           );
       }, 'newestLikes')
+      // Подзапрос иконок поста
+      .addSelect((subQuery) => {
+        return subQuery
+          .select(
+            "json_agg(json_build_object('url', sub_pmi.url, 'width', sub_pmi.width, 'height', sub_pmi.height, 'fileSize', sub_pmi.file_size))",
+          )
+          .from(
+            (subQuery) =>
+              subQuery
+                .select('pmi.url, pmi.width, pmi.height, pmi.file_size')
+                .from(PostMainImage, 'pmi')
+                .where('pmi.post_id = p.id'),
+            'sub_pmi',
+          );
+      }, 'mainImages')
       .where('(p.id = :id)', { id })
       .andWhere('(uba.isBanned = :ban)', { ban: false })
       .getRawOne();
@@ -346,6 +375,21 @@ export class PostsQueryRepository {
             'sub_lp',
           );
       }, 'newestLikes')
+      // Подзапрос иконок поста
+      .addSelect((subQuery) => {
+        return subQuery
+          .select(
+            "json_agg(json_build_object('url', sub_pmi.url, 'width', sub_pmi.width, 'height', sub_pmi.height, 'fileSize', sub_pmi.file_size))",
+          )
+          .from(
+            (subQuery) =>
+              subQuery
+                .select('pmi.url, pmi.width, pmi.height, pmi.file_size')
+                .from(PostMainImage, 'pmi')
+                .where('pmi.post_id = p.id'),
+            'sub_pmi',
+          );
+      }, 'mainImages')
       .where('p.blogId = :blogId', { blogId: blogId })
       .andWhere('(uba.isBanned = :ban)', { ban: false })
       .orderBy(order, sortDirection)
@@ -652,6 +696,18 @@ export class PostsQueryRepository {
                 };
               })
             : [],
+      },
+      images: {
+        main: post.mainImages
+          ? post.mainImages.map((mainImage) => {
+              return {
+                url: mainImage.url,
+                width: mainImage.width,
+                height: mainImage.height,
+                fileSize: mainImage.fileSize,
+              };
+            })
+          : [],
       },
     };
   }

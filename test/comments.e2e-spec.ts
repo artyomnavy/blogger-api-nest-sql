@@ -220,6 +220,9 @@ describe('Comments testing (e2e)', () => {
         myStatus: LikeStatuses.NONE,
         newestLikes: [],
       },
+      images: {
+        main: [],
+      },
     });
 
     const foundPosts = await request(server)
