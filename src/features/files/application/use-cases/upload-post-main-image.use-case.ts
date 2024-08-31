@@ -97,23 +97,23 @@ export class UploadPostMainImageToFsUseCase
     // Получаем метаданные иконки поста оригинального размера
     const originalMetadata = await originalSize.metadata();
 
-    // Создаем иконку поста среднего размера
-    const middleSize = originalSize.clone().resize(300, 180);
+    // Создаем иконку поста среднего размера и получаем обновленный буфер
+    const middleSizeBuffer = await originalSize
+      .clone()
+      .resize(300, 180)
+      .toBuffer();
 
     // Получаем метаданные иконки поста среднего размера
-    const middleMetadata = await middleSize.metadata();
+    const middleMetadata = await sharp(middleSizeBuffer).metadata();
 
-    // Получаем буфер данных для иконки поста среднего размера
-    const middleBuffer = await middleSize.toBuffer();
-
-    // Создаем иконку поста малого размера
-    const smallSize = originalSize.clone().resize(149, 96);
+    // Создаем иконку поста малого размера и получаем обновленный буфер
+    const smallSizeBuffer = await originalSize
+      .clone()
+      .resize(149, 96)
+      .toBuffer();
 
     // Получаем метаданные иконки поста малого размера
-    const smallMetadata = await smallSize.metadata();
-
-    // Получаем буфер данных для иконки поста малого размера
-    const smallBuffer = await smallSize.toBuffer();
+    const smallMetadata = await sharp(smallSizeBuffer).metadata();
 
     // Загружаем иконки поста в файловое хранилище
     const originalFsUrl = await this.filesStorageAdapter.uploadPostMainImage(
@@ -125,13 +125,13 @@ export class UploadPostMainImageToFsUseCase
     const middleFsUrl = await this.filesStorageAdapter.uploadPostMainImage(
       postId,
       'middle_' + originalName,
-      middleBuffer,
+      middleSizeBuffer,
     );
 
     const smallFsUrl = await this.filesStorageAdapter.uploadPostMainImage(
       postId,
       'small_' + originalName,
-      smallBuffer,
+      smallSizeBuffer,
     );
 
     // Записываем в БД информацию о иконках поста

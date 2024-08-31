@@ -171,7 +171,7 @@ export class PostsQueryRepository {
       .leftJoin('p.blog', 'b')
       .leftJoin('b.user', 'u')
       .leftJoin('u.userBanByAdmin', 'uba')
-      .leftJoinAndSelect('p.postMainImage', 'pmi')
+      // .leftJoinAndSelect('p.postMainImage', 'pmi')
       .select([
         'p.id AS "id"',
         'p.title AS "title"',
@@ -509,6 +509,21 @@ export class PostsQueryRepository {
             'sub_lp',
           );
       }, 'newestLikes')
+      // Подзапрос иконок поста
+      .addSelect((subQuery) => {
+        return subQuery
+          .select(
+            "json_agg(json_build_object('url', sub_pmi.url, 'width', sub_pmi.width, 'height', sub_pmi.height, 'fileSize', sub_pmi.file_size))",
+          )
+          .from(
+            (subQuery) =>
+              subQuery
+                .select('pmi.url, pmi.width, pmi.height, pmi.file_size')
+                .from(PostMainImage, 'pmi')
+                .where('pmi.post_id = p.id'),
+            'sub_pmi',
+          );
+      }, 'mainImages')
       .where('(p.id = :id)', { id })
       .andWhere('(bba.isBanned = :ban)', { ban: false })
       .andWhere('(uba.isBanned = :ban)', { ban: false })
@@ -620,6 +635,21 @@ export class PostsQueryRepository {
             'sub_lp',
           );
       }, 'newestLikes')
+      // Подзапрос иконок поста
+      .addSelect((subQuery) => {
+        return subQuery
+          .select(
+            "json_agg(json_build_object('url', sub_pmi.url, 'width', sub_pmi.width, 'height', sub_pmi.height, 'fileSize', sub_pmi.file_size))",
+          )
+          .from(
+            (subQuery) =>
+              subQuery
+                .select('pmi.url, pmi.width, pmi.height, pmi.file_size')
+                .from(PostMainImage, 'pmi')
+                .where('pmi.post_id = p.id'),
+            'sub_pmi',
+          );
+      }, 'mainImages')
       .where('p.blogId = :blogId', { blogId: blogId })
       .andWhere('(uba.isBanned = :ban)', { ban: false })
       .andWhere('(bba.isBanned = :ban)', { ban: false })

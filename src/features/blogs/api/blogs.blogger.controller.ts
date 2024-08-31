@@ -51,8 +51,6 @@ import {
   updatePostImagesUrlsForOutput,
 } from '../../files/api/models/post-image.output.model';
 
-// TO DO: add protocol + host for output blog/blogs and post/posts
-
 @Controller('blogger/blogs')
 export class BlogsBloggerController {
   constructor(
