@@ -12,19 +12,13 @@ import { initSettings } from './utils/init-settings';
 import { CreateAndUpdateBlogModel } from '../src/features/blogs/api/models/blog.input.model';
 import { BlogOutputModel } from '../src/features/blogs/api/models/blog.output.model';
 import { join } from 'node:path';
-import { unlink } from 'node:fs/promises';
 import { Repository } from 'typeorm';
 import { BlogWallpaper } from '../src/features/files/domain/wallpaper-blog.entity';
 import { getRepositoryToken } from '@nestjs/typeorm';
-import { checkFileExists, deleteEmptyFolders } from './utils/test-image-utils';
 import { PostOutputModel } from '../src/features/posts/api/models/post.output.model';
 import { CreateAndUpdatePostModel } from '../src/features/posts/api/models/post.input.model';
 
-// Перед запуском необходимо расскомментировать в контроллерах
-// BlogsBloggerController, PostsController и BlogsPublicController
-// код для работы с file storage adapter
-
-describe('Images fs testing (e2e)', () => {
+describe('Images s3 testing (e2e)', () => {
   let app: INestApplication;
   let server;
   let createEntitiesTestManager: CreateEntitiesTestManager;
@@ -282,19 +276,6 @@ describe('Images fs testing (e2e)', () => {
     expect(uploadImage.body.wallpaper.url).toMatch(
       new RegExp(`/views/blogs/${newBlog!.id}/wallpapers/.*\\.png$`),
     );
-
-    const uploadedImagePath = join(
-      __dirname,
-      'views',
-      'blogs',
-      newBlog!.id,
-      'wallpapers',
-      `${newBlog!.id}_+blog_wallpaper.png`,
-    );
-
-    const isExistImage = await checkFileExists(uploadedImagePath);
-
-    expect(isExistImage).toBeTruthy();
   });
 
   it('+ POST upload to fs wallpaper jpeg type for blog', async () => {
@@ -313,19 +294,6 @@ describe('Images fs testing (e2e)', () => {
     expect(uploadImage.body.wallpaper.url).toMatch(
       new RegExp(`/views/blogs/${newBlog!.id}/wallpapers/.*\\.jpeg$`),
     );
-
-    const uploadedImagePath = join(
-      __dirname,
-      'views',
-      'blogs',
-      newBlog!.id,
-      'wallpapers',
-      `${newBlog!.id}_+blog_wallpaper.jpeg`,
-    );
-
-    const isExistImage = await checkFileExists(uploadedImagePath);
-
-    expect(isExistImage).toBeTruthy();
   });
 
   it('+ POST upload to fs wallpaper jpg type for blog', async () => {
@@ -340,21 +308,6 @@ describe('Images fs testing (e2e)', () => {
     expect(uploadImage.body.wallpaper.url).toMatch(
       new RegExp(`/views/blogs/${newBlog!.id}/wallpapers/.*\\.jpg$`),
     );
-
-    const uploadedImagePath = join(
-      __dirname,
-      'views',
-      'blogs',
-      newBlog!.id,
-      'wallpapers',
-      `${newBlog!.id}_+blog_wallpaper.jpg`,
-    );
-
-    const isExistImage = await checkFileExists(uploadedImagePath);
-
-    expect(isExistImage).toBeTruthy();
-
-    await unlink(uploadedImagePath);
 
     await blogWallpaperEntity
       .createQueryBuilder()
@@ -415,21 +368,6 @@ describe('Images fs testing (e2e)', () => {
     expect(uploadImage.body.main[0].url).toContain(
       `/views/blogs/${newBlog!.id}/main/${newBlog!.id}_+blog_main.png`,
     );
-
-    const uploadedImagePath = join(
-      __dirname,
-      'views',
-      'blogs',
-      newBlog!.id,
-      'main',
-      `${newBlog!.id}_+blog_main.png`,
-    );
-
-    const isExistImage = await checkFileExists(uploadedImagePath);
-
-    expect(isExistImage).toBeTruthy();
-
-    await unlink(uploadedImagePath);
   });
 
   it('+ POST upload to fs main image jpeg type for blog', async () => {
@@ -444,21 +382,6 @@ describe('Images fs testing (e2e)', () => {
     expect(uploadImage.body.main[1].url).toContain(
       `/views/blogs/${newBlog!.id}/main/${newBlog!.id}_+blog_main.jpeg`,
     );
-
-    const uploadedImagePath = join(
-      __dirname,
-      'views',
-      'blogs',
-      newBlog!.id,
-      'main',
-      `${newBlog!.id}_+blog_main.jpeg`,
-    );
-
-    const isExistImage = await checkFileExists(uploadedImagePath);
-
-    expect(isExistImage).toBeTruthy();
-
-    await unlink(uploadedImagePath);
   });
 
   it('+ POST upload to fs main image jpg type for blog', async () => {
@@ -473,21 +396,6 @@ describe('Images fs testing (e2e)', () => {
     expect(uploadImage.body.main[2].url).toContain(
       `/views/blogs/${newBlog!.id}/main/${newBlog!.id}_+blog_main.jpg`,
     );
-
-    const uploadedImagePath = join(
-      __dirname,
-      'views',
-      'blogs',
-      newBlog!.id,
-      'main',
-      `${newBlog!.id}_+blog_main.jpg`,
-    );
-
-    const isExistImage = await checkFileExists(uploadedImagePath);
-
-    expect(isExistImage).toBeTruthy();
-
-    await unlink(uploadedImagePath);
   });
 
   // CHECK UPLOAD POST MAIN IMAGE
@@ -570,45 +478,6 @@ describe('Images fs testing (e2e)', () => {
     expect(uploadImage.body.main[2].url).toContain(
       `/views/posts/${newPost!.id}/main/${newPost!.id}_small_+post_main.png`,
     );
-
-    const originalImagePath = join(
-      __dirname,
-      'views',
-      'posts',
-      newPost!.id,
-      'main',
-      `${newPost!.id}_+post_main.png`,
-    );
-
-    const middleImagePath = join(
-      __dirname,
-      'views',
-      'posts',
-      newPost!.id,
-      'main',
-      `${newPost!.id}_middle_+post_main.png`,
-    );
-
-    const smallImagePath = join(
-      __dirname,
-      'views',
-      'posts',
-      newPost!.id,
-      'main',
-      `${newPost!.id}_small_+post_main.png`,
-    );
-
-    const isExistOriginalImage = await checkFileExists(originalImagePath);
-    const isExistMiddleImage = await checkFileExists(middleImagePath);
-    const isExistSmallImage = await checkFileExists(smallImagePath);
-
-    expect(isExistOriginalImage).toBeTruthy();
-    expect(isExistMiddleImage).toBeTruthy();
-    expect(isExistSmallImage).toBeTruthy();
-
-    await unlink(originalImagePath);
-    await unlink(middleImagePath);
-    await unlink(smallImagePath);
   });
 
   it('+ POST upload to fs main image jpeg type for post', async () => {
@@ -633,45 +502,6 @@ describe('Images fs testing (e2e)', () => {
     expect(uploadImage.body.main[2].url).toContain(
       `/views/posts/${newPost!.id}/main/${newPost!.id}_small_+post_main.jpeg`,
     );
-
-    const originalImagePath = join(
-      __dirname,
-      'views',
-      'posts',
-      newPost!.id,
-      'main',
-      `${newPost!.id}_+post_main.jpeg`,
-    );
-
-    const middleImagePath = join(
-      __dirname,
-      'views',
-      'posts',
-      newPost!.id,
-      'main',
-      `${newPost!.id}_middle_+post_main.jpeg`,
-    );
-
-    const smallImagePath = join(
-      __dirname,
-      'views',
-      'posts',
-      newPost!.id,
-      'main',
-      `${newPost!.id}_small_+post_main.jpeg`,
-    );
-
-    const isExistOriginalImage = await checkFileExists(originalImagePath);
-    const isExistMiddleImage = await checkFileExists(middleImagePath);
-    const isExistSmallImage = await checkFileExists(smallImagePath);
-
-    expect(isExistOriginalImage).toBeTruthy();
-    expect(isExistMiddleImage).toBeTruthy();
-    expect(isExistSmallImage).toBeTruthy();
-
-    await unlink(originalImagePath);
-    await unlink(middleImagePath);
-    await unlink(smallImagePath);
   });
 
   it('+ POST upload to fs main image jpg type for post', async () => {
@@ -696,50 +526,9 @@ describe('Images fs testing (e2e)', () => {
     expect(uploadImage.body.main[2].url).toContain(
       `/views/posts/${newPost!.id}/main/${newPost!.id}_small_+post_main.jpg`,
     );
-
-    const originalImagePath = join(
-      __dirname,
-      'views',
-      'posts',
-      newPost!.id,
-      'main',
-      `${newPost!.id}_+post_main.jpg`,
-    );
-
-    const middleImagePath = join(
-      __dirname,
-      'views',
-      'posts',
-      newPost!.id,
-      'main',
-      `${newPost!.id}_middle_+post_main.jpg`,
-    );
-
-    const smallImagePath = join(
-      __dirname,
-      'views',
-      'posts',
-      newPost!.id,
-      'main',
-      `${newPost!.id}_small_+post_main.jpg`,
-    );
-
-    const isExistOriginalImage = await checkFileExists(originalImagePath);
-    const isExistMiddleImage = await checkFileExists(middleImagePath);
-    const isExistSmallImage = await checkFileExists(smallImagePath);
-
-    expect(isExistOriginalImage).toBeTruthy();
-    expect(isExistMiddleImage).toBeTruthy();
-    expect(isExistSmallImage).toBeTruthy();
-
-    await unlink(originalImagePath);
-    await unlink(middleImagePath);
-    await unlink(smallImagePath);
   });
 
   afterAll(async () => {
-    await deleteEmptyFolders(join(__dirname, 'views'));
-
     await request(server)
       .delete(`${Paths.testing}/all-data`)
       .expect(HTTP_STATUSES.NO_CONTENT_204);

@@ -1,19 +1,20 @@
 import { CommandHandler, ICommandHandler } from '@nestjs/cqrs';
-import { UsersQueryRepository } from '../../../users/infrastructure/users.query-repository';
-import { Notice } from '../../../../common/notification/notice';
-import { HTTP_STATUSES, PostMainImageSize } from '../../../../common/utils';
+import { UsersQueryRepository } from '../../../../users/infrastructure/users.query-repository';
+import { Notice } from '../../../../../common/notification/notice';
+import { HTTP_STATUSES, PostMainImageSize } from '../../../../../common/utils';
 import { DataSource, EntityManager } from 'typeorm';
-import { TransactionManagerUseCase } from '../../../../common/use-cases/transaction.use-case';
-import { BlogsQueryRepository } from '../../../blogs/infrastructure/blogs.query-repository';
-import { FilesStorageAdapter } from '../../adapters/files-storage-adapter';
+import { TransactionManagerUseCase } from '../../../../../common/use-cases/transaction.use-case';
+import { BlogsQueryRepository } from '../../../../blogs/infrastructure/blogs.query-repository';
+import { FilesStorageAdapter } from '../../../adapters/files-storage-adapter';
 import { v4 as uuidv4 } from 'uuid';
 import sharp from 'sharp';
-import { PostsQueryRepository } from '../../../posts/infrastructure/posts.query-repository';
+import { PostsQueryRepository } from '../../../../posts/infrastructure/posts.query-repository';
 import {
   PostMainImage,
   PostMainImageModel,
-} from '../../api/models/post-image.output.model';
-import { PostsMainImagesRepository } from '../../infrastructure/posts-main-images.repository';
+} from '../../../api/models/post-image.output.model';
+import { PostsMainImagesRepository } from '../../../infrastructure/posts-main-images.repository';
+import { join } from 'node:path';
 
 export class UploadPostMainImageToFsCommand {
   constructor(
@@ -115,22 +116,24 @@ export class UploadPostMainImageToFsUseCase
     // Получаем метаданные иконки поста малого размера
     const smallMetadata = await sharp(smallSizeBuffer).metadata();
 
+    const dirPath = join('views', 'posts', `${postId}`, 'main');
+
     // Загружаем иконки поста в файловое хранилище
-    const originalFsUrl = await this.filesStorageAdapter.uploadPostMainImage(
-      postId,
-      originalName,
+    const originalFsUrl = await this.filesStorageAdapter.uploadImage(
+      dirPath,
+      `${postId}_${originalName}`,
       buffer,
     );
 
-    const middleFsUrl = await this.filesStorageAdapter.uploadPostMainImage(
-      postId,
-      'middle_' + originalName,
+    const middleFsUrl = await this.filesStorageAdapter.uploadImage(
+      dirPath,
+      `${postId}_middle_${originalName}`,
       middleSizeBuffer,
     );
 
-    const smallFsUrl = await this.filesStorageAdapter.uploadPostMainImage(
-      postId,
-      'small_' + originalName,
+    const smallFsUrl = await this.filesStorageAdapter.uploadImage(
+      dirPath,
+      `${postId}_small_${originalName}`,
       smallSizeBuffer,
     );
 

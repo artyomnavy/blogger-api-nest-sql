@@ -20,7 +20,7 @@ export class PostMainImagesOutputModel {
   main: PostMainImageModel[];
 }
 
-export const updatePostImagesUrlsForOutput = (
+export const updatePostImagesFsUrlsForOutput = (
   protocol: string,
   host: string,
   postMainImages: PostMainImageModel[],
@@ -30,6 +30,19 @@ export const updatePostImagesUrlsForOutput = (
       ...postMainImages.map((mainImage) => ({
         ...mainImage,
         url: `${protocol}://${host}/${mainImage.url}`,
+      })),
+    ],
+  };
+};
+
+export const updatePostImagesS3UrlsForOutput = (
+  postMainImages: PostMainImageModel[],
+): PostMainImagesOutputModel => {
+  return {
+    main: [
+      ...postMainImages.map((mainImage) => ({
+        ...mainImage,
+        url: `${process.env.S3_BUCKET_ENPOINT}/${mainImage.url}`,
       })),
     ],
   };

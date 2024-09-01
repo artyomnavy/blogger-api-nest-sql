@@ -13,8 +13,8 @@ import { PostOutputModel } from '../../posts/api/models/post.output.model';
 import { PaginatorModel } from '../../../common/models/paginator.input.model';
 import { PaginatorOutputModel } from '../../../common/models/paginator.output.model';
 import { UuidPipe } from '../../../common/pipes/uuid.pipe';
-import { updateBlogImagesUrlsForOutput } from '../../files/api/models/blog-image.output.model';
-import { updatePostImagesUrlsForOutput } from '../../files/api/models/post-image.output.model';
+import { updateBlogImagesS3UrlsForOutput } from '../../files/api/models/blog-image.output.model';
+import { updatePostImagesS3UrlsForOutput } from '../../files/api/models/post-image.output.model';
 
 @Controller('blogs')
 export class BlogsPublicController {
@@ -25,26 +25,34 @@ export class BlogsPublicController {
 
   @Get()
   async getAllBlogs(
-    @Req() req,
+    // @Req() req,
     @Query() query: PaginatorModel,
   ): Promise<PaginatorOutputModel<BlogOutputModel>> {
     const blogs = await this.blogsQueryRepository.getAllBlogs(query);
+
+    // return {
+    //   ...blogs,
+    //   items: blogs.items.map((blog) => ({
+    //     ...blog,
+    //     images: updateBlogImagesFsUrlsForOutput(
+    //       req.protocol,
+    //       req.get('host'),
+    //       blog.images,
+    //     ),
+    //   })),
+    // };
 
     return {
       ...blogs,
       items: blogs.items.map((blog) => ({
         ...blog,
-        images: updateBlogImagesUrlsForOutput(
-          req.protocol,
-          req.get('host'),
-          blog.images,
-        ),
+        images: updateBlogImagesS3UrlsForOutput(blog.images),
       })),
     };
   }
   @Get(':blogId')
   async getBlog(
-    @Req() req,
+    // @Req() req,
     @Param('blogId', UuidPipe) blogId: string,
   ): Promise<BlogOutputModel> {
     const blog = await this.blogsQueryRepository.getBlogById(blogId);
@@ -52,13 +60,18 @@ export class BlogsPublicController {
     if (!blog) {
       throw new NotFoundException('Blog not found');
     } else {
+      // return {
+      //   ...blog,
+      //   images: updateBlogImagesFsUrlsForOutput(
+      //     req.protocol,
+      //     req.get('host'),
+      //     blog.images,
+      //   ),
+      // };
+
       return {
         ...blog,
-        images: updateBlogImagesUrlsForOutput(
-          req.protocol,
-          req.get('host'),
-          blog.images,
-        ),
+        images: updateBlogImagesS3UrlsForOutput(blog.images),
       };
     }
   }
@@ -82,16 +95,26 @@ export class BlogsPublicController {
       userId,
     });
 
+    // return {
+    //   ...posts,
+    //   items: posts.items.map((post) => ({
+    //     ...post,
+    //     images: {
+    //       main: updatePostImagesFsUrlsForOutput(
+    //         req.protocol,
+    //         req.get('host'),
+    //         post.images.main,
+    //       ).main,
+    //     },
+    //   })),
+    // };
+
     return {
       ...posts,
       items: posts.items.map((post) => ({
         ...post,
         images: {
-          main: updatePostImagesUrlsForOutput(
-            req.protocol,
-            req.get('host'),
-            post.images.main,
-          ).main,
+          main: updatePostImagesS3UrlsForOutput(post.images.main).main,
         },
       })),
     };

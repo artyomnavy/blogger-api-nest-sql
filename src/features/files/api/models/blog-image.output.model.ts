@@ -37,7 +37,7 @@ export class BlogImagesOutputModel {
   main: BlogMainImageOutputModel[];
 }
 
-export const updateBlogImagesUrlsForOutput = (
+export const updateBlogImagesFsUrlsForOutput = (
   protocol: string,
   host: string,
   blogImages: BlogImagesOutputModel,
@@ -53,6 +53,24 @@ export const updateBlogImagesUrlsForOutput = (
     main: blogImages.main.map((mainImage) => ({
       ...mainImage,
       url: `${protocol}://${host}/${mainImage.url}`,
+    })),
+  };
+};
+
+export const updateBlogImagesS3UrlsForOutput = (
+  blogImages: BlogImagesOutputModel,
+): BlogImagesOutputModel => {
+  return {
+    ...blogImages,
+    wallpaper: blogImages.wallpaper
+      ? {
+          ...blogImages.wallpaper,
+          url: `${process.env.S3_BUCKET_ENPOINT}/${blogImages.wallpaper.url}`,
+        }
+      : null,
+    main: blogImages.main.map((mainImage) => ({
+      ...mainImage,
+      url: `${process.env.S3_BUCKET_ENPOINT}/${mainImage.url}`,
     })),
   };
 };

@@ -11,7 +11,6 @@ import {
   Post,
   Put,
   Query,
-  Req,
   UploadedFile,
   UseGuards,
   UseInterceptors,
@@ -39,17 +38,17 @@ import { CommentOutputForBloggerModel } from '../../comments/api/models/comment.
 import { CommentsQueryRepository } from '../../comments/infrastructure/comments.query-repository';
 import { FileInterceptor } from '@nestjs/platform-express';
 import { ImageSizeFileValidator } from '../../../common/files-validators/image-size.file-validator';
-import { UploadBlogWallpaperToFsCommand } from '../../files/application/use-cases/upload-blog-wallpaper.use-case';
 import {
   BlogImagesOutputModel,
-  updateBlogImagesUrlsForOutput,
+  updateBlogImagesS3UrlsForOutput,
 } from '../../files/api/models/blog-image.output.model';
-import { UploadBlogMainImageToFsCommand } from '../../files/application/use-cases/upload-blog-main-image.use-case';
-import { UploadPostMainImageToFsCommand } from '../../files/application/use-cases/upload-post-main-image.use-case';
 import {
   PostMainImagesOutputModel,
-  updatePostImagesUrlsForOutput,
+  updatePostImagesS3UrlsForOutput,
 } from '../../files/api/models/post-image.output.model';
+import { UploadBlogMainImageToS3Command } from '../../files/application/use-cases/s3/upload-blog-main-image-to-s3.use-case';
+import { UploadPostMainImageToS3Command } from '../../files/application/use-cases/s3/upload-post-main-image-to-s3.use-case';
+import { UploadBlogWallpaperToS3Command } from '../../files/application/use-cases/s3/upload-blog-wallpaper-to-s3.use-case';
 
 @Controller('blogger/blogs')
 export class BlogsBloggerController {
@@ -62,21 +61,29 @@ export class BlogsBloggerController {
   @Get()
   @UseGuards(JwtBearerAuthGuard)
   async getAllBlogs(
-    @Req() req,
+    // @Req() req,
     @CurrentUserId() userId: string,
     @Query() query: PaginatorModel,
   ): Promise<PaginatorOutputModel<BlogOutputModel>> {
     const blogs = await this.blogsQueryRepository.getAllBlogs(query, userId);
 
+    // return {
+    //   ...blogs,
+    //   items: blogs.items.map((blog) => ({
+    //     ...blog,
+    //     images: updateBlogImagesFsUrlsForOutput(
+    //       req.protocol,
+    //       req.get('host'),
+    //       blog.images,
+    //     ),
+    //   })),
+    // };
+
     return {
       ...blogs,
       items: blogs.items.map((blog) => ({
         ...blog,
-        images: updateBlogImagesUrlsForOutput(
-          req.protocol,
-          req.get('host'),
-          blog.images,
-        ),
+        images: updateBlogImagesS3UrlsForOutput(blog.images),
       })),
     };
   }
@@ -84,7 +91,7 @@ export class BlogsBloggerController {
   @UseGuards(JwtBearerAuthGuard)
   @HttpCode(HTTP_STATUSES.CREATED_201)
   async createBlog(
-    @Req() req,
+    // @Req() req,
     @CurrentUserId() userId: string,
     @Body() createModel: CreateAndUpdateBlogModel,
   ): Promise<BlogOutputModel> {
@@ -96,13 +103,18 @@ export class BlogsBloggerController {
       throw new NotFoundException(notice.messages[0]);
     }
 
+    // return {
+    //   ...notice.data,
+    //   images: updateBlogImagesFsUrlsForOutput(
+    //     req.protocol,
+    //     req.get('host'),
+    //     notice.data.images,
+    //   ),
+    // };
+
     return {
       ...notice.data,
-      images: updateBlogImagesUrlsForOutput(
-        req.protocol,
-        req.get('host'),
-        notice.data.images,
-      ),
+      images: updateBlogImagesS3UrlsForOutput(notice.data.images),
     };
   }
   @Put(':blogId')
@@ -153,7 +165,7 @@ export class BlogsBloggerController {
   @Get(':blogId/posts')
   @UseGuards(JwtBearerAuthGuard)
   async getPostsForBlog(
-    @Req() req,
+    // @Req() req,
     @Param('blogId', UuidPipe) blogId: string,
     @Query() query: PaginatorModel,
   ): Promise<PaginatorOutputModel<PostOutputModel>> {
@@ -168,16 +180,26 @@ export class BlogsBloggerController {
       blogId,
     });
 
+    // return {
+    //   ...posts,
+    //   items: posts.items.map((post) => ({
+    //     ...post,
+    //     images: {
+    //       main: updatePostImagesFsUrlsForOutput(
+    //         req.protocol,
+    //         req.get('host'),
+    //         post.images.main,
+    //       ).main,
+    //     },
+    //   })),
+    // };
+
     return {
       ...posts,
       items: posts.items.map((post) => ({
         ...post,
         images: {
-          main: updatePostImagesUrlsForOutput(
-            req.protocol,
-            req.get('host'),
-            post.images.main,
-          ).main,
+          main: updatePostImagesS3UrlsForOutput(post.images.main).main,
         },
       })),
     };
@@ -186,7 +208,7 @@ export class BlogsBloggerController {
   @UseGuards(JwtBearerAuthGuard)
   @HttpCode(HTTP_STATUSES.CREATED_201)
   async createPostForBlog(
-    @Req() req,
+    // @Req() req,
     @CurrentUserId() userId: string,
     @Param('blogId', UuidPipe) blogId: string,
     @Body() createModel: CreateAndUpdatePostModel,
@@ -203,14 +225,21 @@ export class BlogsBloggerController {
       }
     }
 
+    // return {
+    //   ...notice.data,
+    //   images: {
+    //     main: updatePostImagesFsUrlsForOutput(
+    //       req.protocol,
+    //       req.get('host'),
+    //       notice.data.images.main,
+    //     ).main,
+    //   },
+    // };
+
     return {
       ...notice.data,
       images: {
-        main: updatePostImagesUrlsForOutput(
-          req.protocol,
-          req.get('host'),
-          notice.data.images.main,
-        ).main,
+        main: updatePostImagesS3UrlsForOutput(notice.data.images.main).main,
       },
     };
   }
@@ -283,7 +312,7 @@ export class BlogsBloggerController {
   @UseGuards(JwtBearerAuthGuard)
   @HttpCode(HTTP_STATUSES.CREATED_201)
   async uploadWallpaperForBlog(
-    @Req() req,
+    // @Req() req,
     @CurrentUserId() userId: string,
     @Param('blogId', UuidPipe) blogId: string,
     @UploadedFile(
@@ -299,10 +328,18 @@ export class BlogsBloggerController {
     )
     file: Express.Multer.File,
   ): Promise<BlogImagesOutputModel> {
-    const uploadCommand = new UploadBlogWallpaperToFsCommand(
+    // const uploadCommand = new UploadBlogWallpaperToFsCommand(
+    //   userId,
+    //   blogId,
+    //   file.originalname,
+    //   file.buffer,
+    // );
+
+    const uploadCommand = new UploadBlogWallpaperToS3Command(
       userId,
       blogId,
       file.originalname,
+      file.mimetype,
       file.buffer,
     );
 
@@ -322,18 +359,20 @@ export class BlogsBloggerController {
       throw new NotFoundException('Blog images not found');
     }
 
-    return updateBlogImagesUrlsForOutput(
-      req.protocol,
-      req.get('host'),
-      blogImages,
-    );
+    // return updateBlogImagesFsUrlsForOutput(
+    //   req.protocol,
+    //   req.get('host'),
+    //   blogImages,
+    // );
+
+    return updateBlogImagesS3UrlsForOutput(blogImages);
   }
   @Post(':blogId/images/main')
   @UseInterceptors(FileInterceptor('file'))
   @UseGuards(JwtBearerAuthGuard)
   @HttpCode(HTTP_STATUSES.CREATED_201)
   async uploadMainImageForBlog(
-    @Req() req,
+    // @Req() req,
     @CurrentUserId() userId: string,
     @Param('blogId', UuidPipe) blogId: string,
     @UploadedFile(
@@ -349,10 +388,18 @@ export class BlogsBloggerController {
     )
     file: Express.Multer.File,
   ): Promise<BlogImagesOutputModel> {
-    const uploadCommand = new UploadBlogMainImageToFsCommand(
+    // const uploadCommand = new UploadBlogMainImageToFsCommand(
+    //   userId,
+    //   blogId,
+    //   file.originalname,
+    //   file.buffer,
+    // );
+
+    const uploadCommand = new UploadBlogMainImageToS3Command(
       userId,
       blogId,
       file.originalname,
+      file.mimetype,
       file.buffer,
     );
 
@@ -372,18 +419,20 @@ export class BlogsBloggerController {
       throw new NotFoundException('Blog images not found');
     }
 
-    return updateBlogImagesUrlsForOutput(
-      req.protocol,
-      req.get('host'),
-      blogImages,
-    );
+    // return updateBlogImagesFsUrlsForOutput(
+    //   req.protocol,
+    //   req.get('host'),
+    //   blogImages,
+    // );
+
+    return updateBlogImagesS3UrlsForOutput(blogImages);
   }
   @Post(':blogId/posts/:postId/images/main')
   @UseInterceptors(FileInterceptor('file'))
   @UseGuards(JwtBearerAuthGuard)
   @HttpCode(HTTP_STATUSES.CREATED_201)
   async uploadMainImageForPost(
-    @Req() req,
+    // @Req() req,
     @CurrentUserId() userId: string,
     @Param('blogId', UuidPipe) blogId: string,
     @Param('postId', UuidPipe) postId: string,
@@ -400,11 +449,20 @@ export class BlogsBloggerController {
     )
     file: Express.Multer.File,
   ): Promise<PostMainImagesOutputModel> {
-    const uploadCommand = new UploadPostMainImageToFsCommand(
+    // const uploadCommand = new UploadPostMainImageToFsCommand(
+    //   userId,
+    //   blogId,
+    //   postId,
+    //   file.originalname,
+    //   file.buffer,
+    // );
+
+    const uploadCommand = new UploadPostMainImageToS3Command(
       userId,
       blogId,
       postId,
       file.originalname,
+      file.mimetype,
       file.buffer,
     );
 
@@ -418,10 +476,12 @@ export class BlogsBloggerController {
       }
     }
 
-    return updatePostImagesUrlsForOutput(
-      req.protocol,
-      req.get('host'),
-      notice.data,
-    );
+    // return updatePostImagesFsUrlsForOutput(
+    //   req.protocol,
+    //   req.get('host'),
+    //   notice.data,
+    // );
+
+    return updatePostImagesS3UrlsForOutput(notice.data);
   }
 }

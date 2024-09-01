@@ -28,7 +28,7 @@ import { CreateCommentCommand } from '../../comments/application/use-cases/creat
 import { UuidPipe } from '../../../common/pipes/uuid.pipe';
 import { UsersQueryRepository } from '../../users/infrastructure/users.query-repository';
 import { resultCodeToHttpException } from '../../../common/exceptions/result-code-to-http-exception';
-import { updatePostImagesUrlsForOutput } from '../../files/api/models/post-image.output.model';
+import { updatePostImagesS3UrlsForOutput } from '../../files/api/models/post-image.output.model';
 
 @Controller('posts')
 export class PostsController {
@@ -50,16 +50,26 @@ export class PostsController {
       userId,
     });
 
+    // return {
+    //   ...posts,
+    //   items: posts.items.map((post) => ({
+    //     ...post,
+    //     images: {
+    //       main: updatePostImagesFsUrlsForOutput(
+    //         req.protocol,
+    //         req.get('host'),
+    //         post.images.main,
+    //       ).main,
+    //     },
+    //   })),
+    // };
+
     return {
       ...posts,
       items: posts.items.map((post) => ({
         ...post,
         images: {
-          main: updatePostImagesUrlsForOutput(
-            req.protocol,
-            req.get('host'),
-            post.images.main,
-          ).main,
+          main: updatePostImagesS3UrlsForOutput(post.images.main).main,
         },
       })),
     };
@@ -79,14 +89,21 @@ export class PostsController {
     if (!post) {
       throw new NotFoundException('Post not found');
     } else {
+      // return {
+      //   ...post,
+      //   images: {
+      //     main: updatePostImagesFsUrlsForOutput(
+      //       req.protocol,
+      //       req.get('host'),
+      //       post.images.main,
+      //     ).main,
+      //   },
+      // };
+
       return {
         ...post,
         images: {
-          main: updatePostImagesUrlsForOutput(
-            req.protocol,
-            req.get('host'),
-            post.images.main,
-          ).main,
+          main: updatePostImagesS3UrlsForOutput(post.images.main).main,
         },
       };
     }

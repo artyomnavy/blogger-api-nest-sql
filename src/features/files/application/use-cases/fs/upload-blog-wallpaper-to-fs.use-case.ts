@@ -1,18 +1,19 @@
 import { CommandHandler, ICommandHandler } from '@nestjs/cqrs';
-import { UsersQueryRepository } from '../../../users/infrastructure/users.query-repository';
-import { Notice } from '../../../../common/notification/notice';
-import { HTTP_STATUSES } from '../../../../common/utils';
+import { UsersQueryRepository } from '../../../../users/infrastructure/users.query-repository';
+import { Notice } from '../../../../../common/notification/notice';
+import { HTTP_STATUSES } from '../../../../../common/utils';
 import { DataSource, EntityManager } from 'typeorm';
-import { TransactionManagerUseCase } from '../../../../common/use-cases/transaction.use-case';
-import { BlogsQueryRepository } from '../../../blogs/infrastructure/blogs.query-repository';
-import { FilesStorageAdapter } from '../../adapters/files-storage-adapter';
+import { TransactionManagerUseCase } from '../../../../../common/use-cases/transaction.use-case';
+import { BlogsQueryRepository } from '../../../../blogs/infrastructure/blogs.query-repository';
+import { FilesStorageAdapter } from '../../../adapters/files-storage-adapter';
 import {
   BlogWallpaper,
   BlogWallpaperOutputModel,
-} from '../../api/models/blog-image.output.model';
+} from '../../../api/models/blog-image.output.model';
 import { v4 as uuidv4 } from 'uuid';
 import sharp from 'sharp';
-import { BlogsWallpapersRepository } from '../../infrastructure/blogs-wallpapers.repository';
+import { BlogsWallpapersRepository } from '../../../infrastructure/blogs-wallpapers.repository';
+import { join } from 'node:path';
 
 export class UploadBlogWallpaperToFsCommand {
   constructor(
@@ -87,19 +88,19 @@ export class UploadBlogWallpaperToFsUseCase
 
     // Если обои блога уже есть, то удаляем в файловом хранилище и в БД
     if (existingBlogWallpaper) {
-      await this.filesStorageAdapter.deleteBlogWallpaper(
-        existingBlogWallpaper.url,
-      );
+      await this.filesStorageAdapter.deleteImage(existingBlogWallpaper.url);
 
       await this.blogsWallpapersRepository.deleteBlogWallpaper(
         existingBlogWallpaper.id,
       );
     }
 
+    const dirPath = join('views', 'blogs', `${blogId}`, 'wallpapers');
+
     // Загружаем обои блога в файловое хранилище
-    const fsUrl = await this.filesStorageAdapter.uploadBlogWallpaper(
-      blogId,
-      originalName,
+    const fsUrl = await this.filesStorageAdapter.uploadImage(
+      dirPath,
+      `${blogId}_${originalName}`,
       buffer,
     );
 

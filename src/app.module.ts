@@ -113,13 +113,17 @@ import { BlogBanByAdmin } from './features/bans/domain/blog-ban-by-admin.entity'
 import { BlogWallpaper } from './features/files/domain/wallpaper-blog.entity';
 import { BlogMainImage } from './features/files/domain/main-image-blog.entity';
 import { PostMainImage } from './features/files/domain/main-image-post.entity';
-import { UploadBlogWallpaperToFsUseCase } from './features/files/application/use-cases/upload-blog-wallpaper.use-case';
+import { UploadBlogWallpaperToFsUseCase } from './features/files/application/use-cases/fs/upload-blog-wallpaper-to-fs.use-case';
 import { FilesStorageAdapter } from './features/files/adapters/files-storage-adapter';
 import { BlogsWallpapersRepository } from './features/files/infrastructure/blogs-wallpapers.repository';
-import { UploadBlogMainImageToFsUseCase } from './features/files/application/use-cases/upload-blog-main-image.use-case';
+import { UploadBlogMainImageToFsUseCase } from './features/files/application/use-cases/fs/upload-blog-main-image-to-fs.use-case';
 import { BlogsMainImagesRepository } from './features/files/infrastructure/blogs-main-images.repository';
 import { PostsMainImagesRepository } from './features/files/infrastructure/posts-main-images.repository';
-import { UploadPostMainImageToFsUseCase } from './features/files/application/use-cases/upload-post-main-image.use-case';
+import { UploadPostMainImageToFsUseCase } from './features/files/application/use-cases/fs/upload-post-main-image-to-fs.use-case';
+import { S3StorageAdapter } from './features/files/adapters/s3-storage-adapter';
+import { UploadBlogMainImageToS3UseCase } from './features/files/application/use-cases/s3/upload-blog-main-image-to-s3.use-case';
+import { UploadBlogWallpaperToS3UseCase } from './features/files/application/use-cases/s3/upload-blog-wallpaper-to-s3.use-case';
+import { UploadPostMainImageToS3UseCase } from './features/files/application/use-cases/s3/upload-post-main-image-to-s3.use-case';
 
 config();
 
@@ -145,7 +149,9 @@ const blogsUseCases = [
   BindBlogWithUserUseCase,
   UpdateBlogBanInfoByAdminUseCase,
   UploadBlogWallpaperToFsUseCase,
+  UploadBlogWallpaperToS3UseCase,
   UploadBlogMainImageToFsUseCase,
+  UploadBlogMainImageToS3UseCase,
 ];
 
 const commentsUseCases = [
@@ -169,6 +175,7 @@ const postsUseCases = [
   DeletePostUseCase,
   ChangeLikeStatusForPostUseCase,
   UploadPostMainImageToFsUseCase,
+  UploadPostMainImageToS3UseCase,
 ];
 
 const authUseCases = [
@@ -219,7 +226,7 @@ const queryRepositoriesProviders = [
   QuizzesQueryRepository,
 ];
 
-const imagesProviders = [FilesStorageAdapter];
+const imagesProviders = [FilesStorageAdapter, S3StorageAdapter];
 
 const emailsProviders = [EmailsManager, EmailsAdapter];
 
