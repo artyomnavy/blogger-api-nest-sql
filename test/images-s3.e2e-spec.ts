@@ -17,6 +17,9 @@ import { BlogWallpaper } from '../src/features/files/domain/wallpaper-blog.entit
 import { getRepositoryToken } from '@nestjs/typeorm';
 import { PostOutputModel } from '../src/features/posts/api/models/post.output.model';
 import { CreateAndUpdatePostModel } from '../src/features/posts/api/models/post.input.model';
+import { TestingModuleBuilder } from '@nestjs/testing';
+import { S3StorageAdapter } from '../src/features/files/adapters/s3-storage-adapter';
+import { S3StorageAdapterMock } from './mock/s3-storage-adapter.mock';
 
 describe('Images s3 testing (e2e)', () => {
   let app: INestApplication;
@@ -30,7 +33,13 @@ describe('Images s3 testing (e2e)', () => {
   let accessToken: any;
 
   beforeAll(async () => {
-    const testSettings = await initSettings();
+    const testSettings = await initSettings(
+      (moduleBuilder: TestingModuleBuilder) => {
+        moduleBuilder
+          .overrideProvider(S3StorageAdapter)
+          .useClass(S3StorageAdapterMock);
+      },
+    );
 
     app = testSettings.app;
     server = testSettings.server;
