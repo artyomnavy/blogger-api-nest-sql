@@ -11,6 +11,7 @@ import {
   Post,
   Put,
   Query,
+  Req,
   UploadedFile,
   UseGuards,
   UseInterceptors,
@@ -208,7 +209,7 @@ export class BlogsBloggerController {
   @UseGuards(JwtBearerAuthGuard)
   @HttpCode(HTTP_STATUSES.CREATED_201)
   async createPostForBlog(
-    // @Req() req,
+    @Req() req,
     @CurrentUserId() userId: string,
     @Param('blogId', UuidPipe) blogId: string,
     @Body() createModel: CreateAndUpdatePostModel,

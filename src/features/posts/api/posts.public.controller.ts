@@ -98,7 +98,6 @@ export class PostsController {
       //       post.images.main,
       //     ).main,
       //   },
-      // };
 
       return {
         ...post,

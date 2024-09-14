@@ -124,6 +124,7 @@ import { S3StorageAdapter } from './features/files/adapters/s3-storage-adapter';
 import { UploadBlogMainImageToS3UseCase } from './features/files/application/use-cases/s3/upload-blog-main-image-to-s3.use-case';
 import { UploadBlogWallpaperToS3UseCase } from './features/files/application/use-cases/s3/upload-blog-wallpaper-to-s3.use-case';
 import { UploadPostMainImageToS3UseCase } from './features/files/application/use-cases/s3/upload-post-main-image-to-s3.use-case';
+import { TelegramAdapter } from './features/integrations/telegram/adapters/telegram.adapter';
 
 config();
 
@@ -226,6 +227,8 @@ const queryRepositoriesProviders = [
   QuizzesQueryRepository,
 ];
 
+const telegramProviders = [TelegramAdapter];
+
 const imagesProviders = [FilesStorageAdapter, S3StorageAdapter];
 
 const emailsProviders = [EmailsManager, EmailsAdapter];
@@ -323,6 +326,7 @@ const options: TypeOrmModuleOptions = {
     ...constraintsProviders,
     ...strategiesProviders,
     ...imagesProviders,
+    ...telegramProviders,
   ],
 })
 export class AppModule implements NestModule {

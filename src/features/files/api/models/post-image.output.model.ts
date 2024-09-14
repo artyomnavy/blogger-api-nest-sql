@@ -42,7 +42,7 @@ export const updatePostImagesS3UrlsForOutput = (
     main: [
       ...postMainImages.map((mainImage) => ({
         ...mainImage,
-        url: `${process.env.S3_BUCKET_ENPOINT}/${mainImage.url}`,
+        url: `${process.env.S3_BUCKET_ENDPOINT}/${mainImage.url}`,
       })),
     ],
   };

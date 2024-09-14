@@ -65,12 +65,12 @@ export const updateBlogImagesS3UrlsForOutput = (
     wallpaper: blogImages.wallpaper
       ? {
           ...blogImages.wallpaper,
-          url: `${process.env.S3_BUCKET_ENPOINT}/${blogImages.wallpaper.url}`,
+          url: `${process.env.S3_BUCKET_ENDPOINT}/${blogImages.wallpaper.url}`,
         }
       : null,
     main: blogImages.main.map((mainImage) => ({
       ...mainImage,
-      url: `${process.env.S3_BUCKET_ENPOINT}/${mainImage.url}`,
+      url: `${process.env.S3_BUCKET_ENDPOINT}/${mainImage.url}`,
     })),
   };
 };

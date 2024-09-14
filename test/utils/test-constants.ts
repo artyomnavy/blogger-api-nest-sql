@@ -13,6 +13,7 @@ export const Paths = {
   questions: '/sa/quiz/questions',
   quiz: '/pair-game-quiz',
   testing: '/testing',
+  telegram: '/integrations/telegram',
 };
 
 export const badId = new ObjectId().toString();
