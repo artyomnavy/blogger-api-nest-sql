@@ -125,6 +125,7 @@ import { UploadBlogMainImageToS3UseCase } from './features/files/application/use
 import { UploadBlogWallpaperToS3UseCase } from './features/files/application/use-cases/s3/upload-blog-wallpaper-to-s3.use-case';
 import { UploadPostMainImageToS3UseCase } from './features/files/application/use-cases/s3/upload-post-main-image-to-s3.use-case';
 import { TelegramAdapter } from './features/integrations/telegram/adapters/telegram.adapter';
+import { TelegramController } from './features/integrations/telegram/api/telegram.controller';
 
 config();
 
@@ -257,6 +258,7 @@ const controllers = [
   TestController,
   QuizSAController,
   QuizPublicController,
+  TelegramController,
 ];
 
 const entities = [
