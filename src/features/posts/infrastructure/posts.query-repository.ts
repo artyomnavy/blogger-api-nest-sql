@@ -10,7 +10,7 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { EntityManager, Repository } from 'typeorm';
 import { Post } from '../domain/post.entity';
 import { LikePost } from '../../likes/domain/like-post.entity';
-import { PostMainImage } from '../../files/domain/main-image-post.entity';
+import { PostMainImage } from '../../files/images/domain/main-image-post.entity';
 
 @Injectable()
 export class PostsQueryRepository {

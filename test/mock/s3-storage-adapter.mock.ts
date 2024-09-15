@@ -1,4 +1,4 @@
-import { S3StorageAdapter } from '../../src/features/files/adapters/s3-storage-adapter';
+import { S3StorageAdapter } from '../../src/features/files/images/adapters/s3-storage-adapter';
 import {
   DeleteObjectCommandOutput,
   PutObjectCommandOutput,

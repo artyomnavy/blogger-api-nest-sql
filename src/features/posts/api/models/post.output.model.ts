@@ -1,7 +1,7 @@
 import {
   PostMainImageModel,
   PostMainImagesOutputModel,
-} from '../../../files/api/models/post-image.output.model';
+} from '../../../files/images/api/models/post-image.output.model';
 
 export class Post {
   constructor(

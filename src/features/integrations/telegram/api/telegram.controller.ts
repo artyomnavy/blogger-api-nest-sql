@@ -49,9 +49,10 @@ export class TelegramController {
     if (telegramCodeSubscriber.startsWith('/start')) {
       telegramCodeSubscriber = telegramCodeSubscriber.split(' ')[1];
     } else {
-      throw new BadRequestException(
-        'Telegram code subscriber is invalid format',
-      );
+      throw new BadRequestException({
+        message: 'Telegram code subscriber is invalid format',
+        field: 'telegramCode',
+      });
     }
 
     //TO DO: write logic after add subscriber entity

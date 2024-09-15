@@ -1,55 +1,58 @@
 import { CommandHandler, ICommandHandler } from '@nestjs/cqrs';
-import { UsersQueryRepository } from '../../../../users/infrastructure/users.query-repository';
-import { Notice } from '../../../../../common/notification/notice';
-import { HTTP_STATUSES, PostMainImageSize } from '../../../../../common/utils';
+import { UsersQueryRepository } from '../../../../../users/infrastructure/users.query-repository';
+import { Notice } from '../../../../../../common/notification/notice';
+import {
+  HTTP_STATUSES,
+  PostMainImageSize,
+} from '../../../../../../common/utils';
 import { DataSource, EntityManager } from 'typeorm';
-import { TransactionManagerUseCase } from '../../../../../common/use-cases/transaction.use-case';
-import { BlogsQueryRepository } from '../../../../blogs/infrastructure/blogs.query-repository';
-import { FilesStorageAdapter } from '../../../adapters/files-storage-adapter';
+import { TransactionManagerUseCase } from '../../../../../../common/use-cases/transaction.use-case';
+import { BlogsQueryRepository } from '../../../../../blogs/infrastructure/blogs.query-repository';
 import { v4 as uuidv4 } from 'uuid';
 import sharp from 'sharp';
-import { PostsQueryRepository } from '../../../../posts/infrastructure/posts.query-repository';
+import { PostsQueryRepository } from '../../../../../posts/infrastructure/posts.query-repository';
 import {
   PostMainImage,
   PostMainImageModel,
 } from '../../../api/models/post-image.output.model';
 import { PostsMainImagesRepository } from '../../../infrastructure/posts-main-images.repository';
-import { join } from 'node:path';
+import { S3StorageAdapter } from '../../../adapters/s3-storage-adapter';
 
-export class UploadPostMainImageToFsCommand {
+export class UploadPostMainImageToS3Command {
   constructor(
     public readonly userId: string,
     public readonly blogId: string,
     public readonly postId: string,
     public readonly originalName: string,
+    public readonly mimeType: string,
     public readonly buffer: Buffer,
   ) {}
 }
-@CommandHandler(UploadPostMainImageToFsCommand)
-export class UploadPostMainImageToFsUseCase
+@CommandHandler(UploadPostMainImageToS3Command)
+export class UploadPostMainImageToS3UseCase
   extends TransactionManagerUseCase<
-    UploadPostMainImageToFsCommand,
+    UploadPostMainImageToS3Command,
     Notice<PostMainImageModel[]>
   >
-  implements ICommandHandler<UploadPostMainImageToFsCommand>
+  implements ICommandHandler<UploadPostMainImageToS3Command>
 {
   constructor(
     private readonly blogsQueryRepository: BlogsQueryRepository,
     private readonly postsQueryRepository: PostsQueryRepository,
     private readonly usersQueryRepository: UsersQueryRepository,
-    private readonly filesStorageAdapter: FilesStorageAdapter,
+    private readonly s3StorageAdapter: S3StorageAdapter,
     private readonly postsMainImagesRepository: PostsMainImagesRepository,
     protected readonly dataSource: DataSource,
   ) {
     super(dataSource);
   }
   async doLogic(
-    command: UploadPostMainImageToFsCommand,
+    command: UploadPostMainImageToS3Command,
     manager: EntityManager,
   ): Promise<Notice<PostMainImageModel[]>> {
     const notice = new Notice<PostMainImageModel[]>();
 
-    const { userId, blogId, postId, originalName, buffer } = command;
+    const { userId, blogId, postId, originalName, mimeType, buffer } = command;
 
     // Проверяем существует ли такой пользователь
     const user = await this.usersQueryRepository.getOrmUserById(
@@ -116,31 +119,29 @@ export class UploadPostMainImageToFsUseCase
     // Получаем метаданные иконки поста малого размера
     const smallMetadata = await sharp(smallSizeBuffer).metadata();
 
-    const dirPath = join('views', 'posts', `${postId}`, 'main');
+    const originalSizeKey = `views/posts/${postId}/main/${postId}_${originalName}`;
+    const middleSizeKey = `views/posts/${postId}/main/${postId}_middle_${originalName}`;
+    const smallSizeKey = `views/posts/${postId}/main/${postId}_small_${originalName}`;
 
     // Загружаем иконки поста в файловое хранилище
-    const originalFsUrl = await this.filesStorageAdapter.uploadImage(
-      dirPath,
-      `${postId}_${originalName}`,
-      buffer,
-    );
+    await this.s3StorageAdapter.uploadImage(originalSizeKey, mimeType, buffer);
 
-    const middleFsUrl = await this.filesStorageAdapter.uploadImage(
-      dirPath,
-      `${postId}_middle_${originalName}`,
+    await this.s3StorageAdapter.uploadImage(
+      middleSizeKey,
+      mimeType,
       middleSizeBuffer,
     );
 
-    const smallFsUrl = await this.filesStorageAdapter.uploadImage(
-      dirPath,
-      `${postId}_small_${originalName}`,
+    await this.s3StorageAdapter.uploadImage(
+      smallSizeKey,
+      mimeType,
       smallSizeBuffer,
     );
 
     // Записываем в БД информацию о иконках поста
     const originalMainImage = new PostMainImage(
       uuidv4(),
-      originalFsUrl,
+      originalSizeKey,
       originalMetadata.width ?? 0,
       originalMetadata.height ?? 0,
       originalMetadata.size ?? 0,
@@ -149,7 +150,7 @@ export class UploadPostMainImageToFsUseCase
 
     const middleMainImage = new PostMainImage(
       uuidv4(),
-      middleFsUrl,
+      middleSizeKey,
       middleMetadata.width ?? 0,
       middleMetadata.height ?? 0,
       middleMetadata.size ?? 0,
@@ -158,7 +159,7 @@ export class UploadPostMainImageToFsUseCase
 
     const smallMainImage = new PostMainImage(
       uuidv4(),
-      smallFsUrl,
+      smallSizeKey,
       smallMetadata.width ?? 0,
       smallMetadata.height ?? 0,
       smallMetadata.size ?? 0,

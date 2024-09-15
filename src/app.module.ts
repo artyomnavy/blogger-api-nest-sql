@@ -110,22 +110,26 @@ import { UserBanByBloggers } from './features/bans/domain/user-ban-by-blogger.en
 import { UpdateBlogBanInfoByAdminUseCase } from './features/bans/application/use-cases/update-blog-ban-by-admin.use-case';
 import { BlogsBansByAdminRepository } from './features/bans/infrastructure/blogs-bans-by-admin-repository';
 import { BlogBanByAdmin } from './features/bans/domain/blog-ban-by-admin.entity';
-import { BlogWallpaper } from './features/files/domain/wallpaper-blog.entity';
-import { BlogMainImage } from './features/files/domain/main-image-blog.entity';
-import { PostMainImage } from './features/files/domain/main-image-post.entity';
-import { UploadBlogWallpaperToFsUseCase } from './features/files/application/use-cases/fs/upload-blog-wallpaper-to-fs.use-case';
-import { FilesStorageAdapter } from './features/files/adapters/files-storage-adapter';
-import { BlogsWallpapersRepository } from './features/files/infrastructure/blogs-wallpapers.repository';
-import { UploadBlogMainImageToFsUseCase } from './features/files/application/use-cases/fs/upload-blog-main-image-to-fs.use-case';
-import { BlogsMainImagesRepository } from './features/files/infrastructure/blogs-main-images.repository';
-import { PostsMainImagesRepository } from './features/files/infrastructure/posts-main-images.repository';
-import { UploadPostMainImageToFsUseCase } from './features/files/application/use-cases/fs/upload-post-main-image-to-fs.use-case';
-import { S3StorageAdapter } from './features/files/adapters/s3-storage-adapter';
-import { UploadBlogMainImageToS3UseCase } from './features/files/application/use-cases/s3/upload-blog-main-image-to-s3.use-case';
-import { UploadBlogWallpaperToS3UseCase } from './features/files/application/use-cases/s3/upload-blog-wallpaper-to-s3.use-case';
-import { UploadPostMainImageToS3UseCase } from './features/files/application/use-cases/s3/upload-post-main-image-to-s3.use-case';
+import { UploadBlogWallpaperToFsUseCase } from './features/files/images/application/use-cases/fs/upload-blog-wallpaper-to-fs.use-case';
+import { FilesStorageAdapter } from './features/files/images/adapters/files-storage-adapter';
+import { UploadBlogMainImageToFsUseCase } from './features/files/images/application/use-cases/fs/upload-blog-main-image-to-fs.use-case';
+import { UploadPostMainImageToFsUseCase } from './features/files/images/application/use-cases/fs/upload-post-main-image-to-fs.use-case';
+import { S3StorageAdapter } from './features/files/images/adapters/s3-storage-adapter';
+import { UploadBlogMainImageToS3UseCase } from './features/files/images/application/use-cases/s3/upload-blog-main-image-to-s3.use-case';
+import { UploadBlogWallpaperToS3UseCase } from './features/files/images/application/use-cases/s3/upload-blog-wallpaper-to-s3.use-case';
+import { UploadPostMainImageToS3UseCase } from './features/files/images/application/use-cases/s3/upload-post-main-image-to-s3.use-case';
 import { TelegramAdapter } from './features/integrations/telegram/adapters/telegram.adapter';
 import { TelegramController } from './features/integrations/telegram/api/telegram.controller';
+import { BlogSubscriber } from './features/subscribers/domain/blog-subscriber.entity';
+import { BlogsWallpapersRepository } from './features/files/images/infrastructure/blogs-wallpapers.repository';
+import { BlogsMainImagesRepository } from './features/files/images/infrastructure/blogs-main-images.repository';
+import { PostsMainImagesRepository } from './features/files/images/infrastructure/posts-main-images.repository';
+import { BlogWallpaper } from './features/files/images/domain/wallpaper-blog.entity';
+import { BlogMainImage } from './features/files/images/domain/main-image-blog.entity';
+import { PostMainImage } from './features/files/images/domain/main-image-post.entity';
+import { SubscribeUserToBlogUseCase } from './features/subscribers/application/use-cases/subscribe-user-to-blog.use-case';
+import { UnsubscribeUserToBlogUseCase } from './features/subscribers/application/use-cases/unsubscribe-user-to-blog.use-case';
+import { BlogSubscriberRepository } from './features/subscribers/infrastructure/blogs-suscribers-repository';
 
 config();
 
@@ -154,6 +158,8 @@ const blogsUseCases = [
   UploadBlogWallpaperToS3UseCase,
   UploadBlogMainImageToFsUseCase,
   UploadBlogMainImageToS3UseCase,
+  SubscribeUserToBlogUseCase,
+  UnsubscribeUserToBlogUseCase,
 ];
 
 const commentsUseCases = [
@@ -216,6 +222,7 @@ const repositoriesProviders = [
   BlogsWallpapersRepository,
   BlogsMainImagesRepository,
   PostsMainImagesRepository,
+  BlogSubscriberRepository,
 ];
 
 const queryRepositoriesProviders = [
@@ -280,6 +287,7 @@ const entities = [
   Quiz,
   PlayerSession,
   QuizQuestion,
+  BlogSubscriber,
 ];
 
 const options: TypeOrmModuleOptions = {

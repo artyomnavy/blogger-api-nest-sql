@@ -1,10 +1,14 @@
 import {
   Controller,
+  Delete,
   Get,
+  HttpCode,
   NotFoundException,
   Param,
+  Post,
   Query,
   Req,
+  UseGuards,
 } from '@nestjs/common';
 import { BlogsQueryRepository } from '../infrastructure/blogs.query-repository';
 import { PostsQueryRepository } from '../../posts/infrastructure/posts.query-repository';
@@ -13,14 +17,22 @@ import { PostOutputModel } from '../../posts/api/models/post.output.model';
 import { PaginatorModel } from '../../../common/models/paginator.input.model';
 import { PaginatorOutputModel } from '../../../common/models/paginator.output.model';
 import { UuidPipe } from '../../../common/pipes/uuid.pipe';
-import { updateBlogImagesS3UrlsForOutput } from '../../files/api/models/blog-image.output.model';
-import { updatePostImagesS3UrlsForOutput } from '../../files/api/models/post-image.output.model';
+import { updateBlogImagesS3UrlsForOutput } from '../../files/images/api/models/blog-image.output.model';
+import { updatePostImagesS3UrlsForOutput } from '../../files/images/api/models/post-image.output.model';
+import { JwtBearerAuthGuard } from '../../../common/guards/jwt-bearer-auth-guard.service';
+import { HTTP_STATUSES, ResultCode } from '../../../common/utils';
+import { CurrentUserId } from '../../../common/decorators/current-user-id.param.decorator';
+import { CommandBus } from '@nestjs/cqrs';
+import { resultCodeToHttpException } from '../../../common/exceptions/result-code-to-http-exception';
+import { SubscribeUserToBlogCommand } from '../../subscribers/application/use-cases/subscribe-user-to-blog.use-case';
+import { UnsubscribeUserToBlogCommand } from '../../subscribers/application/use-cases/unsubscribe-user-to-blog.use-case';
 
 @Controller('blogs')
 export class BlogsPublicController {
   constructor(
     protected blogsQueryRepository: BlogsQueryRepository,
     protected postsQueryRepository: PostsQueryRepository,
+    private readonly commandBus: CommandBus,
   ) {}
 
   @Get()
@@ -118,5 +130,39 @@ export class BlogsPublicController {
         },
       })),
     };
+  }
+  @Post(':blogId/subscription')
+  @UseGuards(JwtBearerAuthGuard)
+  @HttpCode(HTTP_STATUSES.NO_CONTENT_204)
+  async subscribeUserToBlog(
+    @CurrentUserId() userId: string,
+    @Param('blogId', UuidPipe) blogId: string,
+  ) {
+    const result = await this.commandBus.execute(
+      new SubscribeUserToBlogCommand(userId, blogId),
+    );
+
+    if (result.code !== ResultCode.SUCCESS) {
+      resultCodeToHttpException(result.code, result.message, result.field);
+    }
+
+    return;
+  }
+  @Delete(':blogId/subscription')
+  @UseGuards(JwtBearerAuthGuard)
+  @HttpCode(HTTP_STATUSES.NO_CONTENT_204)
+  async unsubscribeUserToBlog(
+    @CurrentUserId() userId: string,
+    @Param('blogId', UuidPipe) blogId: string,
+  ) {
+    const result = await this.commandBus.execute(
+      new UnsubscribeUserToBlogCommand(userId, blogId),
+    );
+
+    if (result.code !== ResultCode.SUCCESS) {
+      resultCodeToHttpException(result.code, result.message, result.field);
+    }
+
+    return;
   }
 }

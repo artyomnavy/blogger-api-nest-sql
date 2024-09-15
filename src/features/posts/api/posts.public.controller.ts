@@ -28,7 +28,7 @@ import { CreateCommentCommand } from '../../comments/application/use-cases/creat
 import { UuidPipe } from '../../../common/pipes/uuid.pipe';
 import { UsersQueryRepository } from '../../users/infrastructure/users.query-repository';
 import { resultCodeToHttpException } from '../../../common/exceptions/result-code-to-http-exception';
-import { updatePostImagesS3UrlsForOutput } from '../../files/api/models/post-image.output.model';
+import { updatePostImagesS3UrlsForOutput } from '../../files/images/api/models/post-image.output.model';
 
 @Controller('posts')
 export class PostsController {

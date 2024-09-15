@@ -57,3 +57,9 @@ export enum ResultCode {
   BAD_REQUEST,
   IM_A_TEAPOT,
 }
+
+export enum SubscriptionStatus {
+  SUBSCRIBED = 'Subscribed',
+  UNSUBSCRIBED = 'Unsubscribed',
+  NONE = 'None',
+}

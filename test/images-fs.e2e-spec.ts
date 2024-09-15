@@ -14,7 +14,7 @@ import { BlogOutputModel } from '../src/features/blogs/api/models/blog.output.mo
 import { join } from 'node:path';
 import { unlink } from 'node:fs/promises';
 import { Repository } from 'typeorm';
-import { BlogWallpaper } from '../src/features/files/domain/wallpaper-blog.entity';
+import { BlogWallpaper } from '../src/features/files/images/domain/wallpaper-blog.entity';
 import { getRepositoryToken } from '@nestjs/typeorm';
 import { checkFileExists, deleteEmptyFolders } from './utils/test-image-utils';
 import { PostOutputModel } from '../src/features/posts/api/models/post.output.model';

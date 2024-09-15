@@ -42,14 +42,14 @@ import { ImageSizeFileValidator } from '../../../common/files-validators/image-s
 import {
   BlogImagesOutputModel,
   updateBlogImagesS3UrlsForOutput,
-} from '../../files/api/models/blog-image.output.model';
+} from '../../files/images/api/models/blog-image.output.model';
 import {
   PostMainImagesOutputModel,
   updatePostImagesS3UrlsForOutput,
-} from '../../files/api/models/post-image.output.model';
-import { UploadBlogMainImageToS3Command } from '../../files/application/use-cases/s3/upload-blog-main-image-to-s3.use-case';
-import { UploadPostMainImageToS3Command } from '../../files/application/use-cases/s3/upload-post-main-image-to-s3.use-case';
-import { UploadBlogWallpaperToS3Command } from '../../files/application/use-cases/s3/upload-blog-wallpaper-to-s3.use-case';
+} from '../../files/images/api/models/post-image.output.model';
+import { UploadBlogMainImageToS3Command } from '../../files/images/application/use-cases/s3/upload-blog-main-image-to-s3.use-case';
+import { UploadPostMainImageToS3Command } from '../../files/images/application/use-cases/s3/upload-post-main-image-to-s3.use-case';
+import { UploadBlogWallpaperToS3Command } from '../../files/images/application/use-cases/s3/upload-blog-wallpaper-to-s3.use-case';
 
 @Controller('blogger/blogs')
 export class BlogsBloggerController {

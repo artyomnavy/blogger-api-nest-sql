@@ -13,13 +13,13 @@ import { CreateAndUpdateBlogModel } from '../src/features/blogs/api/models/blog.
 import { BlogOutputModel } from '../src/features/blogs/api/models/blog.output.model';
 import { join } from 'node:path';
 import { Repository } from 'typeorm';
-import { BlogWallpaper } from '../src/features/files/domain/wallpaper-blog.entity';
 import { getRepositoryToken } from '@nestjs/typeorm';
 import { PostOutputModel } from '../src/features/posts/api/models/post.output.model';
 import { CreateAndUpdatePostModel } from '../src/features/posts/api/models/post.input.model';
 import { TestingModuleBuilder } from '@nestjs/testing';
-import { S3StorageAdapter } from '../src/features/files/adapters/s3-storage-adapter';
+import { S3StorageAdapter } from '../src/features/files/images/adapters/s3-storage-adapter';
 import { S3StorageAdapterMock } from './mock/s3-storage-adapter.mock';
+import { BlogWallpaper } from '../src/features/files/images/domain/wallpaper-blog.entity';
 
 describe('Images s3 testing (e2e)', () => {
   let app: INestApplication;

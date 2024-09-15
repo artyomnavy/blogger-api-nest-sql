@@ -9,9 +9,9 @@ import { PaginatorOutputModel } from '../../../common/models/paginator.output.mo
 import { InjectRepository } from '@nestjs/typeorm';
 import { EntityManager, Repository } from 'typeorm';
 import { Blog } from '../domain/blog.entity';
-import { BlogImagesOutputModel } from '../../files/api/models/blog-image.output.model';
-import { BlogMainImage } from '../../files/domain/main-image-blog.entity';
-import { BlogWallpaper } from '../../files/domain/wallpaper-blog.entity';
+import { BlogImagesOutputModel } from '../../files/images/api/models/blog-image.output.model';
+import { BlogMainImage } from '../../files/images/domain/main-image-blog.entity';
+import { BlogWallpaper } from '../../files/images/domain/wallpaper-blog.entity';
 
 @Injectable()
 export class BlogsQueryRepository {
@@ -226,6 +226,27 @@ export class BlogsQueryRepository {
       return null;
     } else {
       return blogWithWallpaper.blogWallpaper;
+    }
+  }
+  async getOrmBlogByIdWithUserAndBlogSubscriptionInfo(
+    blogId: string,
+    manager?: EntityManager,
+  ): Promise<Blog | null> {
+    const queryBuilder = manager
+      ? manager.createQueryBuilder(Blog, 'b')
+      : this.blogsQueryRepository.createQueryBuilder('b');
+
+    const blog = await queryBuilder
+      .leftJoinAndSelect('b.user', 'u')
+      .leftJoinAndSelect('b.blogsSubscribers', 'bs')
+      .leftJoinAndSelect('bs.user', 'bsu')
+      .where('b.id = :blogId', { blogId })
+      .getOne();
+
+    if (!blog) {
+      return null;
+    } else {
+      return blog;
     }
   }
   async blogMapper(blog: Blog): Promise<BlogOutputModel> {

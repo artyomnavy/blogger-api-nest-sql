@@ -5,7 +5,7 @@ import {
   ManyToOne,
   PrimaryGeneratedColumn,
 } from 'typeorm';
-import { Post } from '../../posts/domain/post.entity';
+import { Post } from '../../../posts/domain/post.entity';
 
 @Entity({ name: 'posts_main_images' })
 export class PostMainImage {

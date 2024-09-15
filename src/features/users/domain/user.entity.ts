@@ -13,6 +13,7 @@ import { Blog } from '../../blogs/domain/blog.entity';
 import { PlayerSession } from '../../quiz/domain/player-session.entity';
 import { UserBanByAdmin } from '../../bans/domain/user-ban-by-admin.entity';
 import { UserBanByBloggers } from '../../bans/domain/user-ban-by-blogger.entity';
+import { BlogSubscriber } from '../../subscribers/domain/blog-subscriber.entity';
 
 @Entity({ name: 'users' })
 export class User {
@@ -75,4 +76,7 @@ export class User {
 
   @OneToMany(() => PlayerSession, (ps) => ps.player)
   playersSessions: PlayerSession[];
+
+  @OneToMany(() => BlogSubscriber, (bs) => bs.user)
+  blogsSubscribers: BlogSubscriber[];
 }

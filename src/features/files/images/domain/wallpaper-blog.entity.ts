@@ -2,13 +2,13 @@ import {
   Column,
   Entity,
   JoinColumn,
-  ManyToOne,
+  OneToOne,
   PrimaryGeneratedColumn,
 } from 'typeorm';
-import { Blog } from '../../blogs/domain/blog.entity';
+import { Blog } from '../../../blogs/domain/blog.entity';
 
-@Entity({ name: 'blogs_main_images' })
-export class BlogMainImage {
+@Entity({ name: 'blogs_wallpapers' })
+export class BlogWallpaper {
   @PrimaryGeneratedColumn('uuid')
   id: string;
 
@@ -24,7 +24,10 @@ export class BlogMainImage {
   @Column({ name: 'file_size', type: 'int' })
   fileSize: number;
 
-  @ManyToOne(() => Blog, (b) => b.blogMainImage, { onDelete: 'CASCADE' })
+  @OneToOne(() => Blog, (b) => b.blogWallpaper, {
+    cascade: true,
+    onDelete: 'CASCADE',
+  })
   @JoinColumn({ name: 'blog_id' })
   blog: Blog;
 }

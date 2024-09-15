@@ -1,4 +1,4 @@
-import { BlogImagesOutputModel } from '../../../files/api/models/blog-image.output.model';
+import { BlogImagesOutputModel } from '../../../files/images/api/models/blog-image.output.model';
 
 export class Blog {
   constructor(
