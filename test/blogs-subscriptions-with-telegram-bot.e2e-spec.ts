@@ -2,18 +2,17 @@ import { INestApplication } from '@nestjs/common';
 import request from 'supertest';
 import { PostOutputModel } from '../src/features/posts/api/models/post.output.model';
 import { BlogOutputModel } from '../src/features/blogs/api/models/blog.output.model';
-import { HTTP_STATUSES, LikeStatuses } from '../src/common/utils';
+import { HTTP_STATUSES } from '../src/common/utils';
 import { Paths } from './utils/test-constants';
 import { CreateEntitiesTestManager } from './utils/test-manager';
 import {
   basicLogin,
   basicPassword,
 } from '../src/features/auth/api/auth.constants';
-import { CreateAndUpdatePostModel } from '../src/features/posts/api/models/post.input.model';
 import { initSettings } from './utils/init-settings';
 import { UserOutputModel } from '../src/features/users/api/models/user.output.model';
 
-describe('Blogs subscribers with telegram bot testing (e2e)', () => {
+describe('Blogs subscriptions with telegram bot testing (e2e)', () => {
   let app: INestApplication;
   let server;
   let createEntitiesTestManager: CreateEntitiesTestManager;

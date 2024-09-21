@@ -5,7 +5,7 @@ import { ResultCode, SubscriptionStatus } from '../../../../common/utils';
 import { ResultType } from '../../../../common/types/result';
 import { TransactionManagerUseCase } from '../../../../common/use-cases/transaction.use-case';
 import { DataSource, EntityManager } from 'typeorm';
-import { BlogSubscriberRepository } from '../../infrastructure/blogs-suscribers-repository';
+import { BlogsSubscriptionsRepository } from '../../infrastructure/blogs-subscriptions-repository';
 
 export class UnsubscribeUserToBlogCommand {
   constructor(
@@ -24,7 +24,7 @@ export class UnsubscribeUserToBlogUseCase
   constructor(
     private usersQueryRepository: UsersQueryRepository,
     private blogsQueryRepository: BlogsQueryRepository,
-    private blogsSubscribersRepository: BlogSubscriberRepository,
+    private blogsSubscriptionsRepository: BlogsSubscriptionsRepository,
     protected readonly dataSource: DataSource,
   ) {
     super(dataSource);
@@ -66,11 +66,11 @@ export class UnsubscribeUserToBlogUseCase
     }
 
     // Проверяем является ли пользователь владельцем или уже подписчиком блога
-    const blogSubscriber = blog.blogsSubscribers.filter(
+    const blogSubscription = blog.blogsSubscriptions.filter(
       (s) => s.user.id === userId && s.status === SubscriptionStatus.SUBSCRIBED,
     );
 
-    if (blog.user.id === userId || !blogSubscriber.length) {
+    if (blog.user.id === userId || !blogSubscription.length) {
       return {
         data: false,
         code: ResultCode.BAD_REQUEST,
@@ -80,9 +80,9 @@ export class UnsubscribeUserToBlogUseCase
     }
 
     // Отписываем пользователя от блога
-    await this.blogsSubscribersRepository.unsubscribeUserToBlog(
+    await this.blogsSubscriptionsRepository.unsubscribeUserToBlog(
       {
-        blogSubscriberId: blogSubscriber[0].id,
+        blogSubscriptionId: blogSubscription[0].id,
         status: SubscriptionStatus.UNSUBSCRIBED,
         blog: null,
       },

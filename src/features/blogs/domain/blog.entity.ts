@@ -12,7 +12,7 @@ import { User } from '../../users/domain/user.entity';
 import { BlogBanByAdmin } from '../../bans/domain/blog-ban-by-admin.entity';
 import { BlogWallpaper } from '../../files/images/domain/wallpaper-blog.entity';
 import { BlogMainImage } from '../../files/images/domain/main-image-blog.entity';
-import { BlogSubscriber } from '../../subscribers/domain/blog-subscriber.entity';
+import { BlogSubscription } from '../../subscriptions/domain/blog-subscription.entity';
 
 @Entity({ name: 'blogs' })
 export class Blog {
@@ -63,6 +63,6 @@ export class Blog {
   @OneToMany(() => BlogMainImage, (bmi) => bmi.blog)
   blogMainImage: BlogMainImage[];
 
-  @OneToMany(() => BlogSubscriber, (bs) => bs.blog)
-  blogsSubscribers: BlogSubscriber[];
+  @OneToMany(() => BlogSubscription, (bs) => bs.blog)
+  blogsSubscriptions: BlogSubscription[];
 }

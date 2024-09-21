@@ -5,9 +5,8 @@ import { ResultCode, SubscriptionStatus } from '../../../../common/utils';
 import { ResultType } from '../../../../common/types/result';
 import { TransactionManagerUseCase } from '../../../../common/use-cases/transaction.use-case';
 import { DataSource, EntityManager } from 'typeorm';
-import { Subscriber } from '../../api/models/blog-subscribers.output.model';
-import { v4 as uuidv4 } from 'uuid';
-import { BlogSubscriberRepository } from '../../infrastructure/blogs-suscribers-repository';
+import { BlogsSubscriptionsRepository } from '../../infrastructure/blogs-subscriptions-repository';
+import { BlogSubscription } from '../../domain/blog-subscription.entity';
 
 export class SubscribeUserToBlogCommand {
   constructor(
@@ -26,7 +25,7 @@ export class SubscribeUserToBlogUseCase
   constructor(
     private usersQueryRepository: UsersQueryRepository,
     private blogsQueryRepository: BlogsQueryRepository,
-    private blogsSubscribersRepository: BlogSubscriberRepository,
+    private blogsSubscriptionsRepository: BlogsSubscriptionsRepository,
     protected readonly dataSource: DataSource,
   ) {
     super(dataSource);
@@ -68,7 +67,7 @@ export class SubscribeUserToBlogUseCase
     }
 
     // Проверяем является ли пользователь владельцем или уже подписчиком блога
-    const isSubscriber = blog.blogsSubscribers.some(
+    const isSubscriber = blog.blogsSubscriptions.some(
       (s) => s.user.id === userId && s.status === SubscriptionStatus.SUBSCRIBED,
     );
 
@@ -81,17 +80,8 @@ export class SubscribeUserToBlogUseCase
       };
     }
 
-    // Создаем подписку
-    const subscriber = new Subscriber(
-      uuidv4(),
-      null,
-      null,
-      SubscriptionStatus.SUBSCRIBED,
-    );
-
     // Подписываем пользователя на блог
-    await this.blogsSubscribersRepository.subscribeUserToBlog(
-      subscriber,
+    await this.blogsSubscriptionsRepository.subscribeUserToBlog(
       user,
       blog,
       manager,

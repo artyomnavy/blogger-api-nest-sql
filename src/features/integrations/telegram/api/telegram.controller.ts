@@ -15,16 +15,22 @@ import { TelegramBotAuthLinkOutputModel } from './models/telegram.output.model';
 import { TelegramMessageModel } from './models/telegram.input.model';
 import { UsersQueryRepository } from '../../../users/infrastructure/users.query-repository';
 import { v4 as uuidv4 } from 'uuid';
+import { BlogsSubscriptionsQueryRepository } from '../../../subscriptions/infrastructure/blogs-subscriptions-query-repository';
+import { BlogsSubscriptionsRepository } from '../../../subscriptions/infrastructure/blogs-subscriptions-repository';
 
 @Controller('integrations/telegram')
 export class TelegramController {
-  constructor(protected usersQueryRepository: UsersQueryRepository) {}
+  constructor(
+    protected usersQueryRepository: UsersQueryRepository,
+    protected blogsSubscriptionsQueryRepository: BlogsSubscriptionsQueryRepository,
+    protected blogsSubscriptionsRepository: BlogsSubscriptionsRepository,
+  ) {}
   @Get('auth-bot-link')
   @UseGuards(JwtBearerAuthGuard)
   async getAuthBotLink(
     @CurrentUserId() userId: string,
   ): Promise<TelegramBotAuthLinkOutputModel> {
-    const telegramCodeSubscriber = uuidv4();
+    const telegramCode = uuidv4();
 
     const user = await this.usersQueryRepository.getOrmUserById(userId);
 
@@ -32,32 +38,54 @@ export class TelegramController {
       throw new NotFoundException('User not found');
     }
 
-    //TO DO: write logic after add subscriber entity
-    // check subscriber and add telegram code
+    const subscription =
+      await this.blogsSubscriptionsQueryRepository.getBlogSubscriptionByUserId(
+        userId,
+      );
+
+    if (!subscription) {
+      throw new NotFoundException('Blog subscription not found');
+    }
+
+    await this.blogsSubscriptionsRepository.addTelegramCodeToBlogSubscription(
+      subscription.id,
+      telegramCode,
+    );
 
     return {
-      link: `${process.env.TELEGRAM_BOT_LINK}?start=${telegramCodeSubscriber}`,
+      link: `${process.env.TELEGRAM_BOT_LINK}?start=${telegramCode}`,
     };
   }
   @Post('webhook')
   @HttpCode(HTTP_STATUSES.NO_CONTENT_204)
-  webhookForTelegramBotApi(@Body() payload: TelegramMessageModel) {
+  async webhookForTelegramBotApi(@Body() payload: TelegramMessageModel) {
     const telegramId = payload.message.from.id;
 
-    let telegramCodeSubscriber = payload.message.text;
+    let telegramCode = payload.message.text;
 
-    if (telegramCodeSubscriber.startsWith('/start')) {
-      telegramCodeSubscriber = telegramCodeSubscriber.split(' ')[1];
+    if (telegramCode.startsWith('/start')) {
+      telegramCode = telegramCode.split(' ')[1];
     } else {
       throw new BadRequestException({
-        message: 'Telegram code subscriber is invalid format',
+        message: 'Telegram code blog subscription is invalid format',
         field: 'telegramCode',
       });
     }
 
-    //TO DO: write logic after add subscriber entity
-    // check telegram code and add telegramId to subscriber
+    const subscription =
+      await this.blogsSubscriptionsQueryRepository.getBlogSubscriptionByTelegramCode(
+        telegramCode,
+      );
 
-    return { status: 'success' };
+    if (!subscription) {
+      throw new NotFoundException('Blog subscription not found');
+    }
+
+    await this.blogsSubscriptionsRepository.addTelegramIdToBlogSubscription(
+      subscription.id,
+      telegramId,
+    );
+
+    return;
   }
 }

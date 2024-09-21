@@ -120,16 +120,17 @@ import { UploadBlogWallpaperToS3UseCase } from './features/files/images/applicat
 import { UploadPostMainImageToS3UseCase } from './features/files/images/application/use-cases/s3/upload-post-main-image-to-s3.use-case';
 import { TelegramAdapter } from './features/integrations/telegram/adapters/telegram.adapter';
 import { TelegramController } from './features/integrations/telegram/api/telegram.controller';
-import { BlogSubscriber } from './features/subscribers/domain/blog-subscriber.entity';
+import { BlogSubscription } from './features/subscriptions/domain/blog-subscription.entity';
 import { BlogsWallpapersRepository } from './features/files/images/infrastructure/blogs-wallpapers.repository';
 import { BlogsMainImagesRepository } from './features/files/images/infrastructure/blogs-main-images.repository';
 import { PostsMainImagesRepository } from './features/files/images/infrastructure/posts-main-images.repository';
 import { BlogWallpaper } from './features/files/images/domain/wallpaper-blog.entity';
 import { BlogMainImage } from './features/files/images/domain/main-image-blog.entity';
 import { PostMainImage } from './features/files/images/domain/main-image-post.entity';
-import { SubscribeUserToBlogUseCase } from './features/subscribers/application/use-cases/subscribe-user-to-blog.use-case';
-import { UnsubscribeUserToBlogUseCase } from './features/subscribers/application/use-cases/unsubscribe-user-to-blog.use-case';
-import { BlogSubscriberRepository } from './features/subscribers/infrastructure/blogs-suscribers-repository';
+import { SubscribeUserToBlogUseCase } from './features/subscriptions/application/use-cases/subscribe-user-to-blog.use-case';
+import { UnsubscribeUserToBlogUseCase } from './features/subscriptions/application/use-cases/unsubscribe-user-to-blog.use-case';
+import { BlogsSubscriptionsRepository } from './features/subscriptions/infrastructure/blogs-subscriptions-repository';
+import { BlogsSubscriptionsQueryRepository } from './features/subscriptions/infrastructure/blogs-subscriptions-query-repository';
 
 config();
 
@@ -222,7 +223,8 @@ const repositoriesProviders = [
   BlogsWallpapersRepository,
   BlogsMainImagesRepository,
   PostsMainImagesRepository,
-  BlogSubscriberRepository,
+  BlogsSubscriptionsRepository,
+  BlogsSubscriptionsQueryRepository,
 ];
 
 const queryRepositoriesProviders = [
@@ -287,7 +289,7 @@ const entities = [
   Quiz,
   PlayerSession,
   QuizQuestion,
-  BlogSubscriber,
+  BlogSubscription,
 ];
 
 const options: TypeOrmModuleOptions = {

@@ -24,8 +24,8 @@ import { HTTP_STATUSES, ResultCode } from '../../../common/utils';
 import { CurrentUserId } from '../../../common/decorators/current-user-id.param.decorator';
 import { CommandBus } from '@nestjs/cqrs';
 import { resultCodeToHttpException } from '../../../common/exceptions/result-code-to-http-exception';
-import { SubscribeUserToBlogCommand } from '../../subscribers/application/use-cases/subscribe-user-to-blog.use-case';
-import { UnsubscribeUserToBlogCommand } from '../../subscribers/application/use-cases/unsubscribe-user-to-blog.use-case';
+import { SubscribeUserToBlogCommand } from '../../subscriptions/application/use-cases/subscribe-user-to-blog.use-case';
+import { UnsubscribeUserToBlogCommand } from '../../subscriptions/application/use-cases/unsubscribe-user-to-blog.use-case';
 
 @Controller('blogs')
 export class BlogsPublicController {

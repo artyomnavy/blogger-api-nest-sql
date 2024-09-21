@@ -238,7 +238,7 @@ export class BlogsQueryRepository {
 
     const blog = await queryBuilder
       .leftJoinAndSelect('b.user', 'u')
-      .leftJoinAndSelect('b.blogsSubscribers', 'bs')
+      .leftJoinAndSelect('b.blogsSubscriptions', 'bs')
       .leftJoinAndSelect('bs.user', 'bsu')
       .where('b.id = :blogId', { blogId })
       .getOne();
