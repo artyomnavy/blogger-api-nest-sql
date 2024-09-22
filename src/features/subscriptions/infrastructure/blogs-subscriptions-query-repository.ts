@@ -14,7 +14,7 @@ export class BlogsSubscriptionsQueryRepository {
   ): Promise<BlogSubscription | null> {
     const blogSubscription = await this.blogsSubscriptionsQueryRepository
       .createQueryBuilder('bs')
-      .where('bs.userId = :userId', { userId: userId })
+      .where('bs.user_id = :userId', { userId: userId })
       .getOne();
 
     if (!blogSubscription) {

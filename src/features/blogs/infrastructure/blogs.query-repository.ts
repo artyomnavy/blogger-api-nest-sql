@@ -35,6 +35,8 @@ export class BlogsQueryRepository {
     const pageNumber = queryData.pageNumber ? +queryData.pageNumber : 1;
     const pageSize = queryData.pageSize ? +queryData.pageSize : 10;
 
+    // TO DO: fix query all blogs, blog by id to Raw result and fix blog mapper
+
     const blogs = await this.blogsQueryRepository
       .createQueryBuilder('b')
       .select([

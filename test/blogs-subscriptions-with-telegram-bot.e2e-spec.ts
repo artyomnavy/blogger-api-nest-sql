@@ -2,7 +2,11 @@ import { INestApplication } from '@nestjs/common';
 import request from 'supertest';
 import { PostOutputModel } from '../src/features/posts/api/models/post.output.model';
 import { BlogOutputModel } from '../src/features/blogs/api/models/blog.output.model';
-import { HTTP_STATUSES, SubscriptionStatus } from '../src/common/utils';
+import {
+  HTTP_STATUSES,
+  LikeStatuses,
+  SubscriptionStatus,
+} from '../src/common/utils';
 import { Paths } from './utils/test-constants';
 import { CreateEntitiesTestManager } from './utils/test-manager';
 import {
@@ -11,6 +15,11 @@ import {
 } from '../src/features/auth/api/auth.constants';
 import { initSettings } from './utils/init-settings';
 import { UserOutputModel } from '../src/features/users/api/models/user.output.model';
+import { TelegramBotAuthLinkOutputModel } from '../src/features/integrations/telegram/api/models/telegram.output.model';
+import { TestingModuleBuilder } from '@nestjs/testing';
+import { TelegramAdapter } from '../src/features/integrations/telegram/adapters/telegram.adapter';
+import { TelegramAdapterMock } from './mock/telegram-adapter.mock';
+import { CreateAndUpdatePostModel } from '../src/features/posts/api/models/post.input.model';
 
 describe('Blogs subscriptions with telegram bot testing (e2e)', () => {
   let app: INestApplication;
@@ -18,19 +27,28 @@ describe('Blogs subscriptions with telegram bot testing (e2e)', () => {
   let createEntitiesTestManager: CreateEntitiesTestManager;
 
   beforeAll(async () => {
-    const testSettings = await initSettings();
+    const testSettings = await initSettings(
+      (moduleBuilder: TestingModuleBuilder) => {
+        moduleBuilder
+          .overrideProvider(TelegramAdapter)
+          .useClass(TelegramAdapterMock);
+      },
+    );
 
     app = testSettings.app;
     server = testSettings.server;
     createEntitiesTestManager = testSettings.createEntitiesTestManager;
   });
 
-  const newPost: PostOutputModel | null = null;
+  let newPost: PostOutputModel | null = null;
   let newBlog: BlogOutputModel | null = null;
   let user: UserOutputModel;
   let subscriber: UserOutputModel;
   let accessTokenUser: any;
   let accessTokenSubscriber: any;
+  let authBotLink: TelegramBotAuthLinkOutputModel | null = null;
+  let telegramText: string | null = null;
+  const telegramIdSubscriber: number = 111333888;
 
   // Create by admin and login user and subscriber
   it('+ POST create by admin and log in user', async () => {
@@ -131,7 +149,7 @@ describe('Blogs subscriptions with telegram bot testing (e2e)', () => {
     accessTokenSubscriber = createAccessTokenForSubscriber.body.accessToken;
   });
 
-  it('+ POST (blogger) create blog for user with correct data)', async () => {
+  it('+ POST (blogger) create blog for user with correct data', async () => {
     const createData = {
       name: 'New blog 1',
       description: 'New description 1',
@@ -174,73 +192,126 @@ describe('Blogs subscriptions with telegram bot testing (e2e)', () => {
     });
   });
 
-  it('+ POST (public) subscribe user to blog with correct data)', async () => {
+  it('+ POST (public) subscribe user to blog with correct data', async () => {
     await request(server)
       .post(`${Paths.blogs}/${newBlog!.id}/subscription`)
       .auth(accessTokenSubscriber, { type: 'bearer' })
       .expect(HTTP_STATUSES.NO_CONTENT_204);
+
+    const foundBlogs = await request(server)
+      .get(Paths.blogs)
+      .expect(HTTP_STATUSES.OK_200);
+
+    expect(foundBlogs.body).toStrictEqual({
+      pagesCount: 1,
+      page: 1,
+      pageSize: 10,
+      totalCount: 1,
+      items: [newBlog],
+    });
+
+    console.log(foundBlogs.body, 'foundBlogs 1');
   });
 
-  it('+ POST (public) unsubscribe user to blog with correct data)', async () => {
+  it('+ GET telegram bot auth link and create telegramCode subscriber', async () => {
+    const generateLink = await request(server)
+      .get(`${Paths.telegram}/auth-bot-link`)
+      .auth(accessTokenSubscriber, { type: 'bearer' })
+      .expect(HTTP_STATUSES.OK_200);
+
+    authBotLink = generateLink.body;
+
+    telegramText = '/' + authBotLink!.link.split('?')[1].replace('=', ' ');
+  });
+
+  it('+ POST add telegramId subscriber by telegram webhook', async () => {
+    const telegramPayload = {
+      message: {
+        from: { id: telegramIdSubscriber },
+        text: telegramText,
+      },
+    };
+
+    await request(server)
+      .post(`${Paths.telegram}/webhook`)
+      .send(telegramPayload)
+      .expect(HTTP_STATUSES.NO_CONTENT_204);
+  });
+
+  it('+ POST (blogger) create post for user with correct data', async () => {
+    const createData: CreateAndUpdatePostModel = {
+      title: 'New post 1',
+      shortDescription: 'New shortDescription 1',
+      content: 'New content 1',
+    };
+
+    const createPost = await createEntitiesTestManager.createPost(
+      `${Paths.blogsBlogger}/${newBlog!.id}/posts`,
+      createData,
+      accessTokenUser,
+    );
+
+    newPost = createPost.body;
+
+    expect(newPost).toEqual({
+      id: expect.any(String),
+      title: createData.title,
+      shortDescription: createData.shortDescription,
+      content: createData.content,
+      blogId: expect.any(String),
+      blogName: expect.any(String),
+      createdAt: expect.any(String),
+      extendedLikesInfo: {
+        likesCount: 0,
+        dislikesCount: 0,
+        myStatus: LikeStatuses.NONE,
+        newestLikes: [],
+      },
+      images: {
+        main: [],
+      },
+    });
+
+    const queryData = {
+      sortBy: 'blogName',
+      sortDirection: 'ASC',
+    };
+
+    const foundPosts = await request(server)
+      .get(`${Paths.blogsBlogger}/${newBlog!.id}/posts`)
+      .auth(accessTokenUser, { type: 'bearer' })
+      .query(queryData)
+      .expect(HTTP_STATUSES.OK_200);
+
+    expect(foundPosts.body).toStrictEqual({
+      pagesCount: 1,
+      page: 1,
+      pageSize: 10,
+      totalCount: 1,
+      items: [newPost],
+    });
+  });
+
+  it('+ POST (public) unsubscribe user to blog with correct data', async () => {
     await request(server)
       .delete(`${Paths.blogs}/${newBlog!.id}/subscription`)
       .auth(accessTokenSubscriber, { type: 'bearer' })
       .expect(HTTP_STATUSES.NO_CONTENT_204);
-  });
 
-  // it('+ POST (blogger) create post for user with correct data)', async () => {
-  //   const createData: CreateAndUpdatePostModel = {
-  //     title: 'New post 1',
-  //     shortDescription: 'New shortDescription 1',
-  //     content: 'New content 1',
-  //   };
-  //
-  //   const createPost = await createEntitiesTestManager.createPost(
-  //     `${Paths.blogsBlogger}/${newBlog!.id}/posts`,
-  //     createData,
-  //     accessTokenUser,
-  //   );
-  //
-  //   newPost = createPost.body;
-  //
-  //   expect(newPost).toEqual({
-  //     id: expect.any(String),
-  //     title: createData.title,
-  //     shortDescription: createData.shortDescription,
-  //     content: createData.content,
-  //     blogId: expect.any(String),
-  //     blogName: expect.any(String),
-  //     createdAt: expect.any(String),
-  //     extendedLikesInfo: {
-  //       likesCount: 0,
-  //       dislikesCount: 0,
-  //       myStatus: LikeStatuses.NONE,
-  //       newestLikes: [],
-  //     },
-  //     images: {
-  //       main: [],
-  //     },
-  //   });
-  //
-  //   const queryData = {
-  //     sortBy: 'blogName',
-  //     sortDirection: 'ASC',
-  //   };
-  //
-  //   const foundPosts = await request(server)
-  //     .get(`${Paths.blogsBlogger}/${newBlog!.id}/posts`)
-  //     .auth(accessTokenUser, { type: 'bearer' })
-  //     .query(queryData)
-  //     .expect(HTTP_STATUSES.OK_200);
-  //
-  //   expect(foundPosts.body).toStrictEqual({
-  //     pagesCount: 1,
-  //     page: 1,
-  //     pageSize: 10,
-  //     totalCount: 1,
-  //     items: [newPost],
-  //   });
-  // });
+    const foundBlogs = await request(server)
+      .get(Paths.blogs)
+      .expect(HTTP_STATUSES.OK_200);
+
+    expect(foundBlogs.body).toStrictEqual({
+      pagesCount: 1,
+      page: 1,
+      pageSize: 10,
+      totalCount: 1,
+      items: [newBlog],
+    });
+
+    console.log(foundBlogs.body, 'foundBlogs 2');
+  });
 
   afterAll(async () => {
     await request(server)
