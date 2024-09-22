@@ -12,6 +12,8 @@ import { Blog } from '../domain/blog.entity';
 import { BlogImagesOutputModel } from '../../files/images/api/models/blog-image.output.model';
 import { BlogMainImage } from '../../files/images/domain/main-image-blog.entity';
 import { BlogWallpaper } from '../../files/images/domain/wallpaper-blog.entity';
+import { SubscriptionStatus } from '../../../common/utils';
+import { BlogSubscription } from '../../subscriptions/domain/blog-subscription.entity';
 
 @Injectable()
 export class BlogsQueryRepository {
@@ -43,6 +45,29 @@ export class BlogsQueryRepository {
         'b.createdAt',
         'b.isMembership',
       ])
+      // Подзапрос количества подписчиков блога
+      .addSelect((subQuery) => {
+        return subQuery
+          .select('COUNT(bs.id)')
+          .from(BlogSubscription, 'bs')
+          .where('bs.blog_id = b.id')
+          .andWhere('(bs.status = :status)', {
+            status: SubscriptionStatus.SUBSCRIBED,
+          });
+      }, 'subscribersCount')
+      // Подзапрос статуса подписки пользователя на блог
+      // Если userId не придет (запрос идет от посетителя), то подзапрос не будет выполняться
+      .addSelect((subQuery) => {
+        return subQuery
+          .select('bs.status')
+          .from(BlogSubscription, 'bs')
+          .where(
+            'bs.blog_id = b.id AND bs.user_id = :userId AND :userId IS NOT NULL',
+            {
+              userId: userId,
+            },
+          );
+      }, 'currentUserSubscriptionStatus')
       .leftJoinAndSelect('b.blogWallpaper', 'bw')
       .leftJoinAndSelect('b.blogMainImage', 'bmi')
       .leftJoin('b.blogBanByAdmin', 'bba')
@@ -75,9 +100,12 @@ export class BlogsQueryRepository {
       items: await Promise.all(blogs.map((blog) => this.blogMapper(blog))),
     };
   }
-  async getBlogById(id: string): Promise<BlogOutputModel | null> {
+  async getBlogById(
+    id: string,
+    userId?: string,
+  ): Promise<BlogOutputModel | null> {
     const blog = await this.blogsQueryRepository
-      .createQueryBuilder()
+      .createQueryBuilder('b')
       .select([
         'b.id',
         'b.name',
@@ -86,7 +114,29 @@ export class BlogsQueryRepository {
         'b.createdAt',
         'b.isMembership',
       ])
-      .from(Blog, 'b')
+      // Подзапрос количества подписчиков блога
+      .addSelect((subQuery) => {
+        return subQuery
+          .select('COUNT(bs.id)')
+          .from(BlogSubscription, 'bs')
+          .where('bs.blog_id = b.id')
+          .andWhere('(bs.status = :status)', {
+            status: SubscriptionStatus.SUBSCRIBED,
+          });
+      }, 'subscribersCount')
+      // Подзапрос статуса подписки пользователя на блог
+      // Если userId не придет (запрос идет от посетителя), то подзапрос не будет выполняться
+      .addSelect((subQuery) => {
+        return subQuery
+          .select('bs.status')
+          .from(BlogSubscription, 'bs')
+          .where(
+            'bs.blog_id = b.id AND bs.user_id = :userId AND :userId IS NOT NULL',
+            {
+              userId: userId,
+            },
+          );
+      }, 'currentUserSubscriptionStatus')
       .leftJoinAndSelect('b.blogWallpaper', 'bw')
       .leftJoinAndSelect('b.blogMainImage', 'bmi')
       .leftJoin('b.blogBanByAdmin', 'bba')
@@ -249,7 +299,36 @@ export class BlogsQueryRepository {
       return blog;
     }
   }
-  async blogMapper(blog: Blog): Promise<BlogOutputModel> {
+  async getSubscribersForBlog(
+    blogId: string,
+    manager?: EntityManager,
+  ): Promise<Blog | null> {
+    const queryBuilder = manager
+      ? manager.createQueryBuilder(Blog, 'b')
+      : this.blogsQueryRepository.createQueryBuilder('b');
+
+    const blog = await queryBuilder
+      .select('b.id')
+      .leftJoinAndSelect('b.blogsSubscriptions', 'bs')
+      .where('(b.id = :blogId)', { blogId })
+      .andWhere('(bs.status = :status)', {
+        status: SubscriptionStatus.SUBSCRIBED,
+      })
+      .andWhere('(bs.telegramId IS NOT NULL)')
+      .getOne();
+
+    if (!blog) {
+      return null;
+    } else {
+      return blog;
+    }
+  }
+  async blogMapper(
+    blog: Blog & {
+      currentUserSubscriptionStatus?: SubscriptionStatus | null;
+      subscribersCount?: number;
+    },
+  ): Promise<BlogOutputModel> {
     return {
       id: blog.id,
       name: blog.name,
@@ -277,6 +356,9 @@ export class BlogsQueryRepository {
             })
           : [],
       },
+      currentUserSubscriptionStatus:
+        blog.currentUserSubscriptionStatus || SubscriptionStatus.NONE,
+      subscribersCount: blog.subscribersCount || 0,
     };
   }
   async blogWithOwnerAndBanInfoForAdminMapper(

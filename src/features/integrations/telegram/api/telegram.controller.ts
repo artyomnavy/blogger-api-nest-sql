@@ -29,9 +29,7 @@ export class TelegramController {
   @UseGuards(JwtBearerAuthGuard)
   async getAuthBotLink(
     @CurrentUserId() userId: string,
-  ): Promise<TelegramBotAuthLinkOutputModel> {
-    const telegramCode = uuidv4();
-
+  ): Promise<TelegramBotAuthLinkOutputModel | null> {
     const user = await this.usersQueryRepository.getOrmUserById(userId);
 
     if (!user) {
@@ -46,6 +44,15 @@ export class TelegramController {
     if (!subscription) {
       throw new NotFoundException('Blog subscription not found');
     }
+
+    if (
+      subscription.telegramCode !== null &&
+      subscription.telegramId !== null
+    ) {
+      return null;
+    }
+
+    const telegramCode = uuidv4();
 
     await this.blogsSubscriptionsRepository.addTelegramCodeToBlogSubscription(
       subscription.id,

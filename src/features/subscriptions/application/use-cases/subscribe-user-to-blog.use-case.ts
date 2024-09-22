@@ -6,7 +6,6 @@ import { ResultType } from '../../../../common/types/result';
 import { TransactionManagerUseCase } from '../../../../common/use-cases/transaction.use-case';
 import { DataSource, EntityManager } from 'typeorm';
 import { BlogsSubscriptionsRepository } from '../../infrastructure/blogs-subscriptions-repository';
-import { BlogSubscription } from '../../domain/blog-subscription.entity';
 
 export class SubscribeUserToBlogCommand {
   constructor(

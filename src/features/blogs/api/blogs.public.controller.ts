@@ -37,10 +37,12 @@ export class BlogsPublicController {
 
   @Get()
   async getAllBlogs(
-    // @Req() req,
+    @Req() req,
     @Query() query: PaginatorModel,
   ): Promise<PaginatorOutputModel<BlogOutputModel>> {
-    const blogs = await this.blogsQueryRepository.getAllBlogs(query);
+    const userId = req.userId;
+
+    const blogs = await this.blogsQueryRepository.getAllBlogs(query, userId);
 
     // return {
     //   ...blogs,
@@ -64,10 +66,12 @@ export class BlogsPublicController {
   }
   @Get(':blogId')
   async getBlog(
-    // @Req() req,
+    @Req() req,
     @Param('blogId', UuidPipe) blogId: string,
   ): Promise<BlogOutputModel> {
-    const blog = await this.blogsQueryRepository.getBlogById(blogId);
+    const userId = req.userId;
+
+    const blog = await this.blogsQueryRepository.getBlogById(blogId, userId);
 
     if (!blog) {
       throw new NotFoundException('Blog not found');

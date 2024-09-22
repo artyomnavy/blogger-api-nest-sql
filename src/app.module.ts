@@ -131,6 +131,7 @@ import { SubscribeUserToBlogUseCase } from './features/subscriptions/application
 import { UnsubscribeUserToBlogUseCase } from './features/subscriptions/application/use-cases/unsubscribe-user-to-blog.use-case';
 import { BlogsSubscriptionsRepository } from './features/subscriptions/infrastructure/blogs-subscriptions-repository';
 import { BlogsSubscriptionsQueryRepository } from './features/subscriptions/infrastructure/blogs-subscriptions-query-repository';
+import { SendTelegramNotificationToBlogSubscribersWhenPostCreatedEventHandler } from './features/posts/application/events-handlers/send-telegram-notification-to-blog-subscribers-when-post-created.event-handler';
 
 config();
 
@@ -201,6 +202,10 @@ const usersUseCases = [
   CreateUserByAdminUseCase,
   UpdateUserBanInfoByAdminUseCase,
   UpdateUserBanInfoByBloggerUseCase,
+];
+
+const eventsHandlers = [
+  SendTelegramNotificationToBlogSubscribersWhenPostCreatedEventHandler,
 ];
 
 const servicesProviders = [AppService, JwtService];
@@ -339,6 +344,7 @@ const options: TypeOrmModuleOptions = {
     ...strategiesProviders,
     ...imagesProviders,
     ...telegramProviders,
+    ...eventsHandlers,
   ],
 })
 export class AppModule implements NestModule {
@@ -362,6 +368,14 @@ export class AppModule implements NestModule {
       },
       {
         path: '/blogs/:blogId/posts',
+        method: RequestMethod.GET,
+      },
+      {
+        path: '/blogs',
+        method: RequestMethod.GET,
+      },
+      {
+        path: '/blogs/:blogId',
         method: RequestMethod.GET,
       },
     );

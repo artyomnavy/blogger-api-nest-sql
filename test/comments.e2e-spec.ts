@@ -1,6 +1,10 @@
 import { INestApplication } from '@nestjs/common';
 import request from 'supertest';
-import { HTTP_STATUSES, LikeStatuses } from '../src/common/utils';
+import {
+  HTTP_STATUSES,
+  LikeStatuses,
+  SubscriptionStatus,
+} from '../src/common/utils';
 import { BlogOutputModel } from '../src/features/blogs/api/models/blog.output.model';
 import { PostOutputModel } from '../src/features/posts/api/models/post.output.model';
 import { badId, Paths, responseNullData } from './utils/test-constants';
@@ -175,6 +179,8 @@ describe('Comments testing (e2e)', () => {
         wallpaper: null,
         main: [],
       },
+      currentUserSubscriptionStatus: SubscriptionStatus.NONE,
+      subscribersCount: 0,
     });
 
     const foundBlogs = await request(server)

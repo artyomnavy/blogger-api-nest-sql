@@ -1,6 +1,10 @@
 import { INestApplication } from '@nestjs/common';
 import request from 'supertest';
-import { HTTP_STATUSES, LikeStatuses } from '../src/common/utils';
+import {
+  HTTP_STATUSES,
+  LikeStatuses,
+  SubscriptionStatus,
+} from '../src/common/utils';
 import { UserOutputModel } from '../src/features/users/api/models/user.output.model';
 import { Paths } from './utils/test-constants';
 import { CreateEntitiesTestManager } from './utils/test-manager';
@@ -131,6 +135,8 @@ describe('Images fs testing (e2e)', () => {
         wallpaper: null,
         main: [],
       },
+      currentUserSubscriptionStatus: SubscriptionStatus.NONE,
+      subscribersCount: 0,
     });
 
     const queryData = {

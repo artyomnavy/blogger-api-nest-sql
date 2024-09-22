@@ -1,4 +1,5 @@
 import { BlogImagesOutputModel } from '../../../files/images/api/models/blog-image.output.model';
+import { SubscriptionStatus } from '../../../../common/utils';
 
 export class Blog {
   constructor(
@@ -29,6 +30,8 @@ export class BlogOutputModel {
   createdAt: string;
   isMembership: boolean;
   images: BlogImagesOutputModel;
+  currentUserSubscriptionStatus: SubscriptionStatus;
+  subscribersCount: number;
 }
 
 export class BlogWithOwnerAndBanInfoOutputModel {

@@ -5,7 +5,6 @@ import { BlogSubscription } from '../domain/blog-subscription.entity';
 import { SubscriptionStatus } from '../../../common/utils';
 import { User } from '../../users/domain/user.entity';
 import { Blog } from '../../blogs/domain/blog.entity';
-import { Post } from '../../posts/domain/post.entity';
 
 @Injectable()
 export class BlogsSubscriptionsRepository {
@@ -30,7 +29,6 @@ export class BlogsSubscriptionsRepository {
     updateData: {
       blogSubscriptionId: string;
       status: SubscriptionStatus;
-      blog: null;
     },
     manager?: EntityManager,
   ): Promise<boolean> {
@@ -43,7 +41,6 @@ export class BlogsSubscriptionsRepository {
       .update(BlogSubscription)
       .set({
         status: updateData.status,
-        blog: updateData.blog,
       })
       .where('id = :id', { id: updateData.blogSubscriptionId })
       .execute();

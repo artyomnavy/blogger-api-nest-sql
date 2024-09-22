@@ -84,7 +84,6 @@ export class UnsubscribeUserToBlogUseCase
       {
         blogSubscriptionId: blogSubscription[0].id,
         status: SubscriptionStatus.UNSUBSCRIBED,
-        blog: null,
       },
       manager,
     );

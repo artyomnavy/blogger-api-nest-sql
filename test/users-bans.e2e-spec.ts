@@ -1,6 +1,10 @@
 import { INestApplication } from '@nestjs/common';
 import request from 'supertest';
-import { BanStatus, HTTP_STATUSES } from '../src/common/utils';
+import {
+  BanStatus,
+  HTTP_STATUSES,
+  SubscriptionStatus,
+} from '../src/common/utils';
 import { UserOutputModel } from '../src/features/users/api/models/user.output.model';
 import { Paths, responseNullData } from './utils/test-constants';
 import { CreateEntitiesTestManager } from './utils/test-manager';
@@ -214,6 +218,8 @@ describe('Users bans testing (e2e)', () => {
         wallpaper: null,
         main: [],
       },
+      currentUserSubscriptionStatus: SubscriptionStatus.NONE,
+      subscribersCount: 0,
     });
 
     const queryData = {

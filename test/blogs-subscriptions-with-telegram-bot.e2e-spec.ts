@@ -2,7 +2,7 @@ import { INestApplication } from '@nestjs/common';
 import request from 'supertest';
 import { PostOutputModel } from '../src/features/posts/api/models/post.output.model';
 import { BlogOutputModel } from '../src/features/blogs/api/models/blog.output.model';
-import { HTTP_STATUSES } from '../src/common/utils';
+import { HTTP_STATUSES, SubscriptionStatus } from '../src/common/utils';
 import { Paths } from './utils/test-constants';
 import { CreateEntitiesTestManager } from './utils/test-manager';
 import {
@@ -157,6 +157,8 @@ describe('Blogs subscriptions with telegram bot testing (e2e)', () => {
         wallpaper: null,
         main: [],
       },
+      currentUserSubscriptionStatus: SubscriptionStatus.NONE,
+      subscribersCount: 0,
     });
 
     const foundBlogs = await request(server)
