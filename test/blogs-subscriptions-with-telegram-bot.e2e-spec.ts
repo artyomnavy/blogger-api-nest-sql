@@ -202,6 +202,8 @@ describe('Blogs subscriptions with telegram bot testing (e2e)', () => {
       .get(Paths.blogs)
       .expect(HTTP_STATUSES.OK_200);
 
+    newBlog!.subscribersCount = 1;
+
     expect(foundBlogs.body).toStrictEqual({
       pagesCount: 1,
       page: 1,
@@ -209,8 +211,6 @@ describe('Blogs subscriptions with telegram bot testing (e2e)', () => {
       totalCount: 1,
       items: [newBlog],
     });
-
-    console.log(foundBlogs.body, 'foundBlogs 1');
   });
 
   it('+ GET telegram bot auth link and create telegramCode subscriber', async () => {
@@ -302,6 +302,8 @@ describe('Blogs subscriptions with telegram bot testing (e2e)', () => {
       .get(Paths.blogs)
       .expect(HTTP_STATUSES.OK_200);
 
+    newBlog!.subscribersCount = 0;
+
     expect(foundBlogs.body).toStrictEqual({
       pagesCount: 1,
       page: 1,
@@ -309,8 +311,6 @@ describe('Blogs subscriptions with telegram bot testing (e2e)', () => {
       totalCount: 1,
       items: [newBlog],
     });
-
-    console.log(foundBlogs.body, 'foundBlogs 2');
   });
 
   afterAll(async () => {

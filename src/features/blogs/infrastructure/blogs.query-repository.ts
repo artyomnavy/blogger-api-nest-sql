@@ -1,5 +1,6 @@
 import { Injectable } from '@nestjs/common';
 import {
+  BlogMapperModel,
   BlogOutputModel,
   BlogWithOwnerAndBanInfoModel,
   BlogWithOwnerAndBanInfoOutputModel,
@@ -35,22 +36,22 @@ export class BlogsQueryRepository {
     const pageNumber = queryData.pageNumber ? +queryData.pageNumber : 1;
     const pageSize = queryData.pageSize ? +queryData.pageSize : 10;
 
-    // TO DO: fix query all blogs, blog by id to Raw result and fix blog mapper
-
     const blogs = await this.blogsQueryRepository
       .createQueryBuilder('b')
       .select([
-        'b.id',
-        'b.name',
-        'b.description',
-        'b.websiteUrl',
-        'b.createdAt',
-        'b.isMembership',
+        'b.id AS "id"',
+        'b.name AS "name"',
+        'b.description AS "description"',
+        'b.websiteUrl AS "websiteUrl"',
+        'b.createdAt AS "createdAt"',
+        'b.isMembership AS "isMembership"',
+        "json_build_object('url', bw.url, 'width', bw.width, 'height', bw.height, 'fileSize', bw.fileSize) AS \"blogWallpaper\"",
+        "json_agg(json_build_object('url', bmi.url, 'width', bmi.width, 'height', bmi.height, 'fileSize', bmi.fileSize)) AS \"mainImages\"",
       ])
       // Подзапрос количества подписчиков блога
       .addSelect((subQuery) => {
         return subQuery
-          .select('COUNT(bs.id)')
+          .select('CAST(COUNT(bs.id) AS int)')
           .from(BlogSubscription, 'bs')
           .where('bs.blog_id = b.id')
           .andWhere('(bs.status = :status)', {
@@ -70,17 +71,18 @@ export class BlogsQueryRepository {
             },
           );
       }, 'currentUserSubscriptionStatus')
-      .leftJoinAndSelect('b.blogWallpaper', 'bw')
-      .leftJoinAndSelect('b.blogMainImage', 'bmi')
+      .leftJoin('b.blogWallpaper', 'bw')
+      .leftJoin('b.blogMainImage', 'bmi')
       .leftJoin('b.blogBanByAdmin', 'bba')
       .leftJoin('b.user', 'u')
       .where('(b.name ILIKE :name)', { name: `%${searchNameTerm}%` })
       .andWhere(userId ? '(u.id = :userId)' : '(TRUE)', { userId })
       .andWhere('(bba.isBanned = :ban)', { ban: false })
+      .groupBy('b.id, bw.url, bw.width, bw.height, bw.fileSize')
       .orderBy(`b.${sortBy}`, sortDirection)
       .skip((pageNumber - 1) * pageSize)
       .take(pageSize)
-      .getMany();
+      .getRawMany();
 
     const totalCount: number = await this.blogsQueryRepository
       .createQueryBuilder('b')
@@ -109,17 +111,19 @@ export class BlogsQueryRepository {
     const blog = await this.blogsQueryRepository
       .createQueryBuilder('b')
       .select([
-        'b.id',
-        'b.name',
-        'b.description',
-        'b.websiteUrl',
-        'b.createdAt',
-        'b.isMembership',
+        'b.id AS "id"',
+        'b.name AS "name"',
+        'b.description AS "description"',
+        'b.websiteUrl AS "websiteUrl"',
+        'b.createdAt AS "createdAt"',
+        'b.isMembership AS "isMembership"',
+        "json_build_object('url', bw.url, 'width', bw.width, 'height', bw.height, 'fileSize', bw.fileSize) AS \"blogWallpaper\"",
+        "json_agg(json_build_object('url', bmi.url, 'width', bmi.width, 'height', bmi.height, 'fileSize', bmi.fileSize)) AS \"mainImages\"",
       ])
       // Подзапрос количества подписчиков блога
       .addSelect((subQuery) => {
         return subQuery
-          .select('COUNT(bs.id)')
+          .select('CAST(COUNT(bs.id) AS int)')
           .from(BlogSubscription, 'bs')
           .where('bs.blog_id = b.id')
           .andWhere('(bs.status = :status)', {
@@ -139,12 +143,13 @@ export class BlogsQueryRepository {
             },
           );
       }, 'currentUserSubscriptionStatus')
-      .leftJoinAndSelect('b.blogWallpaper', 'bw')
-      .leftJoinAndSelect('b.blogMainImage', 'bmi')
+      .leftJoin('b.blogWallpaper', 'bw')
+      .leftJoin('b.blogMainImage', 'bmi')
       .leftJoin('b.blogBanByAdmin', 'bba')
       .where('b.id = :id', { id })
       .andWhere('(bba.isBanned = :ban)', { ban: false })
-      .getOne();
+      .groupBy('b.id, bw.url, bw.width, bw.height, bw.fileSize')
+      .getRawOne();
 
     if (!blog) {
       return null;
@@ -325,12 +330,7 @@ export class BlogsQueryRepository {
       return blog;
     }
   }
-  async blogMapper(
-    blog: Blog & {
-      currentUserSubscriptionStatus?: SubscriptionStatus | null;
-      subscribersCount?: number;
-    },
-  ): Promise<BlogOutputModel> {
+  async blogMapper(blog: BlogMapperModel): Promise<BlogOutputModel> {
     return {
       id: blog.id,
       name: blog.name,
@@ -339,28 +339,36 @@ export class BlogsQueryRepository {
       createdAt: blog.createdAt.toISOString(),
       isMembership: blog.isMembership,
       images: {
-        wallpaper: blog.blogWallpaper
+        wallpaper: blog.blogWallpaper.url
           ? {
               url: blog.blogWallpaper.url,
-              width: blog.blogWallpaper.width,
-              height: blog.blogWallpaper.height,
-              fileSize: blog.blogWallpaper.fileSize,
+              width: +blog.blogWallpaper.width,
+              height: +blog.blogWallpaper.height,
+              fileSize: +blog.blogWallpaper.fileSize,
             }
           : null,
-        main: blog.blogMainImage
-          ? blog.blogMainImage.map((mainImage: BlogMainImage) => {
-              return {
-                url: mainImage.url,
-                width: mainImage.width,
-                height: mainImage.height,
-                fileSize: mainImage.fileSize,
-              };
-            })
+        main: blog.mainImage
+          ? blog.mainImage.map(
+              (mainImage: {
+                url: string;
+                width: string;
+                height: string;
+                fileSize: string;
+              }) => {
+                return {
+                  url: mainImage.url,
+                  width: +mainImage.width,
+                  height: +mainImage.height,
+                  fileSize: +mainImage.fileSize,
+                };
+              },
+            )
           : [],
       },
-      currentUserSubscriptionStatus:
-        blog.currentUserSubscriptionStatus || SubscriptionStatus.NONE,
-      subscribersCount: blog.subscribersCount || 0,
+      currentUserSubscriptionStatus: blog.currentUserSubscriptionStatus
+        ? blog.currentUserSubscriptionStatus
+        : SubscriptionStatus.NONE,
+      subscribersCount: blog.subscribersCount,
     };
   }
   async blogWithOwnerAndBanInfoForAdminMapper(

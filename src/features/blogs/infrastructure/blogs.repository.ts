@@ -7,6 +7,7 @@ import { Blog } from '../domain/blog.entity';
 import { User } from '../../users/domain/user.entity';
 import { BlogBanByAdmin } from '../../bans/domain/blog-ban-by-admin.entity';
 import { BlogsQueryRepository } from './blogs.query-repository';
+import { SubscriptionStatus } from '../../../common/utils';
 
 @Injectable()
 export class BlogsRepository {
@@ -38,7 +39,20 @@ export class BlogsRepository {
 
     const resultCreateBlog = await blogsRepository.save(blog);
 
-    return await this.blogsQueryRepository.blogMapper(resultCreateBlog);
+    return {
+      id: resultCreateBlog.id,
+      name: resultCreateBlog.name,
+      description: resultCreateBlog.description,
+      websiteUrl: resultCreateBlog.websiteUrl,
+      createdAt: resultCreateBlog.createdAt.toISOString(),
+      isMembership: resultCreateBlog.isMembership,
+      images: {
+        wallpaper: null,
+        main: [],
+      },
+      currentUserSubscriptionStatus: SubscriptionStatus.NONE,
+      subscribersCount: 0,
+    };
   }
   async updateBlog(
     id: string,

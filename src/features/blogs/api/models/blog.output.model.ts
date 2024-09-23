@@ -34,6 +34,29 @@ export class BlogOutputModel {
   subscribersCount: number;
 }
 
+export class BlogMapperModel {
+  id: string;
+  name: string;
+  description: string;
+  websiteUrl: string;
+  createdAt: Date;
+  isMembership: boolean;
+  blogWallpaper: {
+    url: string;
+    width: string;
+    height: string;
+    fileSize: string;
+  };
+  mainImage: {
+    url: string;
+    width: string;
+    height: string;
+    fileSize: string;
+  }[];
+  subscribersCount: number;
+  currentUserSubscriptionStatus: SubscriptionStatus;
+}
+
 export class BlogWithOwnerAndBanInfoOutputModel {
   id: string;
   name: string;
