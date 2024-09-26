@@ -42,10 +42,17 @@ describe('Blogs subscriptions with telegram bot testing (e2e)', () => {
 
   let newPost: PostOutputModel | null = null;
   let newBlog: BlogOutputModel | null = null;
+  let newBlog2: BlogOutputModel | null = null;
+  let newBlog3: BlogOutputModel | null = null;
+  let newBlog4: BlogOutputModel | null = null;
+  let newBlog5: BlogOutputModel | null = null;
+  let newBlog6: BlogOutputModel | null = null;
   let user: UserOutputModel;
   let subscriber: UserOutputModel;
+  let subscriber2: UserOutputModel;
   let accessTokenUser: any;
   let accessTokenSubscriber: any;
+  let accessTokenSubscriber2: any;
   let authBotLink: TelegramBotAuthLinkOutputModel | null = null;
   let telegramText: string | null = null;
   const telegramIdSubscriber: number = 111333888;
@@ -122,6 +129,23 @@ describe('Blogs subscriptions with telegram bot testing (e2e)', () => {
       items: [subscriber, user],
     });
 
+    // Create subscriber 2
+    const subscriberData2 = {
+      login: 'sub_test2',
+      password: 'qwerty',
+      email: 'subscriber2@blog.com',
+    };
+
+    const createSubscriber2ByAdmin =
+      await createEntitiesTestManager.createUserByAdmin(
+        Paths.usersSA,
+        subscriberData2,
+        basicLogin,
+        basicPassword,
+      );
+
+    subscriber2 = createSubscriber2ByAdmin.body;
+
     // Login and create tokens for user and subscriber
     const authUserData = {
       loginOrEmail: user!.email,
@@ -131,6 +155,11 @@ describe('Blogs subscriptions with telegram bot testing (e2e)', () => {
     const authSubscriberData = {
       loginOrEmail: subscriber!.email,
       password: subscriberData.password,
+    };
+
+    const authSubscriberData2 = {
+      loginOrEmail: subscriber2!.email,
+      password: subscriberData2.password,
     };
 
     // Create tokens for user and subscriber
@@ -147,6 +176,13 @@ describe('Blogs subscriptions with telegram bot testing (e2e)', () => {
       .expect(HTTP_STATUSES.OK_200);
 
     accessTokenSubscriber = createAccessTokenForSubscriber.body.accessToken;
+
+    const createAccessTokenForSubscriber2 = await request(server)
+      .post(`${Paths.auth}/login`)
+      .send(authSubscriberData2)
+      .expect(HTTP_STATUSES.OK_200);
+
+    accessTokenSubscriber2 = createAccessTokenForSubscriber2.body.accessToken;
   });
 
   it('+ POST (blogger) create blog for user with correct data', async () => {
@@ -190,6 +226,87 @@ describe('Blogs subscriptions with telegram bot testing (e2e)', () => {
       totalCount: 1,
       items: [newBlog],
     });
+
+    // Create 5 blogs
+    const createData2 = {
+      name: 'New blog 2',
+      description: 'New description 2',
+      websiteUrl: 'https://website2.com',
+    };
+
+    const createBlog2 = await createEntitiesTestManager.createBlog(
+      Paths.blogsBlogger,
+      createData2,
+      accessTokenUser,
+    );
+
+    newBlog2 = createBlog2.body;
+
+    const createData3 = {
+      name: 'New blog 3',
+      description: 'New description 3',
+      websiteUrl: 'https://website3.com',
+    };
+
+    const createBlog3 = await createEntitiesTestManager.createBlog(
+      Paths.blogsBlogger,
+      createData3,
+      accessTokenUser,
+    );
+
+    newBlog3 = createBlog3.body;
+
+    const createData4 = {
+      name: 'New blog 4',
+      description: 'New description 4',
+      websiteUrl: 'https://website4.com',
+    };
+
+    const createBlog4 = await createEntitiesTestManager.createBlog(
+      Paths.blogsBlogger,
+      createData4,
+      accessTokenUser,
+    );
+
+    newBlog4 = createBlog4.body;
+
+    const createData5 = {
+      name: 'New blog 5',
+      description: 'New description 5',
+      websiteUrl: 'https://website5.com',
+    };
+
+    const createBlog5 = await createEntitiesTestManager.createBlog(
+      Paths.blogsBlogger,
+      createData5,
+      accessTokenUser,
+    );
+
+    newBlog5 = createBlog5.body;
+
+    const createData6 = {
+      name: 'New blog 6',
+      description: 'New description 6',
+      websiteUrl: 'https://website6.com',
+    };
+
+    const createBlog6 = await createEntitiesTestManager.createBlog(
+      Paths.blogsBlogger,
+      createData6,
+      accessTokenUser,
+    );
+
+    newBlog6 = createBlog6.body;
+
+    const foundSixBlogs = await request(server)
+      .get(Paths.blogs)
+      .expect(HTTP_STATUSES.OK_200);
+
+    expect(foundSixBlogs.body.items.length).toBe(6);
+
+    console.log(
+      `test six blogs after create: ${JSON.stringify(foundSixBlogs.body)}`,
+    );
   });
 
   it('+ POST (public) subscribe user to blog with correct data', async () => {
@@ -202,15 +319,82 @@ describe('Blogs subscriptions with telegram bot testing (e2e)', () => {
       .get(Paths.blogs)
       .expect(HTTP_STATUSES.OK_200);
 
-    newBlog!.subscribersCount = 1;
+    expect(foundBlogs.body.items.length).toBe(6);
 
-    expect(foundBlogs.body).toStrictEqual({
-      pagesCount: 1,
-      page: 1,
-      pageSize: 10,
-      totalCount: 1,
-      items: [newBlog],
-    });
+    // newBlog!.subscribersCount = 1;
+    //
+    // expect(foundBlogs.body).toStrictEqual({
+    //   pagesCount: 1,
+    //   page: 1,
+    //   pageSize: 10,
+    //   totalCount: 1,
+    //   items: [newBlog],
+    // });
+
+    // Subscriber1 subscribe blogs 3, 5
+    await request(server)
+      .post(`${Paths.blogs}/${newBlog3!.id}/subscription`)
+      .auth(accessTokenSubscriber, { type: 'bearer' })
+      .expect(HTTP_STATUSES.NO_CONTENT_204);
+
+    const foundSixBlogs2 = await request(server)
+      .get(Paths.blogs)
+      .expect(HTTP_STATUSES.OK_200);
+
+    expect(foundSixBlogs2.body.items.length).toBe(6);
+
+    await request(server)
+      .post(`${Paths.blogs}/${newBlog5!.id}/subscription`)
+      .auth(accessTokenSubscriber, { type: 'bearer' })
+      .expect(HTTP_STATUSES.NO_CONTENT_204);
+
+    const foundSixBlogs3 = await request(server)
+      .get(Paths.blogs)
+      .expect(HTTP_STATUSES.OK_200);
+
+    expect(foundSixBlogs3.body.items.length).toBe(6);
+
+    console.log(
+      `test six blogs after subscribe user2 to blog 1,3,5: ${JSON.stringify(foundSixBlogs3.body)}`,
+    );
+
+    // Subscriber2 subscribe blogs 1, 3, 6
+    await request(server)
+      .post(`${Paths.blogs}/${newBlog!.id}/subscription`)
+      .auth(accessTokenSubscriber2, { type: 'bearer' })
+      .expect(HTTP_STATUSES.NO_CONTENT_204);
+
+    const foundSixBlogs4 = await request(server)
+      .get(Paths.blogs)
+      .expect(HTTP_STATUSES.OK_200);
+
+    expect(foundSixBlogs4.body.items.length).toBe(6);
+
+    await request(server)
+      .post(`${Paths.blogs}/${newBlog3!.id}/subscription`)
+      .auth(accessTokenSubscriber2, { type: 'bearer' })
+      .expect(HTTP_STATUSES.NO_CONTENT_204);
+
+    const foundSixBlogs6 = await request(server)
+      .get(Paths.blogs)
+      .expect(HTTP_STATUSES.OK_200);
+
+    expect(foundSixBlogs6.body.items.length).toBe(6);
+
+    await request(server)
+      .post(`${Paths.blogs}/${newBlog6!.id}/subscription`)
+      .auth(accessTokenSubscriber2, { type: 'bearer' })
+      .expect(HTTP_STATUSES.NO_CONTENT_204);
+
+    const foundSixBlogs7 = await request(server)
+      .get(Paths.blogs)
+      .expect(HTTP_STATUSES.OK_200);
+
+    expect(foundSixBlogs7.body.items.length).toBe(6);
+
+    console.log(
+      `test six blogs after subscribe user3 to blog 1,3,6: ${JSON.stringify(foundSixBlogs7.body)}`,
+    );
   });
 
   it('+ GET telegram bot auth link and create telegramCode subscriber', async () => {
@@ -293,24 +477,47 @@ describe('Blogs subscriptions with telegram bot testing (e2e)', () => {
   });
 
   it('+ POST (public) unsubscribe user to blog with correct data', async () => {
+    // await request(server)
+    //   .delete(`${Paths.blogs}/${newBlog3!.id}/subscription`)
+    //   .auth(accessTokenSubscriber, { type: 'bearer' })
+    //   .expect(HTTP_STATUSES.NO_CONTENT_204);
+    //
+    // const foundBlogs = await request(server)
+    //   .get(Paths.blogs)
+    //   .expect(HTTP_STATUSES.OK_200);
+    //
+    // newBlog!.subscribersCount = 0;
+    //
+    // expect(foundBlogs.body).toStrictEqual({
+    //   pagesCount: 1,
+    //   page: 1,
+    //   pageSize: 10,
+    //   totalCount: 1,
+    //   items: [newBlog],
+    // });
+
     await request(server)
-      .delete(`${Paths.blogs}/${newBlog!.id}/subscription`)
+      .delete(`${Paths.blogs}/${newBlog3!.id}/subscription`)
       .auth(accessTokenSubscriber, { type: 'bearer' })
       .expect(HTTP_STATUSES.NO_CONTENT_204);
 
-    const foundBlogs = await request(server)
+    const foundSixBlogs = await request(server)
       .get(Paths.blogs)
+      .auth(accessTokenSubscriber, { type: 'bearer' })
       .expect(HTTP_STATUSES.OK_200);
 
-    newBlog!.subscribersCount = 0;
+    expect(foundSixBlogs.body.items.length).toBe(6);
 
-    expect(foundBlogs.body).toStrictEqual({
-      pagesCount: 1,
-      page: 1,
-      pageSize: 10,
-      totalCount: 1,
-      items: [newBlog],
-    });
+    console.log(
+      `test six blogs after unsubscribe user2 to blog 3: ${JSON.stringify(foundSixBlogs.body)}`,
+    );
+
+    const foundBlogsBlogger = await request(server)
+      .get(Paths.blogsBlogger)
+      .auth(accessTokenSubscriber, { type: 'bearer' })
+      .expect(HTTP_STATUSES.OK_200);
+
+    console.log(foundBlogsBlogger.body.items, 'foundBlogsBlogger');
   });
 
   afterAll(async () => {

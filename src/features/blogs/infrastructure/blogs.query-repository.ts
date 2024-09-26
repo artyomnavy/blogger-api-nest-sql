@@ -64,19 +64,16 @@ export class BlogsQueryRepository {
         return subQuery
           .select('bs.status')
           .from(BlogSubscription, 'bs')
-          .where(
-            'bs.blog_id = b.id AND bs.user_id = :userId AND :userId IS NOT NULL',
-            {
-              userId: userId,
-            },
-          );
+          .where('bs.blog_id = b.id AND bs.user_id = :userId', {
+            userId: userId,
+          });
       }, 'currentUserSubscriptionStatus')
       .leftJoin('b.blogWallpaper', 'bw')
       .leftJoin('b.blogMainImage', 'bmi')
       .leftJoin('b.blogBanByAdmin', 'bba')
       .leftJoin('b.user', 'u')
       .where('(b.name ILIKE :name)', { name: `%${searchNameTerm}%` })
-      .andWhere(userId ? '(u.id = :userId)' : '(TRUE)', { userId })
+      // .andWhere(userId ? '(u.id = :userId)' : '(1=1)', { userId: userId })
       .andWhere('(bba.isBanned = :ban)', { ban: false })
       .groupBy('b.id, bw.url, bw.width, bw.height, bw.fileSize')
       .orderBy(`b.${sortBy}`, sortDirection)
@@ -90,7 +87,7 @@ export class BlogsQueryRepository {
       .leftJoin('b.user', 'u')
       .leftJoin('b.blogBanByAdmin', 'bba')
       .where('(b.name ILIKE :name)', { name: `%${searchNameTerm}%` })
-      .andWhere(userId ? '(u.id = :userId)' : '(TRUE)', { userId })
+      // .andWhere(userId ? '(u.id = :userId)' : '(1=1)', { userId: userId })
       .andWhere('(bba.isBanned = :ban)', { ban: false })
       .getCount();
 
@@ -136,12 +133,9 @@ export class BlogsQueryRepository {
         return subQuery
           .select('bs.status')
           .from(BlogSubscription, 'bs')
-          .where(
-            'bs.blog_id = b.id AND bs.user_id = :userId AND :userId IS NOT NULL',
-            {
-              userId: userId,
-            },
-          );
+          .where('bs.blog_id = b.id AND bs.user_id = :userId', {
+            userId: userId,
+          });
       }, 'currentUserSubscriptionStatus')
       .leftJoin('b.blogWallpaper', 'bw')
       .leftJoin('b.blogMainImage', 'bmi')

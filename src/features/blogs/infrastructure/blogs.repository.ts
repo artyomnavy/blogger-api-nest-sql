@@ -6,7 +6,6 @@ import { EntityManager, Repository } from 'typeorm';
 import { Blog } from '../domain/blog.entity';
 import { User } from '../../users/domain/user.entity';
 import { BlogBanByAdmin } from '../../bans/domain/blog-ban-by-admin.entity';
-import { BlogsQueryRepository } from './blogs.query-repository';
 import { SubscriptionStatus } from '../../../common/utils';
 
 @Injectable()
@@ -14,7 +13,6 @@ export class BlogsRepository {
   constructor(
     @InjectRepository(Blog)
     private readonly blogsRepository: Repository<Blog>,
-    private readonly blogsQueryRepository: BlogsQueryRepository,
   ) {}
   async createBlog(
     newBlog: BlogModel,

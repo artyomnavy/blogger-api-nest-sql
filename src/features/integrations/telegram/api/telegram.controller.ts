@@ -66,6 +66,18 @@ export class TelegramController {
   @Post('webhook')
   @HttpCode(HTTP_STATUSES.NO_CONTENT_204)
   async webhookForTelegramBotApi(@Body() payload: TelegramMessageModel) {
+    if (
+      !payload ||
+      !payload.message ||
+      !payload.message.from ||
+      !payload.message.text
+    ) {
+      throw new BadRequestException({
+        message: 'Invalid payload data',
+        field: 'payload',
+      });
+    }
+
     const telegramId = payload.message.from.id;
 
     let telegramCode = payload.message.text;
