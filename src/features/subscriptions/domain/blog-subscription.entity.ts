@@ -24,7 +24,7 @@ export class BlogSubscription {
 
   @Column({
     name: 'telegram_id',
-    type: 'int',
+    type: 'bigint',
     nullable: true,
   })
   telegramId: number | null;

@@ -132,6 +132,8 @@ import { UnsubscribeUserToBlogUseCase } from './features/subscriptions/applicati
 import { BlogsSubscriptionsRepository } from './features/subscriptions/infrastructure/blogs-subscriptions-repository';
 import { BlogsSubscriptionsQueryRepository } from './features/subscriptions/infrastructure/blogs-subscriptions-query-repository';
 import { SendTelegramNotificationToBlogSubscribersWhenPostCreatedEventHandler } from './features/posts/application/events-handlers/send-telegram-notification-to-blog-subscribers-when-post-created.event-handler';
+import { GenerateAuthBotLinkUseCase } from './features/integrations/telegram/application/use-cases/generate-auth-bot-link.use-case';
+import { AddTelegramNotificationToBlogSubscriptionUseCase } from './features/integrations/telegram/application/use-cases/add-telegram-notification-to-blog-subscription.use-case';
 
 config();
 
@@ -242,6 +244,11 @@ const queryRepositoriesProviders = [
   QuizzesQueryRepository,
 ];
 
+const telegramUseCases = [
+  GenerateAuthBotLinkUseCase,
+  AddTelegramNotificationToBlogSubscriptionUseCase,
+];
+
 const telegramProviders = [TelegramAdapter];
 
 const imagesProviders = [FilesStorageAdapter, S3StorageAdapter];
@@ -336,6 +343,7 @@ const options: TypeOrmModuleOptions = {
     ...devicesUseCases,
     ...usersUseCases,
     ...quizzesUseCases,
+    ...telegramUseCases,
     ...servicesProviders,
     ...repositoriesProviders,
     ...queryRepositoriesProviders,

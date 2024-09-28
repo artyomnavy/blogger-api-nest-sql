@@ -50,8 +50,13 @@ export class BlogsSubscriptionsRepository {
   async addTelegramCodeToBlogSubscription(
     subscriptionId: string,
     telegramCode: string,
+    manager: EntityManager,
   ): Promise<boolean> {
-    const resultUpdateSubscription = await this.blogsSubscriptionsRepository
+    const blogsSubscriptionsRepository = manager
+      ? manager.getRepository(BlogSubscription)
+      : this.blogsSubscriptionsRepository;
+
+    const resultUpdateSubscription = await blogsSubscriptionsRepository
       .createQueryBuilder()
       .update(BlogSubscription)
       .set({
@@ -65,8 +70,13 @@ export class BlogsSubscriptionsRepository {
   async addTelegramIdToBlogSubscription(
     subscriptionId: string,
     telegramId: number,
+    manager?: EntityManager,
   ): Promise<boolean> {
-    const resultUpdateSubscription = await this.blogsSubscriptionsRepository
+    const blogsSubscriptionsRepository = manager
+      ? manager.getRepository(BlogSubscription)
+      : this.blogsSubscriptionsRepository;
+
+    const resultUpdateSubscription = await blogsSubscriptionsRepository
       .createQueryBuilder()
       .update(BlogSubscription)
       .set({

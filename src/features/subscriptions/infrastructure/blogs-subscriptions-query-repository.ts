@@ -1,6 +1,6 @@
 import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Repository } from 'typeorm';
+import { EntityManager, Repository } from 'typeorm';
 import { BlogSubscription } from '../domain/blog-subscription.entity';
 
 @Injectable()
@@ -11,8 +11,13 @@ export class BlogsSubscriptionsQueryRepository {
   ) {}
   async getBlogSubscriptionByUserId(
     userId: string,
+    manager?: EntityManager,
   ): Promise<BlogSubscription | null> {
-    const blogSubscription = await this.blogsSubscriptionsQueryRepository
+    const blogsSubscriptionsQueryRepository = manager
+      ? manager.getRepository(BlogSubscription)
+      : this.blogsSubscriptionsQueryRepository;
+
+    const blogSubscription = await blogsSubscriptionsQueryRepository
       .createQueryBuilder('bs')
       .where('bs.user_id = :userId', { userId: userId })
       .getOne();
@@ -25,8 +30,13 @@ export class BlogsSubscriptionsQueryRepository {
   }
   async getBlogSubscriptionByTelegramCode(
     telegramCode: string,
+    manager?: EntityManager,
   ): Promise<BlogSubscription | null> {
-    const blogSubscription = await this.blogsSubscriptionsQueryRepository
+    const blogsSubscriptionsQueryRepository = manager
+      ? manager.getRepository(BlogSubscription)
+      : this.blogsSubscriptionsQueryRepository;
+
+    const blogSubscription = await blogsSubscriptionsQueryRepository
       .createQueryBuilder('bs')
       .where('bs.telegramCode = :telegramCode', { telegramCode: telegramCode })
       .getOne();
