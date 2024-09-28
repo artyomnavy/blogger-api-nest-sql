@@ -6,6 +6,7 @@ import { ResultType } from '../../../../common/types/result';
 import { TransactionManagerUseCase } from '../../../../common/use-cases/transaction.use-case';
 import { DataSource, EntityManager } from 'typeorm';
 import { BlogsSubscriptionsRepository } from '../../infrastructure/blogs-subscriptions-repository';
+import { BlogsSubscriptionsQueryRepository } from '../../infrastructure/blogs-subscriptions-query-repository';
 
 export class SubscribeUserToBlogCommand {
   constructor(
@@ -25,6 +26,7 @@ export class SubscribeUserToBlogUseCase
     private usersQueryRepository: UsersQueryRepository,
     private blogsQueryRepository: BlogsQueryRepository,
     private blogsSubscriptionsRepository: BlogsSubscriptionsRepository,
+    private blogsSubscriptionsQueryRepository: BlogsSubscriptionsQueryRepository,
     protected readonly dataSource: DataSource,
   ) {
     super(dataSource);
@@ -51,11 +53,10 @@ export class SubscribeUserToBlogUseCase
     }
 
     // Проверяем существует ли такой блог
-    const blog =
-      await this.blogsQueryRepository.getOrmBlogByIdWithUserAndBlogSubscriptionInfo(
-        blogId,
-        manager,
-      );
+    const blog = await this.blogsQueryRepository.getOrmBlogByIdWithBanInfo(
+      blogId,
+      manager,
+    );
 
     if (!blog) {
       return {
@@ -66,15 +67,33 @@ export class SubscribeUserToBlogUseCase
     }
 
     // Проверяем является ли пользователь владельцем или уже подписчиком блога
-    const isSubscriber = blog.blogsSubscriptions.some(
-      (s) => s.user.id === userId && s.status === SubscriptionStatus.SUBSCRIBED,
+    const isOwnerBlog = await this.blogsQueryRepository.checkOwnerBlog(
+      userId,
+      blogId,
     );
 
-    if (blog.user.id === userId || isSubscriber) {
+    if (isOwnerBlog) {
       return {
         data: false,
         code: ResultCode.BAD_REQUEST,
-        message: 'User is owner or subscriber this blog',
+        message: 'User is owner blog',
+        field: 'userId or blogId',
+      };
+    }
+
+    const subscription =
+      await this.blogsSubscriptionsQueryRepository.getSubscriberToBlog(
+        blogId,
+        userId,
+        SubscriptionStatus.SUBSCRIBED,
+        manager,
+      );
+
+    if (subscription) {
+      return {
+        data: false,
+        code: ResultCode.BAD_REQUEST,
+        message: 'User is subscriber this blog',
         field: 'userId or blogId',
       };
     }

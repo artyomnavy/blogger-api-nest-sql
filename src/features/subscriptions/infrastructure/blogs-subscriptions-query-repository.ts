@@ -2,6 +2,7 @@ import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { EntityManager, Repository } from 'typeorm';
 import { BlogSubscription } from '../domain/blog-subscription.entity';
+import { SubscriptionStatus } from '../../../common/utils';
 
 @Injectable()
 export class BlogsSubscriptionsQueryRepository {
@@ -45,6 +46,29 @@ export class BlogsSubscriptionsQueryRepository {
       return null;
     } else {
       return blogSubscription;
+    }
+  }
+  async getSubscriberToBlog(
+    blogId: string,
+    userId: string,
+    status: SubscriptionStatus,
+    manager?: EntityManager,
+  ): Promise<BlogSubscription | null> {
+    const blogsSubscriptionsQueryRepository = manager
+      ? manager.getRepository(BlogSubscription)
+      : this.blogsSubscriptionsQueryRepository;
+
+    const subscriber = await blogsSubscriptionsQueryRepository
+      .createQueryBuilder('bs')
+      .where('(bs.blog_id = :blogId)', { blogId: blogId })
+      .andWhere('(bs.user_id = :userId)', { userId: userId })
+      .andWhere('(bs.status = :status)', { status: status })
+      .getOne();
+
+    if (!subscriber) {
+      return null;
+    } else {
+      return subscriber;
     }
   }
 }

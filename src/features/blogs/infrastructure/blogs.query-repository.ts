@@ -279,27 +279,6 @@ export class BlogsQueryRepository {
       return blogWithWallpaper.blogWallpaper;
     }
   }
-  async getOrmBlogByIdWithUserAndBlogSubscriptionInfo(
-    blogId: string,
-    manager?: EntityManager,
-  ): Promise<Blog | null> {
-    const queryBuilder = manager
-      ? manager.createQueryBuilder(Blog, 'b')
-      : this.blogsQueryRepository.createQueryBuilder('b');
-
-    const blog = await queryBuilder
-      .leftJoinAndSelect('b.user', 'u')
-      .leftJoinAndSelect('b.blogsSubscriptions', 'bs')
-      .leftJoinAndSelect('bs.user', 'bsu')
-      .where('b.id = :blogId', { blogId })
-      .getOne();
-
-    if (!blog) {
-      return null;
-    } else {
-      return blog;
-    }
-  }
   async getSubscribersForBlog(
     blogId: string,
     manager?: EntityManager,
