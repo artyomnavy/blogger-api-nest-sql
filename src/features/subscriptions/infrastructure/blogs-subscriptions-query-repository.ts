@@ -71,4 +71,25 @@ export class BlogsSubscriptionsQueryRepository {
       return subscriber;
     }
   }
+  async getSubscriptionToBlog(
+    blogId: string,
+    userId: string,
+    manager?: EntityManager,
+  ): Promise<BlogSubscription | null> {
+    const blogsSubscriptionsQueryRepository = manager
+      ? manager.getRepository(BlogSubscription)
+      : this.blogsSubscriptionsQueryRepository;
+
+    const subscription = await blogsSubscriptionsQueryRepository
+      .createQueryBuilder('bs')
+      .where('(bs.blog_id = :blogId)', { blogId: blogId })
+      .andWhere('(bs.user_id = :userId)', { userId: userId })
+      .getOne();
+
+    if (!subscription) {
+      return null;
+    } else {
+      return subscription;
+    }
+  }
 }

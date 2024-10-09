@@ -1,4 +1,5 @@
 import {
+  Body,
   Controller,
   Delete,
   Get,
@@ -26,6 +27,8 @@ import { CommandBus } from '@nestjs/cqrs';
 import { resultCodeToHttpException } from '../../../common/exceptions/result-code-to-http-exception';
 import { SubscribeUserToBlogCommand } from '../../subscriptions/application/use-cases/subscribe-user-to-blog.use-case';
 import { UnsubscribeUserToBlogCommand } from '../../subscriptions/application/use-cases/unsubscribe-user-to-blog.use-case';
+import { BuyMembershipPlanModel } from '../../memberships/api/models/membership.input.model';
+import { BuyMembershipPlanToBlogSubscriptionCommand } from '../../memberships/application/use-cases/buy-membership-plan-to-blog-subscription.use-case';
 
 @Controller('blogs')
 export class BlogsPublicController {
@@ -161,6 +164,29 @@ export class BlogsPublicController {
   ) {
     const result = await this.commandBus.execute(
       new UnsubscribeUserToBlogCommand(userId, blogId),
+    );
+
+    if (result.code !== ResultCode.SUCCESS) {
+      resultCodeToHttpException(result.code, result.message, result.field);
+    }
+
+    return;
+  }
+  @Post(':blogId/membership')
+  @UseGuards(JwtBearerAuthGuard)
+  @HttpCode(HTTP_STATUSES.NO_CONTENT_204)
+  async buyMembershipPlanBlogSubscription(
+    @CurrentUserId() userId: string,
+    @Param('blogId', UuidPipe) blogId: string,
+    @Body() buyModel: BuyMembershipPlanModel,
+  ) {
+    const result = await this.commandBus.execute(
+      new BuyMembershipPlanToBlogSubscriptionCommand(
+        userId,
+        blogId,
+        buyModel.membershipPlanId,
+        buyModel.paymentSystem,
+      ),
     );
 
     if (result.code !== ResultCode.SUCCESS) {

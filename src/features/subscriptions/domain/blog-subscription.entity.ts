@@ -32,6 +32,12 @@ export class BlogSubscription {
   @Column({ type: 'character varying' })
   status: string;
 
+  @Column('timestamp with time zone', { name: 'created_at' })
+  createdAt: Date;
+
+  @Column('timestamp with time zone', { name: 'updated_at', nullable: true })
+  updatedAt: Date | null;
+
   @ManyToOne(() => Blog, (b) => b.blogsSubscriptions, {
     onDelete: 'CASCADE',
   })

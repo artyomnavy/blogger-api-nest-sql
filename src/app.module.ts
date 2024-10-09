@@ -119,7 +119,7 @@ import { UploadBlogMainImageToS3UseCase } from './features/files/images/applicat
 import { UploadBlogWallpaperToS3UseCase } from './features/files/images/application/use-cases/s3/upload-blog-wallpaper-to-s3.use-case';
 import { UploadPostMainImageToS3UseCase } from './features/files/images/application/use-cases/s3/upload-post-main-image-to-s3.use-case';
 import { TelegramAdapter } from './features/integrations/telegram/adapters/telegram.adapter';
-import { TelegramController } from './features/integrations/telegram/api/telegram.controller';
+import { IntegrationsController } from './features/integrations/api/integrations.controller';
 import { BlogSubscription } from './features/subscriptions/domain/blog-subscription.entity';
 import { BlogsWallpapersRepository } from './features/files/images/infrastructure/blogs-wallpapers.repository';
 import { BlogsMainImagesRepository } from './features/files/images/infrastructure/blogs-main-images.repository';
@@ -134,6 +134,7 @@ import { BlogsSubscriptionsQueryRepository } from './features/subscriptions/infr
 import { SendTelegramNotificationToBlogSubscribersWhenPostCreatedEventHandler } from './features/posts/application/events-handlers/send-telegram-notification-to-blog-subscribers-when-post-created.event-handler';
 import { GenerateAuthBotLinkUseCase } from './features/integrations/telegram/application/use-cases/generate-auth-bot-link.use-case';
 import { AddTelegramNotificationToBlogSubscriptionUseCase } from './features/integrations/telegram/application/use-cases/add-telegram-notification-to-blog-subscription.use-case';
+import { BuyMembershipPlanToBlogSubscriptionUseCase } from './features/memberships/application/use-cases/buy-membership-plan-to-blog-subscription.use-case';
 
 config();
 
@@ -164,6 +165,7 @@ const blogsUseCases = [
   UploadBlogMainImageToS3UseCase,
   SubscribeUserToBlogUseCase,
   UnsubscribeUserToBlogUseCase,
+  BuyMembershipPlanToBlogSubscriptionUseCase,
 ];
 
 const commentsUseCases = [
@@ -279,7 +281,7 @@ const controllers = [
   TestController,
   QuizSAController,
   QuizPublicController,
-  TelegramController,
+  IntegrationsController,
 ];
 
 const entities = [

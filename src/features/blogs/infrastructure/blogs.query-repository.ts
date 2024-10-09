@@ -224,6 +224,25 @@ export class BlogsQueryRepository {
       ),
     };
   }
+  async getOrmBlogById(
+    blogId: string,
+    manager?: EntityManager,
+  ): Promise<Blog | null> {
+    const blogsQueryRepository = manager
+      ? manager.getRepository(Blog)
+      : this.blogsQueryRepository;
+
+    const blog = await blogsQueryRepository
+      .createQueryBuilder('b')
+      .where('id = :blogId', { blogId: blogId })
+      .getOne();
+
+    if (!blog) {
+      return null;
+    } else {
+      return blog;
+    }
+  }
   async getOrmBlogByIdWithBanInfo(
     blogId: string,
     manager?: EntityManager,
