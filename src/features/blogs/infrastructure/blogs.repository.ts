@@ -69,6 +69,26 @@ export class BlogsRepository {
 
     return resultUpdateBlog.affected === 1;
   }
+  async updateBlogMembership(
+    blogId: string,
+    isMembership: boolean,
+    manager?: EntityManager,
+  ): Promise<boolean> {
+    const queryBuilder = manager
+      ? manager.createQueryBuilder(Blog, 'b')
+      : this.blogsRepository.createQueryBuilder('b');
+
+    const resultUpdateBlogMembership = await queryBuilder
+      .createQueryBuilder()
+      .update(Blog)
+      .set({
+        isMembership: isMembership,
+      })
+      .where('id = :blogId', { blogId: blogId })
+      .execute();
+
+    return resultUpdateBlogMembership.affected === 1;
+  }
   async deleteBlog(id: string): Promise<boolean> {
     const resultDeleteBlog = await this.blogsRepository
       .createQueryBuilder()

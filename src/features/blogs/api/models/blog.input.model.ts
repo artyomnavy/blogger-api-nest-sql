@@ -1,4 +1,10 @@
-import { IsNotEmpty, IsString, Matches, MaxLength } from 'class-validator';
+import {
+  IsBoolean,
+  IsNotEmpty,
+  IsString,
+  Matches,
+  MaxLength,
+} from 'class-validator';
 import { Transform } from 'class-transformer';
 
 export class CreateAndUpdateBlogModel {
@@ -27,4 +33,10 @@ export class CreateAndUpdateBlogModel {
   @IsString()
   @IsNotEmpty()
   websiteUrl: string;
+}
+
+export class UpdateBlogMembershipModel {
+  @IsBoolean()
+  @IsNotEmpty()
+  isMembership: boolean;
 }

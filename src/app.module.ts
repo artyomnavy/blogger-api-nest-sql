@@ -135,6 +135,9 @@ import { SendTelegramNotificationToBlogSubscribersWhenPostCreatedEventHandler } 
 import { GenerateAuthBotLinkUseCase } from './features/integrations/telegram/application/use-cases/generate-auth-bot-link.use-case';
 import { AddTelegramNotificationToBlogSubscriptionUseCase } from './features/integrations/telegram/application/use-cases/add-telegram-notification-to-blog-subscription.use-case';
 import { BuyMembershipPlanToBlogSubscriptionUseCase } from './features/memberships/application/use-cases/buy-membership-plan-to-blog-subscription.use-case';
+import { BlogMembershipPlan } from './features/memberships/domain/blog-membership-plan.entity';
+import { UpdateBlogMembershipUseCase } from './features/memberships/application/use-cases/update-blog-membership.use-case';
+import { BlogsMembershipsPlansQueryRepository } from './features/memberships/infrastructure/blogs-memberships-plans-query-repository';
 
 config();
 
@@ -166,6 +169,7 @@ const blogsUseCases = [
   SubscribeUserToBlogUseCase,
   UnsubscribeUserToBlogUseCase,
   BuyMembershipPlanToBlogSubscriptionUseCase,
+  UpdateBlogMembershipUseCase,
 ];
 
 const commentsUseCases = [
@@ -234,6 +238,7 @@ const repositoriesProviders = [
   PostsMainImagesRepository,
   BlogsSubscriptionsRepository,
   BlogsSubscriptionsQueryRepository,
+  BlogsMembershipsPlansQueryRepository,
 ];
 
 const queryRepositoriesProviders = [
@@ -304,6 +309,7 @@ const entities = [
   PlayerSession,
   QuizQuestion,
   BlogSubscription,
+  BlogMembershipPlan,
 ];
 
 const options: TypeOrmModuleOptions = {

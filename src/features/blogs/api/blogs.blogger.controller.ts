@@ -19,7 +19,10 @@ import {
 import { BlogsQueryRepository } from '../infrastructure/blogs.query-repository';
 import { PostsQueryRepository } from '../../posts/infrastructure/posts.query-repository';
 import { BlogOutputModel } from './models/blog.output.model';
-import { CreateAndUpdateBlogModel } from './models/blog.input.model';
+import {
+  CreateAndUpdateBlogModel,
+  UpdateBlogMembershipModel,
+} from './models/blog.input.model';
 import { CreateAndUpdatePostModel } from '../../posts/api/models/post.input.model';
 import { PostOutputModel } from '../../posts/api/models/post.output.model';
 import { PaginatorModel } from '../../../common/models/paginator.input.model';
@@ -50,6 +53,7 @@ import {
 import { UploadBlogMainImageToS3Command } from '../../files/images/application/use-cases/s3/upload-blog-main-image-to-s3.use-case';
 import { UploadPostMainImageToS3Command } from '../../files/images/application/use-cases/s3/upload-post-main-image-to-s3.use-case';
 import { UploadBlogWallpaperToS3Command } from '../../files/images/application/use-cases/s3/upload-blog-wallpaper-to-s3.use-case';
+import { UpdateBlogMembershipCommand } from '../../memberships/application/use-cases/update-blog-membership.use-case';
 
 @Controller('blogger/blogs')
 export class BlogsBloggerController {
@@ -484,5 +488,31 @@ export class BlogsBloggerController {
     // );
 
     return updatePostImagesS3UrlsForOutput(notice.data);
+  }
+  @Put(':blogId/membership')
+  @UseGuards(JwtBearerAuthGuard)
+  @HttpCode(HTTP_STATUSES.NO_CONTENT_204)
+  async updateBlogMembership(
+    @CurrentUserId() userId: string,
+    @Param('blogId', UuidPipe) blogId: string,
+    @Body() updateModel: UpdateBlogMembershipModel,
+  ) {
+    const updateCommand = new UpdateBlogMembershipCommand(
+      userId,
+      blogId,
+      updateModel.isMembership,
+    );
+
+    const notice = await this.commandBus.execute(updateCommand);
+
+    if (notice.hasError()) {
+      if (notice.code === HTTP_STATUSES.NOT_FOUND_404) {
+        throw new NotFoundException(notice.messages[0]);
+      } else {
+        throw new ForbiddenException(notice.messages[0]);
+      }
+    }
+
+    return;
   }
 }

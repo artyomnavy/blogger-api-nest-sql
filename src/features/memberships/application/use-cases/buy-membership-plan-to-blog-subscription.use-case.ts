@@ -9,6 +9,7 @@ import { BlogsSubscriptionsRepository } from '../../../subscriptions/infrastruct
 import { BlogsSubscriptionsQueryRepository } from '../../../subscriptions/infrastructure/blogs-subscriptions-query-repository';
 import Stripe from 'stripe';
 import process from 'node:process';
+import { BlogsMembershipsPlansQueryRepository } from '../../infrastructure/blogs-memberships-plans-query-repository';
 
 export class BuyMembershipPlanToBlogSubscriptionCommand {
   constructor(
@@ -31,6 +32,7 @@ export class BuyMembershipPlanToBlogSubscriptionUseCase
     private blogsQueryRepository: BlogsQueryRepository,
     private blogsSubscriptionsRepository: BlogsSubscriptionsRepository,
     private blogsSubscriptionsQueryRepository: BlogsSubscriptionsQueryRepository,
+    private blogsMembershipsPlansQueryRepository: BlogsMembershipsPlansQueryRepository,
     protected readonly dataSource: DataSource,
   ) {
     super(dataSource);
@@ -40,6 +42,22 @@ export class BuyMembershipPlanToBlogSubscriptionUseCase
     manager: EntityManager,
   ): Promise<ResultType<{ url: string } | null>> {
     const { userId, blogId, membershipPlanId, paymentSystem } = command;
+
+    // Проверяем существует ли такой тарифный план membership блога
+    const blogMembershipPlan =
+      await this.blogsMembershipsPlansQueryRepository.getBlogMembershipPlanById(
+        membershipPlanId,
+        manager,
+      );
+
+    if (!blogMembershipPlan) {
+      return {
+        data: null,
+        code: ResultCode.NOT_FOUND,
+        message: 'Blog membership plan not found',
+        field: 'membershipPlanId',
+      };
+    }
 
     // Проверяем существует ли пользователь
     const user = await this.usersQueryRepository.getOrmUserById(
@@ -56,17 +74,18 @@ export class BuyMembershipPlanToBlogSubscriptionUseCase
       };
     }
 
-    // Проверяем существует ли такой блог
+    // Проверяем существует ли такой блог и значение isMembership (true)
     const blog = await this.blogsQueryRepository.getOrmBlogById(
       blogId,
       manager,
     );
 
-    if (!blog) {
+    if (!blog || !blog.isMembership || blogMembershipPlan.blog.id !== blogId) {
       return {
         data: null,
         code: ResultCode.NOT_FOUND,
-        message: 'Blog not found',
+        message: 'Blog not found or blog without membership',
+        field: 'blogId',
       };
     }
 

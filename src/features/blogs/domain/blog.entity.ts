@@ -13,6 +13,7 @@ import { BlogBanByAdmin } from '../../bans/domain/blog-ban-by-admin.entity';
 import { BlogWallpaper } from '../../files/images/domain/wallpaper-blog.entity';
 import { BlogMainImage } from '../../files/images/domain/main-image-blog.entity';
 import { BlogSubscription } from '../../subscriptions/domain/blog-subscription.entity';
+import { BlogMembershipPlan } from '../../memberships/domain/blog-membership-plan.entity';
 
 @Entity({ name: 'blogs' })
 export class Blog {
@@ -65,4 +66,7 @@ export class Blog {
 
   @OneToMany(() => BlogSubscription, (bs) => bs.blog)
   blogsSubscriptions: BlogSubscription[];
+
+  @OneToMany(() => BlogMembershipPlan, (bmp) => bmp.blog)
+  blogsMembershipsPlans: BlogMembershipPlan[];
 }
