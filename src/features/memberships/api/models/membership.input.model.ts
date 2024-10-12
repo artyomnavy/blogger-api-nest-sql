@@ -1,5 +1,6 @@
 import { IsNotEmpty, IsString } from 'class-validator';
 import { Transform } from 'class-transformer';
+import { PaymentsSystems } from '../../../../common/utils';
 
 export class BuyMembershipPlanModel {
   @Transform(({ value }) => value?.trim())
@@ -10,5 +11,5 @@ export class BuyMembershipPlanModel {
   @Transform(({ value }) => value?.trim())
   @IsString()
   @IsNotEmpty()
-  paymentSystem: 'stripe' | 'paypal' | 'tinkoff' = 'stripe';
+  paymentSystem: PaymentsSystems = PaymentsSystems.STRIPE;
 }

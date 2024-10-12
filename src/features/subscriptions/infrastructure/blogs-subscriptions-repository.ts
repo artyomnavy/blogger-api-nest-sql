@@ -5,6 +5,8 @@ import { BlogSubscription } from '../domain/blog-subscription.entity';
 import { SubscriptionStatus } from '../../../common/utils';
 import { User } from '../../users/domain/user.entity';
 import { Blog } from '../../blogs/domain/blog.entity';
+import { BlogMembershipPlan } from '../../memberships/domain/blog-membership-plan.entity';
+import { PaymentBlogMembership } from '../../memberships/domain/payment-blog-membership.entity';
 
 @Injectable()
 export class BlogsSubscriptionsRepository {
@@ -15,13 +17,14 @@ export class BlogsSubscriptionsRepository {
   async subscribeUserToBlog(
     user: User,
     blog: Blog,
+    status: SubscriptionStatus,
     manager?: EntityManager,
   ): Promise<BlogSubscription> {
     const blogsSubscriptionsRepository = manager
       ? manager.getRepository(BlogSubscription)
       : this.blogsSubscriptionsRepository;
 
-    const blogSubscription = BlogSubscription.create(user, blog);
+    const blogSubscription = BlogSubscription.create(user, blog, status);
 
     return await blogsSubscriptionsRepository.save(blogSubscription);
   }
@@ -86,5 +89,40 @@ export class BlogsSubscriptionsRepository {
       .execute();
 
     return resultUpdateSubscription.affected === 1;
+  }
+  async unsubscribeAllUsersToBlog(
+    blogId: string,
+    status: SubscriptionStatus,
+    manager?: EntityManager,
+  ): Promise<boolean> {
+    const blogsSubscriptionsRepository = manager
+      ? manager.getRepository(BlogSubscription)
+      : this.blogsSubscriptionsRepository;
+
+    const resultUpdateBlogSubscriptions = await blogsSubscriptionsRepository
+      .createQueryBuilder()
+      .update(BlogSubscription)
+      .set({
+        status: status,
+      })
+      .where('blog_id = :blogId', { blogId: blogId })
+      .execute();
+
+    return (resultUpdateBlogSubscriptions.affected ?? 0) > 0;
+  }
+  async addPlanAndPaymentMembershipToBlogSubscription(
+    subscription: BlogSubscription,
+    blogMembershipPlan: BlogMembershipPlan,
+    payment: PaymentBlogMembership,
+    manager?: EntityManager,
+  ): Promise<BlogSubscription> {
+    const blogsSubscriptionsRepository = manager
+      ? manager.getRepository(BlogSubscription)
+      : this.blogsSubscriptionsRepository;
+
+    subscription.blogsMembershipsPlans.push(blogMembershipPlan);
+    subscription.paymentsBlogsMemberships.push(payment);
+
+    return blogsSubscriptionsRepository.save(subscription);
   }
 }

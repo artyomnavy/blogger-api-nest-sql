@@ -7,25 +7,18 @@ import {
   PrimaryGeneratedColumn,
   UpdateDateColumn,
 } from 'typeorm';
-import { Blog } from '../../blogs/domain/blog.entity';
 import { BlogSubscription } from '../../subscriptions/domain/blog-subscription.entity';
 
-@Entity({ name: 'blogs_memberships_plans' })
-export class BlogMembershipPlan {
+@Entity({ name: 'payments_blogs_memberships' })
+export class PaymentBlogMembership {
   @PrimaryGeneratedColumn('uuid')
   id: string;
 
   @Column({
-    name: 'plan_name',
+    name: 'payment_system',
     type: 'character varying',
   })
-  planName: string;
-
-  @Column({
-    name: 'months_count',
-    type: 'int',
-  })
-  monthsCount: number;
+  paymentSystem: string;
 
   @Column({
     type: 'double precision',
@@ -33,7 +26,13 @@ export class BlogMembershipPlan {
   price: number;
 
   @Column({ type: 'character varying' })
-  currency: 'USD' | 'EUR' | 'UAH' | 'RUB' | 'GEL' | 'BYN';
+  status: string;
+
+  @Column({ name: 'any_payment_provider_info', type: 'json' })
+  anyPaymentProviderInfo: any;
+
+  @Column({ name: 'any_confirm_payment_system_data', type: 'json' })
+  anyConfirmPaymentSystemData: any;
 
   @CreateDateColumn({ name: 'created_at', type: 'timestamp with time zone' })
   createdAt: Date;
@@ -41,15 +40,9 @@ export class BlogMembershipPlan {
   @UpdateDateColumn({ name: 'updated_at', type: 'timestamp with time zone' })
   updatedAt: Date;
 
-  @ManyToOne(() => Blog, (b) => b.blogsMembershipsPlans, {
+  @ManyToOne(() => BlogSubscription, (bs) => bs.paymentsBlogsMemberships, {
     onDelete: 'CASCADE',
   })
-  @JoinColumn({ name: 'blog_id' })
-  blog: Blog;
-
-  @ManyToOne(() => BlogSubscription, (bs) => bs.blogsMembershipsPlans, {
-    onDelete: 'SET NULL',
-  })
   @JoinColumn({ name: 'blog_subscription_id' })
-  blogsSubscriptions: BlogSubscription;
+  blogSubscription: BlogSubscription;
 }

@@ -31,4 +31,21 @@ export class BlogsMembershipsPlansQueryRepository {
       return blogMembershipPlan;
     }
   }
+  async checkMembershipsPlansForBlog(
+    blogId: string,
+    manager?: EntityManager,
+  ): Promise<boolean> {
+    const blogsMembershipsPlansQueryRepository = manager
+      ? manager.getRepository(BlogMembershipPlan)
+      : this.blogsMembershipsPlansQueryRepository;
+
+    const blogMembershipsPlans = await blogsMembershipsPlansQueryRepository
+      .createQueryBuilder('bmp')
+      .where('bmp.blog_id = :blogId', {
+        blogId: blogId,
+      })
+      .getMany();
+
+    return blogMembershipsPlans.length !== 0;
+  }
 }

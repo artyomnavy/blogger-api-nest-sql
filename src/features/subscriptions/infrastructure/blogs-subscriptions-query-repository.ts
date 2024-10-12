@@ -92,4 +92,21 @@ export class BlogsSubscriptionsQueryRepository {
       return subscription;
     }
   }
+  async checkSubscriptionsToBlog(
+    blogId: string,
+    userId: string,
+    manager?: EntityManager,
+  ): Promise<boolean> {
+    const blogsSubscriptionsQueryRepository = manager
+      ? manager.getRepository(BlogSubscription)
+      : this.blogsSubscriptionsQueryRepository;
+
+    const subscription = await blogsSubscriptionsQueryRepository
+      .createQueryBuilder('bs')
+      .where('(bs.blog_id = :blogId)', { blogId: blogId })
+      .andWhere('(bs.user_id = :userId)', { userId: userId })
+      .getMany();
+
+    return subscription.length !== 0;
+  }
 }

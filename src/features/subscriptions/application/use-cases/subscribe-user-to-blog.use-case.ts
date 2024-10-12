@@ -102,6 +102,7 @@ export class SubscribeUserToBlogUseCase
     await this.blogsSubscriptionsRepository.subscribeUserToBlog(
       user,
       blog,
+      SubscriptionStatus.SUBSCRIBED,
       manager,
     );
 

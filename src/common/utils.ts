@@ -63,3 +63,14 @@ export enum SubscriptionStatus {
   UNSUBSCRIBED = 'Unsubscribed',
   NONE = 'None',
 }
+
+export enum PaymentsSystems {
+  PAYPAL = 'paypal',
+  STRIPE = 'stripe',
+  TINKOFF = 'tinkoff',
+}
+
+export enum PaymentsStatuses {
+  PENDING = 'Pending',
+  CONFIRMED = 'Confirmed',
+}

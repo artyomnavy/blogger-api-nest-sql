@@ -1,11 +1,14 @@
 import { CommandHandler, ICommandHandler } from '@nestjs/cqrs';
-import { HTTP_STATUSES } from '../../../../common/utils';
+import { HTTP_STATUSES, SubscriptionStatus } from '../../../../common/utils';
 import { DataSource, EntityManager } from 'typeorm';
 import { TransactionManagerUseCase } from '../../../../common/use-cases/transaction.use-case';
 import { UsersQueryRepository } from '../../../users/infrastructure/users.query-repository';
 import { BlogsQueryRepository } from '../../../blogs/infrastructure/blogs.query-repository';
 import { BlogsRepository } from '../../../blogs/infrastructure/blogs.repository';
 import { Notice } from '../../../../common/notification/notice';
+import { BlogsSubscriptionsQueryRepository } from '../../../subscriptions/infrastructure/blogs-subscriptions-query-repository';
+import { BlogsSubscriptionsRepository } from '../../../subscriptions/infrastructure/blogs-subscriptions-repository';
+import { BlogsMembershipsPlansQueryRepository } from '../../infrastructure/blogs-memberships-plans-query-repository';
 
 export class UpdateBlogMembershipCommand {
   constructor(
@@ -24,8 +27,11 @@ export class UpdateBlogMembershipUseCase
 {
   constructor(
     private readonly blogsQueryRepository: BlogsQueryRepository,
+    private readonly blogsSubscriptionsQueryRepository: BlogsSubscriptionsQueryRepository,
+    private readonly blogsSubscriptionsRepository: BlogsSubscriptionsRepository,
     private readonly blogsRepository: BlogsRepository,
     private readonly usersQueryRepository: UsersQueryRepository,
+    private readonly blogsMembershipsPlansQueryRepository: BlogsMembershipsPlansQueryRepository,
     protected readonly dataSource: DataSource,
   ) {
     super(dataSource);
@@ -71,12 +77,43 @@ export class UpdateBlogMembershipUseCase
       return notice;
     }
 
+    // Проверяем созданы ли тарифные планы для membership блога
+    const isMembershipPlans =
+      await this.blogsMembershipsPlansQueryRepository.checkMembershipsPlansForBlog(
+        blogId,
+        manager,
+      );
+
+    if (!isMembershipPlans) {
+      notice.addError(
+        HTTP_STATUSES.FORBIDDEN_403,
+        'Blog memberships plans is empty',
+      );
+      return notice;
+    }
+
     // Обновляем isMembership блога
     const isUpdated = await this.blogsRepository.updateBlogMembership(
       blogId,
       isMembership,
       manager,
     );
+
+    const isSubscriptions =
+      await this.blogsSubscriptionsQueryRepository.checkSubscriptionsToBlog(
+        blogId,
+        userId,
+        manager,
+      );
+
+    // Если есть подписки, то отписываем пользователей, т.к. теперь платная подписка
+    if (isSubscriptions) {
+      await this.blogsSubscriptionsRepository.unsubscribeAllUsersToBlog(
+        blogId,
+        SubscriptionStatus.UNSUBSCRIBED,
+        manager,
+      );
+    }
 
     if (isUpdated) return notice;
   }

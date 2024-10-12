@@ -29,6 +29,7 @@ import { SubscribeUserToBlogCommand } from '../../subscriptions/application/use-
 import { UnsubscribeUserToBlogCommand } from '../../subscriptions/application/use-cases/unsubscribe-user-to-blog.use-case';
 import { BuyMembershipPlanModel } from '../../memberships/api/models/membership.input.model';
 import { BuyMembershipPlanToBlogSubscriptionCommand } from '../../memberships/application/use-cases/buy-membership-plan-to-blog-subscription.use-case';
+import { Request } from 'express';
 
 @Controller('blogs')
 export class BlogsPublicController {
@@ -176,6 +177,7 @@ export class BlogsPublicController {
   @UseGuards(JwtBearerAuthGuard)
   @HttpCode(HTTP_STATUSES.NO_CONTENT_204)
   async buyMembershipPlanBlogSubscription(
+    @Req() req: Request,
     @CurrentUserId() userId: string,
     @Param('blogId', UuidPipe) blogId: string,
     @Body() buyModel: BuyMembershipPlanModel,
@@ -186,6 +188,7 @@ export class BlogsPublicController {
         blogId,
         buyModel.membershipPlanId,
         buyModel.paymentSystem,
+        req,
       ),
     );
 

@@ -138,6 +138,10 @@ import { BuyMembershipPlanToBlogSubscriptionUseCase } from './features/membershi
 import { BlogMembershipPlan } from './features/memberships/domain/blog-membership-plan.entity';
 import { UpdateBlogMembershipUseCase } from './features/memberships/application/use-cases/update-blog-membership.use-case';
 import { BlogsMembershipsPlansQueryRepository } from './features/memberships/infrastructure/blogs-memberships-plans-query-repository';
+import { PaymentBlogMembership } from './features/memberships/domain/payment-blog-membership.entity';
+import { PaymentsManager } from './features/memberships/managers/payments-manager';
+import { StripeAdapter } from './features/memberships/adapters/stripe-adapter';
+import { PaymentsBlogsMembershipsRepository } from './features/memberships/infrastructure/payments-blogs-memberships-repository';
 
 config();
 
@@ -239,6 +243,7 @@ const repositoriesProviders = [
   BlogsSubscriptionsRepository,
   BlogsSubscriptionsQueryRepository,
   BlogsMembershipsPlansQueryRepository,
+  PaymentsBlogsMembershipsRepository,
 ];
 
 const queryRepositoriesProviders = [
@@ -257,6 +262,8 @@ const telegramUseCases = [
 ];
 
 const telegramProviders = [TelegramAdapter];
+
+const paymentsProviders = [PaymentsManager, StripeAdapter];
 
 const imagesProviders = [FilesStorageAdapter, S3StorageAdapter];
 
@@ -310,6 +317,7 @@ const entities = [
   QuizQuestion,
   BlogSubscription,
   BlogMembershipPlan,
+  PaymentBlogMembership,
 ];
 
 const options: TypeOrmModuleOptions = {
@@ -361,6 +369,7 @@ const options: TypeOrmModuleOptions = {
     ...imagesProviders,
     ...telegramProviders,
     ...eventsHandlers,
+    ...paymentsProviders,
   ],
 })
 export class AppModule implements NestModule {

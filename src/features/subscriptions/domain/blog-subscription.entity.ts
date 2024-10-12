@@ -1,14 +1,19 @@
 import {
   Column,
+  CreateDateColumn,
   Entity,
   JoinColumn,
   ManyToOne,
+  OneToMany,
   PrimaryGeneratedColumn,
+  UpdateDateColumn,
 } from 'typeorm';
 import { Blog } from '../../blogs/domain/blog.entity';
 import { User } from '../../users/domain/user.entity';
 import { v4 as uuidv4 } from 'uuid';
 import { SubscriptionStatus } from '../../../common/utils';
+import { BlogMembershipPlan } from '../../memberships/domain/blog-membership-plan.entity';
+import { PaymentBlogMembership } from '../../memberships/domain/payment-blog-membership.entity';
 
 @Entity({ name: 'blogs_subscriptions' })
 export class BlogSubscription {
@@ -29,14 +34,28 @@ export class BlogSubscription {
   })
   telegramId: number | null;
 
+  @Column({
+    name: 'price',
+    type: 'double precision',
+    nullable: true,
+  })
+  price: number | null;
+
   @Column({ type: 'character varying' })
   status: string;
 
-  @Column('timestamp with time zone', { name: 'created_at' })
+  @CreateDateColumn({ name: 'created_at', type: 'timestamp with time zone' })
   createdAt: Date;
 
-  @Column('timestamp with time zone', { name: 'updated_at', nullable: true })
-  updatedAt: Date | null;
+  @UpdateDateColumn({ name: 'updated_at', type: 'timestamp with time zone' })
+  updatedAt: Date;
+
+  @Column({
+    name: 'expiration_at',
+    type: 'timestamp with time zone',
+    nullable: true,
+  })
+  expirationAt: Date | null;
 
   @ManyToOne(() => Blog, (b) => b.blogsSubscriptions, {
     onDelete: 'CASCADE',
@@ -48,13 +67,19 @@ export class BlogSubscription {
   @JoinColumn({ name: 'user_id' })
   user: User;
 
-  static create(user: User, blog: Blog) {
+  @OneToMany(() => BlogMembershipPlan, (bmp) => bmp.blogsSubscriptions)
+  blogsMembershipsPlans: BlogMembershipPlan[];
+
+  @OneToMany(() => PaymentBlogMembership, (pbm) => pbm.blogSubscription)
+  paymentsBlogsMemberships: PaymentBlogMembership[];
+
+  static create(user: User, blog: Blog, status: SubscriptionStatus) {
     const blogSubscription = new BlogSubscription();
 
     blogSubscription.id = uuidv4();
     blogSubscription.telegramCode = null;
     blogSubscription.telegramId = null;
-    blogSubscription.status = SubscriptionStatus.SUBSCRIBED;
+    blogSubscription.status = status;
     blogSubscription.blog = blog;
     blogSubscription.user = user;
 
