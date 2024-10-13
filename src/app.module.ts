@@ -138,10 +138,12 @@ import { BuyMembershipPlanToBlogSubscriptionUseCase } from './features/membershi
 import { BlogMembershipPlan } from './features/memberships/domain/blog-membership-plan.entity';
 import { UpdateBlogMembershipUseCase } from './features/memberships/application/use-cases/update-blog-membership.use-case';
 import { BlogsMembershipsPlansQueryRepository } from './features/memberships/infrastructure/blogs-memberships-plans-query-repository';
-import { PaymentBlogMembership } from './features/memberships/domain/payment-blog-membership.entity';
-import { PaymentsManager } from './features/memberships/managers/payments-manager';
-import { StripeAdapter } from './features/memberships/adapters/stripe-adapter';
-import { PaymentsBlogsMembershipsRepository } from './features/memberships/infrastructure/payments-blogs-memberships-repository';
+import { PaymentBlogMembership } from './features/integrations/payments/domain/payment-blog-membership.entity';
+import { PaymentsManager } from './features/integrations/payments/managers/payments-manager';
+import { StripeAdapter } from './features/integrations/payments/adapters/stripe-adapter';
+import { PaymentsBlogsMembershipsRepository } from './features/integrations/payments/infrastructure/payments-blogs-memberships-repository';
+import { FinishPaymentBlogMembershipUseCase } from './features/integrations/payments/application/use-cases/finish-payment-blog-membership-use.case';
+import { ExpiredPaymentBlogMembershipUseCase } from './features/integrations/payments/application/use-cases/expired-payment-blog-membership-use.case';
 
 config();
 
@@ -174,6 +176,11 @@ const blogsUseCases = [
   UnsubscribeUserToBlogUseCase,
   BuyMembershipPlanToBlogSubscriptionUseCase,
   UpdateBlogMembershipUseCase,
+];
+
+const paymentsUseCases = [
+  FinishPaymentBlogMembershipUseCase,
+  ExpiredPaymentBlogMembershipUseCase,
 ];
 
 const commentsUseCases = [
@@ -354,6 +361,7 @@ const options: TypeOrmModuleOptions = {
   providers: [
     ...authUseCases,
     ...blogsUseCases,
+    ...paymentsUseCases,
     ...commentsUseCases,
     ...postsUseCases,
     ...devicesUseCases,

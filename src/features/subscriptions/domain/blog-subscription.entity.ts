@@ -13,7 +13,7 @@ import { User } from '../../users/domain/user.entity';
 import { v4 as uuidv4 } from 'uuid';
 import { SubscriptionStatus } from '../../../common/utils';
 import { BlogMembershipPlan } from '../../memberships/domain/blog-membership-plan.entity';
-import { PaymentBlogMembership } from '../../memberships/domain/payment-blog-membership.entity';
+import { PaymentBlogMembership } from '../../integrations/payments/domain/payment-blog-membership.entity';
 
 @Entity({ name: 'blogs_subscriptions' })
 export class BlogSubscription {

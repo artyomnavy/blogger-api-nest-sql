@@ -6,7 +6,8 @@ import { SubscriptionStatus } from '../../../common/utils';
 import { User } from '../../users/domain/user.entity';
 import { Blog } from '../../blogs/domain/blog.entity';
 import { BlogMembershipPlan } from '../../memberships/domain/blog-membership-plan.entity';
-import { PaymentBlogMembership } from '../../memberships/domain/payment-blog-membership.entity';
+import { PaymentBlogMembership } from '../../integrations/payments/domain/payment-blog-membership.entity';
+import { Comment } from '../../comments/domain/comment.entity';
 
 @Injectable()
 export class BlogsSubscriptionsRepository {
@@ -124,5 +125,40 @@ export class BlogsSubscriptionsRepository {
     subscription.paymentsBlogsMemberships.push(payment);
 
     return blogsSubscriptionsRepository.save(subscription);
+  }
+  async subscribeOrRenewSubscribeToBlog(
+    subscriptionId: string,
+    status: SubscriptionStatus,
+    expirationAt: Date,
+    manager?: EntityManager,
+  ): Promise<boolean> {
+    const blogsSubscriptionsRepository = manager
+      ? manager.getRepository(BlogSubscription)
+      : this.blogsSubscriptionsRepository;
+
+    const resultUpdateBlogSubscription = await blogsSubscriptionsRepository
+      .createQueryBuilder()
+      .update(BlogSubscription)
+      .set({
+        status: status,
+        expirationAt: expirationAt,
+      })
+      .where('id = :subscriptionId', { subscriptionId: subscriptionId })
+      .execute();
+
+    return resultUpdateBlogSubscription.affected === 1;
+  }
+  async deleteBlogSubscriptionById(
+    subscriptionId: string,
+    manager?: EntityManager,
+  ): Promise<boolean> {
+    const blogsSubscriptionsRepository = manager
+      ? manager.getRepository(BlogSubscription)
+      : this.blogsSubscriptionsRepository;
+
+    const resultDeleteBlogSubscription =
+      await blogsSubscriptionsRepository.delete(subscriptionId);
+
+    return resultDeleteBlogSubscription.affected === 1;
   }
 }

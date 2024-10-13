@@ -13,8 +13,8 @@ import { BlogsSubscriptionsRepository } from '../../../subscriptions/infrastruct
 import { BlogsSubscriptionsQueryRepository } from '../../../subscriptions/infrastructure/blogs-subscriptions-query-repository';
 import { BlogsMembershipsPlansQueryRepository } from '../../infrastructure/blogs-memberships-plans-query-repository';
 import { Request } from 'express';
-import { PaymentsManager } from '../../managers/payments-manager';
-import { PaymentsBlogsMembershipsRepository } from '../../infrastructure/payments-blogs-memberships-repository';
+import { PaymentsManager } from '../../../integrations/payments/managers/payments-manager';
+import { PaymentsBlogsMembershipsRepository } from '../../../integrations/payments/infrastructure/payments-blogs-memberships-repository';
 
 export class BuyMembershipPlanToBlogSubscriptionCommand {
   constructor(
@@ -166,7 +166,7 @@ export class BuyMembershipPlanToBlogSubscriptionUseCase
     const paymentProviderInfo = await this.paymentsManager.createPayment(
       paymentSystem,
       blogMembershipPlan,
-      userId,
+      payment.id,
       req,
     );
 

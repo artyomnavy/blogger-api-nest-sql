@@ -1,9 +1,10 @@
 import { Injectable } from '@nestjs/common';
 import Stripe from 'stripe';
 import process from 'node:process';
-import { PaymentsSystems } from '../../../common/utils';
-import { BlogMembershipPlan } from '../domain/blog-membership-plan.entity';
+import { PaymentsSystems } from '../../../../common/utils';
+import { BlogMembershipPlan } from '../../../memberships/domain/blog-membership-plan.entity';
 import { Request } from 'express';
+import { addMinutes, getUnixTime } from 'date-fns';
 
 @Injectable()
 export class StripeAdapter {
@@ -21,9 +22,13 @@ export class StripeAdapter {
   async createPayment(
     paymentSystem: PaymentsSystems,
     blogMembershipPlan: BlogMembershipPlan,
-    userId: string,
+    paymentId: string,
     req: Request,
   ) {
+    // Устанавливаем значение времени в течение которого необходимо оплатить подписку (30 минут)
+    const expirationTime = addMinutes(new Date(), 30);
+    const expiresAt = getUnixTime(expirationTime);
+
     const session = await this.stripe.checkout.sessions.create({
       line_items: [
         {
@@ -41,7 +46,8 @@ export class StripeAdapter {
       mode: 'payment',
       success_url: `${req.protocol}://${req.get('host')}/integrations/stripe/success`,
       cancel_url: `${req.protocol}://${req.get('host')}/integrations/stripe/cancel`,
-      client_reference_id: userId,
+      client_reference_id: paymentId,
+      expires_at: expiresAt,
     });
 
     return {

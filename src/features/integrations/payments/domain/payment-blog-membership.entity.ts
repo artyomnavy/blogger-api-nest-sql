@@ -7,7 +7,7 @@ import {
   PrimaryGeneratedColumn,
   UpdateDateColumn,
 } from 'typeorm';
-import { BlogSubscription } from '../../subscriptions/domain/blog-subscription.entity';
+import { BlogSubscription } from '../../../subscriptions/domain/blog-subscription.entity';
 
 @Entity({ name: 'payments_blogs_memberships' })
 export class PaymentBlogMembership {

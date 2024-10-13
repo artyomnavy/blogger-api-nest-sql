@@ -3,6 +3,7 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { EntityManager, Repository } from 'typeorm';
 import { BlogSubscription } from '../domain/blog-subscription.entity';
 import { SubscriptionStatus } from '../../../common/utils';
+import { PaymentBlogMembership } from '../../integrations/payments/domain/payment-blog-membership.entity';
 
 @Injectable()
 export class BlogsSubscriptionsQueryRepository {
@@ -108,5 +109,27 @@ export class BlogsSubscriptionsQueryRepository {
       .getMany();
 
     return subscription.length !== 0;
+  }
+  async getSubscriptionWithMembershipPlanByPaymentId(
+    paymentId: string,
+    manager?: EntityManager,
+  ): Promise<BlogSubscription | null> {
+    const blogsSubscriptionsQueryRepository = manager
+      ? manager.getRepository(BlogSubscription)
+      : this.blogsSubscriptionsQueryRepository;
+
+    const subscription = await blogsSubscriptionsQueryRepository
+      .createQueryBuilder('bs')
+      .leftJoin('bs.paymentsBlogsMemberships', 'pbm')
+      .leftJoin('bs.blogsMembershipsPlans', 'bmp')
+      .addSelect('bmp.monthsCount')
+      .where('pbm.id = :paymentId', { paymentId: paymentId })
+      .getOne();
+
+    if (!subscription) {
+      return null;
+    } else {
+      return subscription;
+    }
   }
 }

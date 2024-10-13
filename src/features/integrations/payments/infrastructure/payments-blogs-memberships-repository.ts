@@ -2,8 +2,7 @@ import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { EntityManager, Repository } from 'typeorm';
 import { PaymentBlogMembership } from '../domain/payment-blog-membership.entity';
-import { PaymentsStatuses, PaymentsSystems } from '../../../common/utils';
-import { BlogSubscription } from '../../subscriptions/domain/blog-subscription.entity';
+import { PaymentsStatuses, PaymentsSystems } from '../../../../common/utils';
 
 @Injectable()
 export class PaymentsBlogsMembershipsRepository {
@@ -40,5 +39,33 @@ export class PaymentsBlogsMembershipsRepository {
     payment.anyPaymentProviderInfo = paymentProviderInfo;
 
     return paymentsBlogsMembershipsRepository.save(payment);
+  }
+  async confirmPaymentBlogMembership(
+    payment: PaymentBlogMembership,
+    status: PaymentsStatuses,
+    anyConfirmPaymentSystemData: any,
+    manager?: EntityManager,
+  ): Promise<PaymentBlogMembership> {
+    const paymentsBlogsMembershipsRepository = manager
+      ? manager.getRepository(PaymentBlogMembership)
+      : this.paymentsBlogsMembershipsRepository;
+
+    payment.status = status;
+    payment.anyConfirmPaymentSystemData = anyConfirmPaymentSystemData;
+
+    return paymentsBlogsMembershipsRepository.save(payment);
+  }
+  async deletePaymentBlogMemebershipById(
+    paymentId: string,
+    manager?: EntityManager,
+  ): Promise<boolean> {
+    const paymentsBlogsMembershipsRepository = manager
+      ? manager.getRepository(PaymentBlogMembership)
+      : this.paymentsBlogsMembershipsRepository;
+
+    const resultDeletePaymentBlogMembership =
+      await paymentsBlogsMembershipsRepository.delete(paymentId);
+
+    return resultDeletePaymentBlogMembership.affected === 1;
   }
 }
