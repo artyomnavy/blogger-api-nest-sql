@@ -3,7 +3,6 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { EntityManager, Repository } from 'typeorm';
 import { BlogSubscription } from '../domain/blog-subscription.entity';
 import { SubscriptionStatus } from '../../../common/utils';
-import { PaymentBlogMembership } from '../../integrations/payments/domain/payment-blog-membership.entity';
 
 @Injectable()
 export class BlogsSubscriptionsQueryRepository {

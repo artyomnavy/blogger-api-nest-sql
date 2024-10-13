@@ -7,7 +7,6 @@ import { User } from '../../users/domain/user.entity';
 import { Blog } from '../../blogs/domain/blog.entity';
 import { BlogMembershipPlan } from '../../memberships/domain/blog-membership-plan.entity';
 import { PaymentBlogMembership } from '../../integrations/payments/domain/payment-blog-membership.entity';
-import { Comment } from '../../comments/domain/comment.entity';
 
 @Injectable()
 export class BlogsSubscriptionsRepository {

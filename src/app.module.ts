@@ -144,6 +144,7 @@ import { StripeAdapter } from './features/integrations/payments/adapters/stripe-
 import { PaymentsBlogsMembershipsRepository } from './features/integrations/payments/infrastructure/payments-blogs-memberships-repository';
 import { FinishPaymentBlogMembershipUseCase } from './features/integrations/payments/application/use-cases/finish-payment-blog-membership-use.case';
 import { ExpiredPaymentBlogMembershipUseCase } from './features/integrations/payments/application/use-cases/expired-payment-blog-membership-use.case';
+import { PaymentsBlogsMembershipsQueryRepository } from './features/integrations/payments/infrastructure/payments-blogs-memberships-query-repository';
 
 config();
 
@@ -251,6 +252,7 @@ const repositoriesProviders = [
   BlogsSubscriptionsQueryRepository,
   BlogsMembershipsPlansQueryRepository,
   PaymentsBlogsMembershipsRepository,
+  PaymentsBlogsMembershipsQueryRepository,
 ];
 
 const queryRepositoriesProviders = [
