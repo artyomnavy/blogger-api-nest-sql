@@ -120,4 +120,14 @@ export class IntegrationsController {
       throw new BadRequestException(`Webhook error: ${err.message}`);
     }
   }
+
+  @Get('stripe/success')
+  success(): string {
+    return 'Thanks for your subscribe! Check page with your subscription to blog';
+  }
+
+  @Get('stripe/cancel')
+  cancel(): string {
+    return 'Something wrong payment. Check page with your subscription to blog';
+  }
 }

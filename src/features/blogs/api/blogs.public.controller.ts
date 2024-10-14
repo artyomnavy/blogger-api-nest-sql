@@ -30,12 +30,15 @@ import { UnsubscribeUserToBlogCommand } from '../../subscriptions/application/us
 import { BuyMembershipPlanModel } from '../../memberships/api/models/membership.input.model';
 import { BuyMembershipPlanToBlogSubscriptionCommand } from '../../memberships/application/use-cases/buy-membership-plan-to-blog-subscription.use-case';
 import { Request } from 'express';
+import { BlogsMembershipsPlansQueryRepository } from '../../memberships/infrastructure/blogs-memberships-plans-query-repository';
+import { MembershipPlanOutputModel } from '../../memberships/api/models/membership.output.model';
 
 @Controller('blogs')
 export class BlogsPublicController {
   constructor(
     protected blogsQueryRepository: BlogsQueryRepository,
     protected postsQueryRepository: PostsQueryRepository,
+    protected blogsMembershipsPlansQueryRepository: BlogsMembershipsPlansQueryRepository,
     private readonly commandBus: CommandBus,
   ) {}
 
@@ -197,5 +200,22 @@ export class BlogsPublicController {
     }
 
     return;
+  }
+  @Get(':blogId/membership/plans')
+  async getMembershipsPlansForBlog(
+    @Param('blogId', UuidPipe) blogId: string,
+  ): Promise<MembershipPlanOutputModel[]> {
+    const blog = await this.blogsQueryRepository.getBlogById(blogId);
+
+    if (!blog) {
+      throw new NotFoundException('Blog not found');
+    }
+
+    const membershipsPlans: MembershipPlanOutputModel[] =
+      await this.blogsMembershipsPlansQueryRepository.getMembershipsPlansForBlog(
+        blogId,
+      );
+
+    return membershipsPlans;
   }
 }

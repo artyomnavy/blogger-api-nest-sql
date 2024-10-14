@@ -9,6 +9,7 @@ import {
 } from 'typeorm';
 import { Blog } from '../../blogs/domain/blog.entity';
 import { BlogSubscription } from '../../subscriptions/domain/blog-subscription.entity';
+import { Currency } from '../../../common/utils';
 
 @Entity({ name: 'blogs_memberships_plans' })
 export class BlogMembershipPlan {
@@ -33,7 +34,7 @@ export class BlogMembershipPlan {
   price: number;
 
   @Column({ type: 'character varying' })
-  currency: 'USD' | 'EUR' | 'UAH' | 'RUB' | 'GEL' | 'BYN';
+  currency: Currency;
 
   @CreateDateColumn({ name: 'created_at', type: 'timestamp with time zone' })
   createdAt: Date;
