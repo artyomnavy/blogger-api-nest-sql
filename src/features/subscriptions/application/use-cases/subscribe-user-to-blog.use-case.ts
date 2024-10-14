@@ -66,6 +66,16 @@ export class SubscribeUserToBlogUseCase
       };
     }
 
+    // Проверяем платная ли подписка на блог
+    if (blog.isMembership) {
+      return {
+        data: false,
+        code: ResultCode.BAD_REQUEST,
+        message: 'Subscription to the blog is paid',
+        field: 'blogId',
+      };
+    }
+
     // Проверяем является ли пользователь владельцем или уже подписчиком блога
     const isOwnerBlog = await this.blogsQueryRepository.checkOwnerBlog(
       userId,

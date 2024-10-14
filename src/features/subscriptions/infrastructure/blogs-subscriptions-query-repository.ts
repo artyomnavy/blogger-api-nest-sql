@@ -131,4 +131,28 @@ export class BlogsSubscriptionsQueryRepository {
       return subscription;
     }
   }
+  async getTelegramIdsSubscribersForBlog(
+    blogId: string,
+    status: SubscriptionStatus,
+    currentDate: Date,
+    manager?: EntityManager,
+  ): Promise<number[]> {
+    const blogsSubscriptionsQueryRepository = manager
+      ? manager.getRepository(BlogSubscription)
+      : this.blogsSubscriptionsQueryRepository;
+
+    const resultTelegramIds = await blogsSubscriptionsQueryRepository
+      .createQueryBuilder('bs')
+      .select('json_agg(bs.telegramId)', 'telegramIds')
+      .leftJoin('bs.blog', 'b')
+      .where('b.id = :blogId', { blogId: blogId })
+      .andWhere('bs.status = :status', { status: status })
+      .andWhere('(bs.expirationAt IS NULL OR bs.expirationAt > :currentDate)', {
+        currentDate: currentDate,
+      })
+      .andWhere('bs.telegramId IS NOT NULL')
+      .getRawOne();
+
+    return resultTelegramIds ? resultTelegramIds.telegramIds : [];
+  }
 }

@@ -298,30 +298,6 @@ export class BlogsQueryRepository {
       return blogWithWallpaper.blogWallpaper;
     }
   }
-  async getSubscribersForBlog(
-    blogId: string,
-    manager?: EntityManager,
-  ): Promise<Blog | null> {
-    const queryBuilder = manager
-      ? manager.createQueryBuilder(Blog, 'b')
-      : this.blogsQueryRepository.createQueryBuilder('b');
-
-    const blog = await queryBuilder
-      .select('b.id')
-      .leftJoinAndSelect('b.blogsSubscriptions', 'bs')
-      .where('(b.id = :blogId)', { blogId })
-      .andWhere('(bs.status = :status)', {
-        status: SubscriptionStatus.SUBSCRIBED,
-      })
-      .andWhere('(bs.telegramId IS NOT NULL)')
-      .getOne();
-
-    if (!blog) {
-      return null;
-    } else {
-      return blog;
-    }
-  }
   async blogMapper(blog: BlogMapperModel): Promise<BlogOutputModel> {
     return {
       id: blog.id,
