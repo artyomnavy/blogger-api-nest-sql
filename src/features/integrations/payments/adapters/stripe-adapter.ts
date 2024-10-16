@@ -5,9 +5,10 @@ import { PaymentsSystems } from '../../../../common/utils';
 import { BlogMembershipPlan } from '../../../memberships/domain/blog-membership-plan.entity';
 import { Request } from 'express';
 import { addMinutes, getUnixTime } from 'date-fns';
+import { IPaymentAdapter } from '../managers/payments-manager';
 
 @Injectable()
-export class StripeAdapter {
+export class StripeAdapter implements IPaymentAdapter {
   stripe: Stripe;
   constructor() {
     const secretKey = process.env.STRIPE_SECRET_KEY;

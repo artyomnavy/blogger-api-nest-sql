@@ -2,27 +2,28 @@ import { Injectable } from '@nestjs/common';
 import { PaymentsSystems } from '../../../../common/utils';
 import { BlogMembershipPlan } from '../../../memberships/domain/blog-membership-plan.entity';
 import { Request } from 'express';
+import { StripeAdapter } from '../adapters/stripe-adapter';
 
-interface IPaymentAdapter {
+export interface IPaymentAdapter {
   createPayment(
     paymentSystem: PaymentsSystems,
     blogMembershipPlan: BlogMembershipPlan,
     paymentId: string,
     req: Request,
-  ): { data: any };
+  ): Promise<{ data: any }>;
 }
 
 @Injectable()
 export class PaymentsManager {
-  adapters: Partial<Record<PaymentsSystems, IPaymentAdapter>>;
+  adapters: Partial<Record<PaymentsSystems, IPaymentAdapter>> = {};
   constructor(
-    protected stripeAdapter: IPaymentAdapter,
-    protected paypalAdapter: IPaymentAdapter,
-    protected tinkoffAdapter: IPaymentAdapter,
+    stripeAdapter: StripeAdapter,
+    // paypalAdapter: PaypalAdapter,
+    // tinkoffAdapter: TinkoffAdapter,
   ) {
     this.adapters[PaymentsSystems.STRIPE] = stripeAdapter;
-    this.adapters[PaymentsSystems.PAYPAL] = paypalAdapter;
-    this.adapters[PaymentsSystems.TINKOFF] = tinkoffAdapter;
+    // this.adapters[PaymentsSystems.PAYPAL] = paypalAdapter;
+    // this.adapters[PaymentsSystems.TINKOFF] = tinkoffAdapter;
   }
 
   async createPayment(
