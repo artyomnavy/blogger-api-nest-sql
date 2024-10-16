@@ -4,12 +4,14 @@ import {
   Entity,
   JoinColumn,
   ManyToOne,
+  OneToOne,
   PrimaryGeneratedColumn,
   UpdateDateColumn,
 } from 'typeorm';
 import { Blog } from '../../blogs/domain/blog.entity';
 import { BlogSubscription } from '../../subscriptions/domain/blog-subscription.entity';
 import { Currency } from '../../../common/utils';
+import { PaymentBlogMembership } from '../../integrations/payments/domain/payment-blog-membership.entity';
 
 @Entity({ name: 'blogs_memberships_plans' })
 export class BlogMembershipPlan {
@@ -53,4 +55,7 @@ export class BlogMembershipPlan {
   })
   @JoinColumn({ name: 'blog_subscription_id' })
   blogsSubscriptions: BlogSubscription;
+
+  @OneToOne(() => PaymentBlogMembership, (pbm) => pbm.blogMembershipPlan)
+  paymentBlogMembership: PaymentBlogMembership;
 }

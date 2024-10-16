@@ -3,6 +3,7 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { EntityManager, Repository } from 'typeorm';
 import { PaymentBlogMembership } from '../domain/payment-blog-membership.entity';
 import { PaymentsStatuses, PaymentsSystems } from '../../../../common/utils';
+import { BlogMembershipPlan } from '../../../memberships/domain/blog-membership-plan.entity';
 
 @Injectable()
 export class PaymentsBlogsMembershipsRepository {
@@ -13,6 +14,7 @@ export class PaymentsBlogsMembershipsRepository {
   async createPayment(
     paymentSystem: PaymentsSystems,
     price: number,
+    blogMembershipPlan: BlogMembershipPlan,
     manager?: EntityManager,
   ): Promise<PaymentBlogMembership> {
     const paymentBlogMembershipRepository = manager
@@ -23,6 +25,7 @@ export class PaymentsBlogsMembershipsRepository {
 
     paymentBlogMembership.paymentSystem = paymentSystem;
     paymentBlogMembership.price = price;
+    paymentBlogMembership.blogMembershipPlan = blogMembershipPlan;
     paymentBlogMembership.status = PaymentsStatuses.PENDING;
 
     return await paymentBlogMembershipRepository.save(paymentBlogMembership);

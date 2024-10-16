@@ -4,10 +4,12 @@ import {
   Entity,
   JoinColumn,
   ManyToOne,
+  OneToOne,
   PrimaryGeneratedColumn,
   UpdateDateColumn,
 } from 'typeorm';
 import { BlogSubscription } from '../../../subscriptions/domain/blog-subscription.entity';
+import { BlogMembershipPlan } from '../../../memberships/domain/blog-membership-plan.entity';
 
 @Entity({ name: 'payments_blogs_memberships' })
 export class PaymentBlogMembership {
@@ -45,4 +47,10 @@ export class PaymentBlogMembership {
   })
   @JoinColumn({ name: 'blog_subscription_id' })
   blogSubscription: BlogSubscription;
+
+  @OneToOne(() => BlogMembershipPlan, (bmp) => bmp.paymentBlogMembership, {
+    onDelete: 'SET NULL',
+  })
+  @JoinColumn({ name: 'blog_membership_plan_id' })
+  blogMembershipPlan: BlogMembershipPlan;
 }

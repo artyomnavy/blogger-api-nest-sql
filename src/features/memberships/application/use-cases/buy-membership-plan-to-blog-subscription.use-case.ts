@@ -116,6 +116,7 @@ export class BuyMembershipPlanToBlogSubscriptionUseCase
     const payment = await this.paymentsBlogsMembershipsRepository.createPayment(
       paymentSystem,
       blogMembershipPlan.price,
+      blogMembershipPlan,
       manager,
     );
 

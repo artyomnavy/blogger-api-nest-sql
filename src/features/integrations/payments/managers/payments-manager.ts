@@ -16,12 +16,12 @@ interface IPaymentAdapter {
 export class PaymentsManager {
   adapters: Partial<Record<PaymentsSystems, IPaymentAdapter>>;
   constructor(
-    paypalAdapter: IPaymentAdapter,
-    stripeAdapter: IPaymentAdapter,
-    tinkoffAdapter: IPaymentAdapter,
+    protected stripeAdapter: IPaymentAdapter,
+    protected paypalAdapter: IPaymentAdapter,
+    protected tinkoffAdapter: IPaymentAdapter,
   ) {
-    this.adapters[PaymentsSystems.PAYPAL] = paypalAdapter;
     this.adapters[PaymentsSystems.STRIPE] = stripeAdapter;
+    this.adapters[PaymentsSystems.PAYPAL] = paypalAdapter;
     this.adapters[PaymentsSystems.TINKOFF] = tinkoffAdapter;
   }
 

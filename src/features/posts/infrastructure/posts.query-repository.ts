@@ -132,7 +132,7 @@ export class PostsQueryRepository {
             'sub_pmi',
           );
       }, 'mainImages')
-      .where('(uba.isBanned = :ban)', { ban: false })
+      .where('(bba.isBanned = :ban)', { ban: false })
       .andWhere('(uba.isBanned = :ban)', { ban: false })
       .orderBy(order, sortDirection)
       .offset((pageNumber - 1) * pageSize)
@@ -146,7 +146,7 @@ export class PostsQueryRepository {
       .leftJoin('b.user', 'u')
       .leftJoin('u.userBanByAdmin', 'uba')
       .select('COUNT(p.id)')
-      .where('(uba.isBanned = :ban)', { ban: false })
+      .where('(bba.isBanned = :ban)', { ban: false })
       .andWhere('(uba.isBanned = :ban)', { ban: false })
       .getCount();
 

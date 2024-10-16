@@ -2,6 +2,9 @@ import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { EntityManager, Repository } from 'typeorm';
 import { PaymentBlogMembership } from '../domain/payment-blog-membership.entity';
+import { PaginatorModel } from '../../../../common/models/paginator.input.model';
+import { PaginatorOutputModel } from '../../../../common/models/paginator.output.model';
+import { PaymentBlogMembershipOutputModel } from '../api/models/payment-blog-membership.output.model';
 
 @Injectable()
 export class PaymentsBlogsMembershipsQueryRepository {
@@ -31,5 +34,61 @@ export class PaymentsBlogsMembershipsQueryRepository {
     } else {
       return payment;
     }
+  }
+  async getAllPaymentsMembershipsForBlog(
+    blogId: string,
+    queryData: PaginatorModel,
+  ): Promise<PaginatorOutputModel<PaymentBlogMembershipOutputModel>> {
+    const sortBy = queryData.sortBy ? queryData.sortBy : 'createdAt';
+    const sortDirection = queryData.sortDirection
+      ? (queryData.sortDirection.toUpperCase() as 'ASC' | 'DESC')
+      : 'DESC';
+    const pageNumber = queryData.pageNumber ? +queryData.pageNumber : 1;
+    const pageSize = queryData.pageSize ? +queryData.pageSize : 10;
+
+    const payments = await this.paymentsBlogsMembershipsQueryRepository
+      .createQueryBuilder('pbm')
+      .leftJoinAndSelect('pbm.blogSubscription', 'bs')
+      .leftJoinAndSelect('bs.user', 'u')
+      .leftJoinAndSelect('bs.blog', 'b')
+      .leftJoinAndSelect('pbm.blogMembershipPlan', 'bmp')
+      .where('blog.id = :blogId', { blogId: blogId })
+      .orderBy(`pbm.${sortBy}`, sortDirection)
+      .skip((pageNumber - 1) * pageSize)
+      .take(pageSize)
+      .getMany();
+
+    const totalCount: number =
+      await this.paymentsBlogsMembershipsQueryRepository
+        .createQueryBuilder('pbm')
+        .leftJoinAndSelect('pbm.blogSubscription', 'bs')
+        .leftJoinAndSelect('bs.user', 'u')
+        .leftJoinAndSelect('bs.blog', 'b')
+        .leftJoinAndSelect('pbm.blogMembershipPlan', 'bmp')
+        .where('blog.id = :blogId', { blogId: blogId })
+        .getCount();
+
+    const pagesCount = Math.ceil(totalCount / pageSize);
+
+    return {
+      pagesCount: pagesCount,
+      page: pageNumber,
+      pageSize: pageSize,
+      totalCount: totalCount,
+      items: payments.map(
+        (payment: PaymentBlogMembership): PaymentBlogMembershipOutputModel => ({
+          userId: payment.blogSubscription.user.id,
+          userLogin: payment.blogSubscription.user.login,
+          blogId: payment.blogSubscription.blog.id,
+          blogTitle: payment.blogSubscription.blog.name,
+          membershipPlan: {
+            id: payment.blogMembershipPlan.id,
+            monthsCount: payment.blogMembershipPlan.monthsCount,
+            price: payment.blogMembershipPlan.price,
+            currency: payment.blogMembershipPlan.currency,
+          },
+        }),
+      ),
+    };
   }
 }
