@@ -3,6 +3,7 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { EntityManager, Repository } from 'typeorm';
 import { BlogMembershipPlan } from '../domain/blog-membership-plan.entity';
 import { MembershipPlanOutputModel } from '../api/models/membership.output.model';
+import { MembershipsPlans } from '../../../common/utils';
 
 @Injectable()
 export class BlogsMembershipsPlansQueryRepository {
@@ -75,5 +76,29 @@ export class BlogsMembershipsPlansQueryRepository {
             currency: plan.currency,
           };
         });
+  }
+  async getMembershipPlanByNameForBlog(
+    blogId: string,
+    planName: MembershipsPlans,
+    manager?: EntityManager,
+  ): Promise<BlogMembershipPlan | null> {
+    const blogsMembershipsPlansQueryRepository = manager
+      ? manager.getRepository(BlogMembershipPlan)
+      : this.blogsMembershipsPlansQueryRepository;
+
+    const blogMembershipPlan = await blogsMembershipsPlansQueryRepository
+      .createQueryBuilder('bmp')
+      .leftJoinAndSelect('bmp.blog', 'b')
+      .where('bmp.planName = :planName', {
+        planName: planName,
+      })
+      .andWhere('b.id = :blogId', { blogId: blogId })
+      .getOne();
+
+    if (!blogMembershipPlan) {
+      return null;
+    } else {
+      return blogMembershipPlan;
+    }
   }
 }

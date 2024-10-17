@@ -145,6 +145,9 @@ import { PaymentsBlogsMembershipsRepository } from './features/integrations/paym
 import { FinishPaymentBlogMembershipUseCase } from './features/integrations/payments/application/use-cases/finish-payment-blog-membership-use.case';
 import { ExpiredPaymentBlogMembershipUseCase } from './features/integrations/payments/application/use-cases/expired-payment-blog-membership-use.case';
 import { PaymentsBlogsMembershipsQueryRepository } from './features/integrations/payments/infrastructure/payments-blogs-memberships-query-repository';
+import { CreateMembershipPlanForBlogUseCase } from './features/memberships/application/use-cases/create-membership-plan-for-blog.use-case';
+import { BlogsMembershipsPlansRepository } from './features/memberships/infrastructure/blogs-memberships-plans-repository';
+import { DeleteMembershipPlanForBlogUseCase } from './features/memberships/application/use-cases/delete-membership-plan-for-blog.use-case';
 
 config();
 
@@ -177,6 +180,8 @@ const blogsUseCases = [
   UnsubscribeUserToBlogUseCase,
   BuyMembershipPlanToBlogSubscriptionUseCase,
   UpdateBlogMembershipUseCase,
+  CreateMembershipPlanForBlogUseCase,
+  DeleteMembershipPlanForBlogUseCase,
 ];
 
 const paymentsUseCases = [
@@ -250,6 +255,7 @@ const repositoriesProviders = [
   PostsMainImagesRepository,
   BlogsSubscriptionsRepository,
   BlogsSubscriptionsQueryRepository,
+  BlogsMembershipsPlansRepository,
   BlogsMembershipsPlansQueryRepository,
   PaymentsBlogsMembershipsRepository,
   PaymentsBlogsMembershipsQueryRepository,

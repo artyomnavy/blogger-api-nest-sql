@@ -83,3 +83,10 @@ export enum Currency {
   GEL = 'GEL',
   BYN = 'BYN',
 }
+
+export enum MembershipsPlans {
+  MONTHLY = 'Monthly',
+  QUARTERLY = 'Quarterly',
+  SEMI_ANNUAL = 'Semi-Annual',
+  ANNUAL = 'Annual',
+}

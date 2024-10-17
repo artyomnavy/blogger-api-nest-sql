@@ -54,6 +54,10 @@ import { UploadBlogMainImageToS3Command } from '../../files/images/application/u
 import { UploadPostMainImageToS3Command } from '../../files/images/application/use-cases/s3/upload-post-main-image-to-s3.use-case';
 import { UploadBlogWallpaperToS3Command } from '../../files/images/application/use-cases/s3/upload-blog-wallpaper-to-s3.use-case';
 import { UpdateBlogMembershipCommand } from '../../memberships/application/use-cases/update-blog-membership.use-case';
+import { CreateBlogMembershipPlanModel } from '../../memberships/api/models/membership.input.model';
+import { CreateMembershipPlanForBlogCommand } from '../../memberships/application/use-cases/create-membership-plan-for-blog.use-case';
+import { BlogMembershipPlanOutputModel } from '../../memberships/api/models/membership.output.model';
+import { DeleteMembershipPlanForBlogCommand } from '../../memberships/application/use-cases/delete-membership-plan-for-blog.use-case';
 
 @Controller('blogger/blogs')
 export class BlogsBloggerController {
@@ -504,6 +508,58 @@ export class BlogsBloggerController {
     );
 
     const notice = await this.commandBus.execute(updateCommand);
+
+    if (notice.hasError()) {
+      if (notice.code === HTTP_STATUSES.NOT_FOUND_404) {
+        throw new NotFoundException(notice.messages[0]);
+      } else {
+        throw new ForbiddenException(notice.messages[0]);
+      }
+    }
+
+    return;
+  }
+  @Post(':blogId/membership/plan')
+  @UseGuards(JwtBearerAuthGuard)
+  @HttpCode(HTTP_STATUSES.CREATED_201)
+  async createMembershipPlanForBlog(
+    @CurrentUserId() userId: string,
+    @Param('blogId', UuidPipe) blogId: string,
+    @Body() createModel: CreateBlogMembershipPlanModel,
+  ): Promise<BlogMembershipPlanOutputModel> {
+    const createCommand = new CreateMembershipPlanForBlogCommand(
+      userId,
+      blogId,
+      createModel,
+    );
+
+    const notice = await this.commandBus.execute(createCommand);
+
+    if (notice.hasError()) {
+      if (notice.code === HTTP_STATUSES.NOT_FOUND_404) {
+        throw new NotFoundException(notice.messages[0]);
+      } else {
+        throw new ForbiddenException(notice.messages[0]);
+      }
+    }
+
+    return notice.data;
+  }
+  @Delete(':blogId/membership/plan/:planId')
+  @UseGuards(JwtBearerAuthGuard)
+  @HttpCode(HTTP_STATUSES.NO_CONTENT_204)
+  async deleteMembershipPlanForBlog(
+    @CurrentUserId() userId: string,
+    @Param('blogId', UuidPipe) blogId: string,
+    @Param('planId', UuidPipe) planId: string,
+  ) {
+    const deleteCommand = new DeleteMembershipPlanForBlogCommand(
+      userId,
+      blogId,
+      planId,
+    );
+
+    const notice = await this.commandBus.execute(deleteCommand);
 
     if (notice.hasError()) {
       if (notice.code === HTTP_STATUSES.NOT_FOUND_404) {
