@@ -63,11 +63,8 @@ export class CreateMembershipPlanForBlogUseCase
       manager,
     );
 
-    if (!blog || !blog.isMembership) {
-      notice.addError(
-        HTTP_STATUSES.NOT_FOUND_404,
-        'Blog not found or blog without membership',
-      );
+    if (!blog) {
+      notice.addError(HTTP_STATUSES.NOT_FOUND_404, 'Blog not found');
       return notice;
     }
 

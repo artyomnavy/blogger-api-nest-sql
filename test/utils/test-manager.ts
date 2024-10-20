@@ -5,6 +5,7 @@ import { CreateAndUpdatePostModel } from '../../src/features/posts/api/models/po
 import { CreateUserModel } from '../../src/features/users/api/models/user.input.model';
 import { INestApplication } from '@nestjs/common';
 import { CreateAndUpdateQuestionModel } from '../../src/features/quiz/api/models/question.input.model';
+import { CreateBlogMembershipPlanModel } from '../../src/features/memberships/api/models/membership.input.model';
 
 export class CreateEntitiesTestManager {
   constructor(protected readonly app: INestApplication) {}
@@ -73,6 +74,20 @@ export class CreateEntitiesTestManager {
     const response = await request(this.app.getHttpServer())
       .post(uri)
       .auth(basicLogin, basicPassword)
+      .send(createData)
+      .expect(statusCode);
+
+    return response;
+  }
+  async createMembershipPlan(
+    uri: string,
+    createData: CreateBlogMembershipPlanModel,
+    accessToken: string,
+    statusCode: HttpStatusType = HTTP_STATUSES.CREATED_201,
+  ) {
+    const response = await request(this.app.getHttpServer())
+      .post(uri)
+      .auth(accessToken, { type: 'bearer' })
       .send(createData)
       .expect(statusCode);
 

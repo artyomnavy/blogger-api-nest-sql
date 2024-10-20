@@ -13,6 +13,16 @@ import { Quiz } from './quiz/domain/quiz.entity';
 import { Question } from './quiz/domain/question.entity';
 import { Answer } from './quiz/domain/answer.entity';
 import { QuizQuestion } from './quiz/domain/quiz-question.entity';
+import { UserBanByAdmin } from './bans/domain/user-ban-by-admin.entity';
+import { BlogBanByAdmin } from './bans/domain/blog-ban-by-admin.entity';
+import { BlogWallpaper } from './files/images/domain/wallpaper-blog.entity';
+import { BlogMainImage } from './files/images/domain/main-image-blog.entity';
+import { PostMainImage } from './files/images/domain/main-image-post.entity';
+import { BlogSubscription } from './subscriptions/domain/blog-subscription.entity';
+import { BlogMembershipPlan } from './memberships/domain/blog-membership-plan.entity';
+import { PaymentBlogMembership } from './integrations/payments/domain/payment-blog-membership.entity';
+import { PlayerSession } from './quiz/domain/player-session.entity';
+import { UserBanByBloggers } from './bans/domain/user-ban-by-blogger.entity';
 
 @Controller('testing')
 export class TestController {
@@ -40,6 +50,26 @@ export class TestController {
     private readonly answersRepository: Repository<Answer>,
     @InjectRepository(QuizQuestion)
     private readonly quizzesQuestionsRepository: Repository<QuizQuestion>,
+    // @InjectRepository(PlayerSession)
+    // private readonly playersSessionsRepository: Repository<PlayerSession>,
+    @InjectRepository(BlogWallpaper)
+    private readonly blogsWallpapersRepository: Repository<BlogWallpaper>,
+    @InjectRepository(BlogMainImage)
+    private readonly blogsMainImagesRepository: Repository<BlogMainImage>,
+    @InjectRepository(PostMainImage)
+    private readonly postsMainImagesRepository: Repository<PostMainImage>,
+    @InjectRepository(BlogSubscription)
+    private readonly blogsSubscriptionsRepository: Repository<BlogSubscription>,
+    @InjectRepository(BlogMembershipPlan)
+    private readonly blogsMembershipsPlansRepository: Repository<BlogMembershipPlan>,
+    @InjectRepository(PaymentBlogMembership)
+    private readonly paymentsBlogsMembershipsRepository: Repository<PaymentBlogMembership>,
+    @InjectRepository(BlogBanByAdmin)
+    private readonly blogsBansByAdminRepository: Repository<BlogBanByAdmin>,
+    @InjectRepository(UserBanByAdmin)
+    private readonly usersBansByAdminRepository: Repository<UserBanByAdmin>,
+    @InjectRepository(UserBanByBloggers)
+    private readonly usersBansByBloggersRepository: Repository<UserBanByBloggers>,
   ) {}
 
   @Delete('all-data')
@@ -50,6 +80,36 @@ export class TestController {
       .delete()
       .from(Blog)
       .execute();
+    await this.blogsBansByAdminRepository
+      .createQueryBuilder()
+      .delete()
+      .from(BlogBanByAdmin)
+      .execute();
+    await this.blogsWallpapersRepository
+      .createQueryBuilder()
+      .delete()
+      .from(BlogWallpaper)
+      .execute();
+    await this.blogsMainImagesRepository
+      .createQueryBuilder()
+      .delete()
+      .from(BlogMainImage)
+      .execute();
+    await this.blogsSubscriptionsRepository
+      .createQueryBuilder()
+      .delete()
+      .from(BlogSubscription)
+      .execute();
+    await this.blogsMembershipsPlansRepository
+      .createQueryBuilder()
+      .delete()
+      .from(BlogMembershipPlan)
+      .execute();
+    await this.paymentsBlogsMembershipsRepository
+      .createQueryBuilder()
+      .delete()
+      .from(PaymentBlogMembership)
+      .execute();
     await this.postsRepository
       .createQueryBuilder()
       .delete()
@@ -59,6 +119,11 @@ export class TestController {
       .createQueryBuilder()
       .delete()
       .from(LikePost)
+      .execute();
+    await this.postsMainImagesRepository
+      .createQueryBuilder()
+      .delete()
+      .from(PostMainImage)
       .execute();
     await this.commentsRepository
       .createQueryBuilder()
@@ -79,6 +144,16 @@ export class TestController {
       .createQueryBuilder()
       .delete()
       .from(User)
+      .execute();
+    await this.usersBansByAdminRepository
+      .createQueryBuilder()
+      .delete()
+      .from(UserBanByAdmin)
+      .execute();
+    await this.usersBansByBloggersRepository
+      .createQueryBuilder()
+      .delete()
+      .from(UserBanByAdmin)
       .execute();
     await this.quizzesRepository
       .createQueryBuilder()

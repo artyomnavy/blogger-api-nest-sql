@@ -1,16 +1,14 @@
 import { Injectable } from '@nestjs/common';
 import { PaymentsSystems } from '../../../../common/utils';
-import { BlogMembershipPlan } from '../../../memberships/domain/blog-membership-plan.entity';
 import { Request } from 'express';
 import { StripeAdapter } from '../adapters/stripe-adapter';
+import { PaymentBlogMembership } from '../domain/payment-blog-membership.entity';
 
 export interface IPaymentAdapter {
-  createPayment(
-    paymentSystem: PaymentsSystems,
-    blogMembershipPlan: BlogMembershipPlan,
-    paymentId: string,
-    req: Request,
-  ): Promise<{ data: any }>;
+  createPayment(paymentData: {
+    payment: PaymentBlogMembership;
+    req: Request;
+  }): Promise<{ data: any }>;
 }
 
 @Injectable()
@@ -26,21 +24,16 @@ export class PaymentsManager {
     // this.adapters[PaymentsSystems.TINKOFF] = tinkoffAdapter;
   }
 
-  async createPayment(
-    paymentSystem: PaymentsSystems,
-    blogMembershipPlan: BlogMembershipPlan,
-    paymentId: string,
-    req: Request,
-  ) {
-    if (!this.adapters[paymentSystem]) {
+  async createPayment(paymentData: {
+    payment: PaymentBlogMembership;
+    req: Request;
+  }) {
+    if (!this.adapters[paymentData.payment.paymentSystem]) {
       throw new Error('Payment system is missing');
     }
 
-    return this.adapters[paymentSystem].createPayment(
-      paymentSystem,
-      blogMembershipPlan,
-      paymentId,
-      req,
+    return this.adapters[paymentData.payment.paymentSystem].createPayment(
+      paymentData,
     );
   }
 }

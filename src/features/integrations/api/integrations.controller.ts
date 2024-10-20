@@ -69,9 +69,9 @@ export class IntegrationsController {
     const rawBody = request.rawBody;
     const webhookSecret = process.env.STRIPE_WEBHOOK_SECRET;
 
-    if (!rawBody || !webhookSecret) {
+    if (!signature || !rawBody || !webhookSecret) {
       throw new BadRequestException(
-        'Raw body or stripe webhook secret is missing',
+        'Signature or raw body or stripe webhook secret is missing',
       );
     }
 

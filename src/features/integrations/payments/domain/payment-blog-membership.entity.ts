@@ -30,11 +30,15 @@ export class PaymentBlogMembership {
   @Column({ type: 'character varying' })
   status: string;
 
-  @Column({ name: 'any_payment_provider_info', type: 'json' })
-  anyPaymentProviderInfo: any;
+  @Column({ name: 'any_payment_provider_info', type: 'json', nullable: true })
+  anyPaymentProviderInfo: any | null;
 
-  @Column({ name: 'any_confirm_payment_system_data', type: 'json' })
-  anyConfirmPaymentSystemData: any;
+  @Column({
+    name: 'any_confirm_payment_system_data',
+    type: 'json',
+    nullable: true,
+  })
+  anyConfirmPaymentSystemData: any | null;
 
   @CreateDateColumn({ name: 'created_at', type: 'timestamp with time zone' })
   createdAt: Date;

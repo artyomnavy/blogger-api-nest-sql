@@ -14,6 +14,7 @@ export const Paths = {
   quiz: '/pair-game-quiz',
   testing: '/testing',
   telegram: '/integrations/telegram',
+  stripe: '/integrations/stripe',
 };
 
 export const badId = new ObjectId().toString();

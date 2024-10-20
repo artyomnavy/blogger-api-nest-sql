@@ -120,8 +120,17 @@ export class BlogsSubscriptionsRepository {
       ? manager.getRepository(BlogSubscription)
       : this.blogsSubscriptionsRepository;
 
-    subscription.blogsMembershipsPlans.push(blogMembershipPlan);
-    subscription.paymentsBlogsMemberships.push(payment);
+    if (!subscription.blogsMembershipsPlans) {
+      subscription.blogsMembershipsPlans = [blogMembershipPlan];
+    } else {
+      subscription.blogsMembershipsPlans.push(blogMembershipPlan);
+    }
+
+    if (!subscription.paymentsBlogsMemberships) {
+      subscription.paymentsBlogsMemberships = [payment];
+    } else {
+      subscription.paymentsBlogsMemberships.push(payment);
+    }
 
     return blogsSubscriptionsRepository.save(subscription);
   }

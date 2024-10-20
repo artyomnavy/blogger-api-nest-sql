@@ -164,12 +164,10 @@ export class BuyMembershipPlanToBlogSubscriptionUseCase
     );
 
     // Создаем ссылку на оплату через платежную систему
-    const paymentProviderInfo = await this.paymentsManager.createPayment(
-      paymentSystem,
-      blogMembershipPlan,
-      payment.id,
-      req,
-    );
+    const paymentProviderInfo = await this.paymentsManager.createPayment({
+      payment: payment,
+      req: req,
+    });
 
     // Добавляем информацию платежного провайдера к оплате подписки на блог
     await this.paymentsBlogsMembershipsRepository.addProviderInfoToPaymentBlogMembership(

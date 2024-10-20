@@ -22,8 +22,8 @@ export class PaymentsBlogsMembershipsQueryRepository {
 
     const payment = await paymentBlogMembershipRepository
       .createQueryBuilder('pbm')
-      .leftJoin('pbm.blogSubscription', 'blogSubscription')
-      .addSelect('blogSubscription.id')
+      .leftJoin('pbm.blogSubscription', 'bs')
+      .addSelect('bs.id')
       .where('pbm.id = :paymentId', {
         paymentId: paymentId,
       })

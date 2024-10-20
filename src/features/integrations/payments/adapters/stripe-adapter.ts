@@ -1,11 +1,10 @@
 import { Injectable } from '@nestjs/common';
 import Stripe from 'stripe';
 import process from 'node:process';
-import { PaymentsSystems } from '../../../../common/utils';
-import { BlogMembershipPlan } from '../../../memberships/domain/blog-membership-plan.entity';
 import { Request } from 'express';
 import { addMinutes, getUnixTime } from 'date-fns';
 import { IPaymentAdapter } from '../managers/payments-manager';
+import { PaymentBlogMembership } from '../domain/payment-blog-membership.entity';
 
 @Injectable()
 export class StripeAdapter implements IPaymentAdapter {
@@ -20,12 +19,10 @@ export class StripeAdapter implements IPaymentAdapter {
     this.stripe = new Stripe(secretKey);
   }
 
-  async createPayment(
-    paymentSystem: PaymentsSystems,
-    blogMembershipPlan: BlogMembershipPlan,
-    paymentId: string,
-    req: Request,
-  ) {
+  async createPayment(paymentData: {
+    payment: PaymentBlogMembership;
+    req: Request;
+  }) {
     // Устанавливаем значение времени в течение которого необходимо оплатить подписку (30 минут)
     const expirationTime = addMinutes(new Date(), 30);
     const expiresAt = getUnixTime(expirationTime);
@@ -34,20 +31,20 @@ export class StripeAdapter implements IPaymentAdapter {
       line_items: [
         {
           price_data: {
-            currency: blogMembershipPlan.currency,
+            currency: paymentData.payment.blogMembershipPlan.currency,
             product_data: {
-              name: blogMembershipPlan.id,
-              description: blogMembershipPlan.planName,
+              name: paymentData.payment.blogMembershipPlan.id,
+              description: paymentData.payment.blogMembershipPlan.planName,
             },
-            unit_amount: blogMembershipPlan.price,
+            unit_amount: paymentData.payment.blogMembershipPlan.price,
           },
-          quantity: blogMembershipPlan.monthsCount,
+          quantity: paymentData.payment.blogMembershipPlan.monthsCount,
         },
       ],
       mode: 'payment',
-      success_url: `${req.protocol}://${req.get('host')}/integrations/stripe/success`,
-      cancel_url: `${req.protocol}://${req.get('host')}/integrations/stripe/cancel`,
-      client_reference_id: paymentId,
+      success_url: `${paymentData.req.protocol}://${paymentData.req.get('host')}/integrations/stripe/success`,
+      cancel_url: `${paymentData.req.protocol}://${paymentData.req.get('host')}/integrations/stripe/cancel`,
+      client_reference_id: paymentData.payment.id,
       expires_at: expiresAt,
     });
 

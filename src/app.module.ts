@@ -254,11 +254,8 @@ const repositoriesProviders = [
   BlogsMainImagesRepository,
   PostsMainImagesRepository,
   BlogsSubscriptionsRepository,
-  BlogsSubscriptionsQueryRepository,
   BlogsMembershipsPlansRepository,
-  BlogsMembershipsPlansQueryRepository,
   PaymentsBlogsMembershipsRepository,
-  PaymentsBlogsMembershipsQueryRepository,
 ];
 
 const queryRepositoriesProviders = [
@@ -269,6 +266,9 @@ const queryRepositoriesProviders = [
   DevicesQueryRepository,
   QuestionsQueryRepository,
   QuizzesQueryRepository,
+  BlogsSubscriptionsQueryRepository,
+  BlogsMembershipsPlansQueryRepository,
+  PaymentsBlogsMembershipsQueryRepository,
 ];
 
 const telegramUseCases = [

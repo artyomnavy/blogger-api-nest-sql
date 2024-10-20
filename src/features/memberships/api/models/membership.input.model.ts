@@ -1,4 +1,10 @@
-import { IsEnum, IsNotEmpty, IsNumber, IsString } from 'class-validator';
+import {
+  IsEnum,
+  IsNotEmpty,
+  IsNumber,
+  IsOptional,
+  IsString,
+} from 'class-validator';
 import { Transform } from 'class-transformer';
 import {
   Currency,
@@ -13,6 +19,7 @@ export class BuyMembershipPlanModel {
   membershipPlanId: string;
 
   @Transform(({ value }) => value?.trim())
+  @IsOptional()
   @IsEnum(PaymentsSystems)
   @IsNotEmpty()
   paymentSystem: PaymentsSystems = PaymentsSystems.STRIPE;
@@ -24,7 +31,6 @@ export class CreateBlogMembershipPlanModel {
   @IsNotEmpty()
   planName: MembershipsPlans;
 
-  @Transform(({ value }) => value?.trim())
   @IsNumber()
   @IsNotEmpty()
   price: number;

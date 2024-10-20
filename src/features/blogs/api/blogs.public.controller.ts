@@ -178,13 +178,13 @@ export class BlogsPublicController {
   }
   @Post(':blogId/membership')
   @UseGuards(JwtBearerAuthGuard)
-  @HttpCode(HTTP_STATUSES.NO_CONTENT_204)
-  async buyMembershipPlanBlogSubscription(
+  @HttpCode(HTTP_STATUSES.OK_200)
+  async buyMembershipPlanToBlogSubscription(
     @Req() req: Request,
     @CurrentUserId() userId: string,
     @Param('blogId', UuidPipe) blogId: string,
     @Body() buyModel: BuyMembershipPlanModel,
-  ) {
+  ): Promise<{ url: string }> {
     const result = await this.commandBus.execute(
       new BuyMembershipPlanToBlogSubscriptionCommand(
         userId,
@@ -199,7 +199,7 @@ export class BlogsPublicController {
       resultCodeToHttpException(result.code, result.message, result.field);
     }
 
-    return;
+    return result.data;
   }
   @Get(':blogId/membership/plans')
   async getMembershipsPlansForBlog(
