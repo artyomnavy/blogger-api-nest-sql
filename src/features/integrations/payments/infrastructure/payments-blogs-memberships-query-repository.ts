@@ -52,7 +52,7 @@ export class PaymentsBlogsMembershipsQueryRepository {
       .leftJoinAndSelect('bs.user', 'u')
       .leftJoinAndSelect('bs.blog', 'b')
       .leftJoinAndSelect('pbm.blogMembershipPlan', 'bmp')
-      .where('blog.id = :blogId', { blogId: blogId })
+      .where('b.id = :blogId', { blogId: blogId })
       .orderBy(`pbm.${sortBy}`, sortDirection)
       .skip((pageNumber - 1) * pageSize)
       .take(pageSize)
@@ -65,7 +65,7 @@ export class PaymentsBlogsMembershipsQueryRepository {
         .leftJoinAndSelect('bs.user', 'u')
         .leftJoinAndSelect('bs.blog', 'b')
         .leftJoinAndSelect('pbm.blogMembershipPlan', 'bmp')
-        .where('blog.id = :blogId', { blogId: blogId })
+        .where('b.id = :blogId', { blogId: blogId })
         .getCount();
 
     const pagesCount = Math.ceil(totalCount / pageSize);

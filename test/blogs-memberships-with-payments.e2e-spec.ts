@@ -7,7 +7,7 @@ import {
   MembershipsPlans,
   SubscriptionStatus,
 } from '../src/common/utils';
-import { Paths } from './utils/test-constants';
+import { Paths, responseNullData } from './utils/test-constants';
 import { CreateEntitiesTestManager } from './utils/test-manager';
 import {
   basicLogin,
@@ -308,7 +308,8 @@ describe('Blogs memberships with payments testing (e2e)', () => {
     urlBuySubscription = buyPlanMonthly.body;
   });
 
-  it('+ POST finish payment and subscription to blog', async () => {
+  // TO DO: fix mock return data type Buffer and incorrect test finish use case
+  it('+ POST finish payment and subscribe user to blog (stripe session completed)', async () => {
     const payment = await paymentEntity
       .createQueryBuilder('pbm')
       .leftJoinAndSelect('pbm.blogMembershipPlan', 'bmp')
@@ -320,22 +321,111 @@ describe('Blogs memberships with payments testing (e2e)', () => {
     const rawData = {
       type: 'checkout.session.completed',
       data: {
-        object: {
-          client_reference_id: payment!.id,
-        },
+        object: {},
       },
+      client_reference_id: payment!.id,
     };
 
     const rawBody = Buffer.from(JSON.stringify(rawData));
 
     const signature = 'test-signature';
 
-    // await request(server)
-    //   .post(`${Paths.stripe}/webhook`)
-    //   .set('stripe-signature', signature)
-    //   .set('Content-Type', 'application/json')
-    //   .send(rawBody)
-    //   .expect(HTTP_STATUSES.NO_CONTENT_204);
+    await request(server)
+      .post(`${Paths.stripe}/webhook`)
+      .set('stripe-signature', signature)
+      .set('Content-Type', 'application/json')
+      .send(rawBody)
+      .expect(HTTP_STATUSES.NO_CONTENT_204);
+  });
+
+  it('+ GET (blogger) all payments blog membership', async () => {
+    const queryData = {
+      searchNameTerm: '',
+      sortBy: '',
+      sortDirection: '',
+      pageNumber: '',
+      pageSize: '',
+    };
+
+    const foundPayments = await request(server)
+      .get(`${Paths.usersBlogger}/blog/${newBlog!.id}/payments`)
+      .query(queryData)
+      .auth(accessTokenUser, { type: 'bearer' })
+      .expect(HTTP_STATUSES.OK_200);
+
+    expect(foundPayments.body).toStrictEqual({
+      pagesCount: 1,
+      page: 1,
+      pageSize: 10,
+      totalCount: 1,
+      items: [
+        {
+          userId: subscriber.id,
+          userLogin: subscriber.login,
+          blogId: newBlog!.id,
+          blogTitle: newBlog!.name,
+          membershipPlan: {
+            id: membershipPlan.id,
+            monthsCount: membershipPlan.monthsCount,
+            price: membershipPlan.price,
+            currency: membershipPlan.currency,
+          },
+        },
+      ],
+    });
+  });
+
+  it('+ POST delete payment and unsubscribe or delete subscription user to blog (stripe session expired)', async () => {
+    const payment = await paymentEntity
+      .createQueryBuilder('pbm')
+      .leftJoinAndSelect('pbm.blogMembershipPlan', 'bmp')
+      .where('bmp.id = :membershipPlanId', {
+        membershipPlanId: membershipPlan.id,
+      })
+      .getOne();
+
+    const rawData = {
+      type: 'checkout.session.expired',
+      data: {
+        object: {},
+      },
+      client_reference_id: payment!.id,
+    };
+
+    const rawBody = Buffer.from(JSON.stringify(rawData));
+
+    const signature = 'test-signature';
+
+    await request(server)
+      .post(`${Paths.stripe}/webhook`)
+      .set('stripe-signature', signature)
+      .set('Content-Type', 'application/json')
+      .send(rawBody)
+      .expect(HTTP_STATUSES.NO_CONTENT_204);
+  });
+
+  it('+ GET (blogger) all payments blog membership', async () => {
+    const queryData = {
+      searchNameTerm: '',
+      sortBy: '',
+      sortDirection: '',
+      pageNumber: '',
+      pageSize: '',
+    };
+
+    const foundPayments = await request(server)
+      .get(`${Paths.usersBlogger}/blog/${newBlog!.id}/payments`)
+      .query(queryData)
+      .auth(accessTokenUser, { type: 'bearer' })
+      .expect(HTTP_STATUSES.OK_200);
+
+    expect(foundPayments.body).toStrictEqual({
+      pagesCount: 1,
+      page: 1,
+      pageSize: 10,
+      totalCount: 1,
+      items: responseNullData,
+    });
   });
 
   afterAll(async () => {

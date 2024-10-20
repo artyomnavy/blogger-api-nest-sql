@@ -19,8 +19,7 @@ export class StripeAdapterMock extends StripeAdapter {
     cryptoProvider?: Stripe.CryptoProvider | undefined,
     receivedAt?: number | undefined,
   ) {
-    const rawBodyString = rawBody.toString();
-    const eventData = JSON.parse(rawBodyString);
+    const eventData = JSON.parse(rawBody.toString());
 
     return eventData as Stripe.Event;
   }

@@ -41,7 +41,7 @@ export const initSettings = async (
   const testingModule = await testingModuleBuilder.compile();
 
   // Создаем экземпляр приложения Nest из тестового модуля
-  const app = testingModule.createNestApplication();
+  const app = testingModule.createNestApplication({ rawBody: true });
 
   // Применяем настройки к приложению (global pipes & etc)
   appSettings(app);
