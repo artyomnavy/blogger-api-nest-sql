@@ -13,6 +13,7 @@ export class PaymentsBlogsMembershipsRepository {
   ) {}
   async createPayment(
     paymentSystem: PaymentsSystems,
+    status: PaymentsStatuses,
     price: number,
     blogMembershipPlan: BlogMembershipPlan,
     manager?: EntityManager,
@@ -26,7 +27,7 @@ export class PaymentsBlogsMembershipsRepository {
     paymentBlogMembership.paymentSystem = paymentSystem;
     paymentBlogMembership.price = price;
     paymentBlogMembership.blogMembershipPlan = blogMembershipPlan;
-    paymentBlogMembership.status = PaymentsStatuses.PENDING;
+    paymentBlogMembership.status = status;
 
     return await paymentBlogMembershipRepository.save(paymentBlogMembership);
   }

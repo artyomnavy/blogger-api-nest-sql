@@ -2,6 +2,7 @@ import { CommandHandler, ICommandHandler } from '@nestjs/cqrs';
 import { UsersQueryRepository } from '../../../users/infrastructure/users.query-repository';
 import { BlogsQueryRepository } from '../../../blogs/infrastructure/blogs.query-repository';
 import {
+  PaymentsStatuses,
   PaymentsSystems,
   ResultCode,
   SubscriptionStatus,
@@ -115,6 +116,7 @@ export class BuyMembershipPlanToBlogSubscriptionUseCase
     // Создаем оплату подписки на блог
     const payment = await this.paymentsBlogsMembershipsRepository.createPayment(
       paymentSystem,
+      PaymentsStatuses.PENDING,
       blogMembershipPlan.price,
       blogMembershipPlan,
       manager,

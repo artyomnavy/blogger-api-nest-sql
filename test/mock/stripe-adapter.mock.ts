@@ -19,9 +19,32 @@ export class StripeAdapterMock extends StripeAdapter {
     cryptoProvider?: Stripe.CryptoProvider | undefined,
     receivedAt?: number | undefined,
   ) {
-    const eventData = JSON.parse(rawBody.toString());
+    // const eventString = rawBody.toString();
+    // const eventData = JSON.parse(eventString);
+    //
+    // return eventData as Stripe.Event;
 
-    return eventData as Stripe.Event;
+    const sign = signature.split('_');
+
+    if (sign[1] === 'completed') {
+      return {
+        type: 'checkout.session.completed',
+        data: {
+          object: {
+            client_reference_id: sign[2],
+          },
+        },
+      } as unknown as Stripe.Event;
+    } else {
+      return {
+        type: 'checkout.session.expired',
+        data: {
+          object: {
+            client_reference_id: sign[2],
+          },
+        },
+      } as unknown as Stripe.Event;
+    }
   }
 
   createPayment(paymentData: {
