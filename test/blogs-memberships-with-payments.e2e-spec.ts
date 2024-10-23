@@ -4,10 +4,10 @@ import { BlogOutputModel } from '../src/features/blogs/api/models/blog.output.mo
 import {
   Currency,
   HTTP_STATUSES,
-  MembershipsPlans,
-  SubscriptionStatus,
+  MembershipPlans,
+  SubscriptionStatuses,
 } from '../src/common/utils';
-import { Paths, responseNullData } from './utils/test-constants';
+import { Paths } from './utils/test-constants';
 import { CreateEntitiesTestManager } from './utils/test-manager';
 import {
   basicLogin,
@@ -46,9 +46,7 @@ describe('Blogs memberships with payments testing (e2e)', () => {
     server = testSettings.server;
     createEntitiesTestManager = testSettings.createEntitiesTestManager;
 
-    paymentEntity = testSettings.app.get(
-      getRepositoryToken(PaymentBlogMembership),
-    );
+    paymentEntity = app.get(getRepositoryToken(PaymentBlogMembership));
   });
 
   let newBlog: BlogOutputModel | null = null;
@@ -184,7 +182,7 @@ describe('Blogs memberships with payments testing (e2e)', () => {
         wallpaper: null,
         main: [],
       },
-      currentUserSubscriptionStatus: SubscriptionStatus.NONE,
+      currentUserSubscriptionStatus: SubscriptionStatuses.NONE,
       subscribersCount: 0,
     });
 
@@ -204,7 +202,7 @@ describe('Blogs memberships with payments testing (e2e)', () => {
   // Create memberships plans for blog before change isMembership
   it('+ POST (blogger) create blog membership plan', async () => {
     const createDataForMonthlyPlan = {
-      planName: MembershipsPlans.MONTHLY,
+      planName: MembershipPlans.MONTHLY,
       price: 10,
       currency: Currency.USD,
     };
@@ -219,7 +217,7 @@ describe('Blogs memberships with payments testing (e2e)', () => {
     membershipPlanMonthly = createPlanMonthly.body;
 
     const createDataForQuarterlyPlan = {
-      planName: MembershipsPlans.QUARTERLY,
+      planName: MembershipPlans.QUARTERLY,
       price: 25,
       currency: Currency.USD,
     };
@@ -234,7 +232,7 @@ describe('Blogs memberships with payments testing (e2e)', () => {
     membershipPlanQuarterly = createPlanQuarterly.body;
 
     const createDataForSemiAnnualPlan = {
-      planName: MembershipsPlans.SEMI_ANNUAL,
+      planName: MembershipPlans.SEMI_ANNUAL,
       price: 50,
       currency: Currency.USD,
     };
@@ -247,7 +245,7 @@ describe('Blogs memberships with payments testing (e2e)', () => {
       );
 
     const createDataForAnnualPlan = {
-      planName: MembershipsPlans.ANNUAL,
+      planName: MembershipPlans.ANNUAL,
       price: 100,
       currency: Currency.USD,
     };
@@ -309,7 +307,6 @@ describe('Blogs memberships with payments testing (e2e)', () => {
       .expect(HTTP_STATUSES.OK_200);
   });
 
-  // TO DO: fix mock return data type Buffer and incorrect test finish use case
   it('+ POST finish payment and subscribe user to blog (stripe session completed)', async () => {
     const payment = await paymentEntity
       .createQueryBuilder('pbm')
@@ -421,7 +418,6 @@ describe('Blogs memberships with payments testing (e2e)', () => {
       .expect(HTTP_STATUSES.NO_CONTENT_204);
   });
 
-  // TO DO: fix and test response payments
   it('+ GET (blogger) all payments blog membership', async () => {
     const queryData = {
       searchNameTerm: '',
@@ -437,15 +433,26 @@ describe('Blogs memberships with payments testing (e2e)', () => {
       .auth(accessTokenUser, { type: 'bearer' })
       .expect(HTTP_STATUSES.OK_200);
 
-    console.log(foundPayments.body);
-
-    // expect(foundPayments.body).toStrictEqual({
-    //   pagesCount: 1,
-    //   page: 1,
-    //   pageSize: 10,
-    //   totalCount: 1,
-    //   items: expect(foundPayments.body.item.length).toBe(1),
-    // });
+    expect(foundPayments.body).toStrictEqual({
+      pagesCount: 1,
+      page: 1,
+      pageSize: 10,
+      totalCount: 1,
+      items: [
+        {
+          userId: subscriber.id,
+          userLogin: subscriber.login,
+          blogId: newBlog!.id,
+          blogTitle: newBlog!.name,
+          membershipPlan: {
+            id: membershipPlanMonthly.id,
+            monthsCount: membershipPlanMonthly.monthsCount,
+            price: membershipPlanMonthly.price,
+            currency: membershipPlanMonthly.currency,
+          },
+        },
+      ],
+    });
   });
 
   afterAll(async () => {

@@ -2,7 +2,7 @@ import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { EntityManager, Repository } from 'typeorm';
 import { BlogSubscription } from '../domain/blog-subscription.entity';
-import { SubscriptionStatus } from '../../../common/utils';
+import { SubscriptionStatuses } from '../../../common/utils';
 
 @Injectable()
 export class BlogsSubscriptionsQueryRepository {
@@ -51,7 +51,7 @@ export class BlogsSubscriptionsQueryRepository {
   async getSubscriberToBlog(
     blogId: string,
     userId: string,
-    status: SubscriptionStatus,
+    status: SubscriptionStatuses,
     manager?: EntityManager,
   ): Promise<BlogSubscription | null> {
     const blogsSubscriptionsQueryRepository = manager
@@ -71,7 +71,7 @@ export class BlogsSubscriptionsQueryRepository {
       return subscriber;
     }
   }
-  async getSubscriptionToBlog(
+  async getSubscriptionWithPaymentsToBlog(
     blogId: string,
     userId: string,
     manager?: EntityManager,
@@ -82,6 +82,7 @@ export class BlogsSubscriptionsQueryRepository {
 
     const subscription = await blogsSubscriptionsQueryRepository
       .createQueryBuilder('bs')
+      .leftJoinAndSelect('bs.paymentsBlogsMemberships', 'pbm')
       .where('(bs.blog_id = :blogId)', { blogId: blogId })
       .andWhere('(bs.user_id = :userId)', { userId: userId })
       .getOne();
@@ -133,7 +134,7 @@ export class BlogsSubscriptionsQueryRepository {
   }
   async getTelegramIdsSubscribersForBlog(
     blogId: string,
-    status: SubscriptionStatus,
+    status: SubscriptionStatuses,
     currentDate: Date,
     manager?: EntityManager,
   ): Promise<number[]> {

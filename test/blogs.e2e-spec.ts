@@ -1,7 +1,7 @@
 import { INestApplication } from '@nestjs/common';
 import request from 'supertest';
 import { BlogOutputModel } from '../src/features/blogs/api/models/blog.output.model';
-import { HTTP_STATUSES, SubscriptionStatus } from '../src/common/utils';
+import { HTTP_STATUSES, SubscriptionStatuses } from '../src/common/utils';
 import { badId, Paths, responseNullData } from './utils/test-constants';
 import { CreateAndUpdateBlogModel } from '../src/features/blogs/api/models/blog.input.model';
 import { CreateEntitiesTestManager } from './utils/test-manager';
@@ -211,7 +211,7 @@ describe('Blogs testing (e2e)', () => {
         wallpaper: null,
         main: [],
       },
-      currentUserSubscriptionStatus: SubscriptionStatus.NONE,
+      currentUserSubscriptionStatus: SubscriptionStatuses.NONE,
       subscribersCount: 0,
     });
 
@@ -484,7 +484,7 @@ describe('Blogs testing (e2e)', () => {
         wallpaper: null,
         main: [],
       },
-      currentUserSubscriptionStatus: SubscriptionStatus.NONE,
+      currentUserSubscriptionStatus: SubscriptionStatuses.NONE,
       subscribersCount: 0,
     });
 

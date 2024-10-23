@@ -3,9 +3,9 @@ import { TransactionManagerUseCase } from '../../../../../common/use-cases/trans
 import { ResultType } from '../../../../../common/types/result';
 import { DataSource, EntityManager } from 'typeorm';
 import {
-  PaymentsStatuses,
+  PaymentStatuses,
   ResultCode,
-  SubscriptionStatus,
+  SubscriptionStatuses,
 } from '../../../../../common/utils';
 import { PaymentsBlogsMembershipsQueryRepository } from '../../infrastructure/payments-blogs-memberships-query-repository';
 import { PaymentsBlogsMembershipsRepository } from '../../infrastructure/payments-blogs-memberships-repository';
@@ -58,7 +58,7 @@ export class FinishPaymentBlogMembershipUseCase
       };
     }
 
-    if (payment.status === PaymentsStatuses.CONFIRMED) {
+    if (payment.status === PaymentStatuses.CONFIRMED) {
       return {
         data: false,
         code: ResultCode.BAD_REQUEST,
@@ -104,7 +104,7 @@ export class FinishPaymentBlogMembershipUseCase
     // Обновляем статус и дату истечения подписки на блог (подписываем) или продлеваем подписку
     await this.blogsSubscriptionsRepository.subscribeOrRenewSubscribeToBlog(
       subscription.id,
-      SubscriptionStatus.SUBSCRIBED,
+      SubscriptionStatuses.SUBSCRIBED,
       expirationAt,
       manager,
     );
@@ -112,7 +112,7 @@ export class FinishPaymentBlogMembershipUseCase
     // Обновляем статус оплаты подписки на блог и добавляем информацию от платежной системы
     await this.paymentsBlogsMembershipsRepository.confirmPaymentBlogMembership(
       payment,
-      PaymentsStatuses.CONFIRMED,
+      PaymentStatuses.CONFIRMED,
       anyConfirmPaymentSystemData,
       manager,
     );

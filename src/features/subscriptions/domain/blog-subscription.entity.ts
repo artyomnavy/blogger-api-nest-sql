@@ -11,7 +11,7 @@ import {
 import { Blog } from '../../blogs/domain/blog.entity';
 import { User } from '../../users/domain/user.entity';
 import { v4 as uuidv4 } from 'uuid';
-import { SubscriptionStatus } from '../../../common/utils';
+import { SubscriptionStatuses } from '../../../common/utils';
 import { BlogMembershipPlan } from '../../memberships/domain/blog-membership-plan.entity';
 import { PaymentBlogMembership } from '../../integrations/payments/domain/payment-blog-membership.entity';
 
@@ -73,7 +73,7 @@ export class BlogSubscription {
   @OneToMany(() => PaymentBlogMembership, (pbm) => pbm.blogSubscription)
   paymentsBlogsMemberships: PaymentBlogMembership[];
 
-  static create(user: User, blog: Blog, status: SubscriptionStatus) {
+  static create(user: User, blog: Blog, status: SubscriptionStatuses) {
     const blogSubscription = new BlogSubscription();
 
     blogSubscription.id = uuidv4();

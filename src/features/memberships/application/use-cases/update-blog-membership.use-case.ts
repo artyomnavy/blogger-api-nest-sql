@@ -1,5 +1,5 @@
 import { CommandHandler, ICommandHandler } from '@nestjs/cqrs';
-import { HTTP_STATUSES, SubscriptionStatus } from '../../../../common/utils';
+import { HTTP_STATUSES, SubscriptionStatuses } from '../../../../common/utils';
 import { DataSource, EntityManager } from 'typeorm';
 import { TransactionManagerUseCase } from '../../../../common/use-cases/transaction.use-case';
 import { UsersQueryRepository } from '../../../users/infrastructure/users.query-repository';
@@ -110,7 +110,7 @@ export class UpdateBlogMembershipUseCase
     if (isSubscriptions) {
       await this.blogsSubscriptionsRepository.unsubscribeAllUsersToBlog(
         blogId,
-        SubscriptionStatus.UNSUBSCRIBED,
+        SubscriptionStatuses.UNSUBSCRIBED,
         manager,
       );
     }

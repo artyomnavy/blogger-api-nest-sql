@@ -3,7 +3,7 @@ import request from 'supertest';
 import {
   HTTP_STATUSES,
   LikeStatuses,
-  SubscriptionStatus,
+  SubscriptionStatuses,
 } from '../src/common/utils';
 import { Paths } from './utils/test-constants';
 import { CreateEntitiesTestManager } from './utils/test-manager';
@@ -179,7 +179,7 @@ describe('Likes testing (e2e)', () => {
         wallpaper: null,
         main: [],
       },
-      currentUserSubscriptionStatus: SubscriptionStatus.NONE,
+      currentUserSubscriptionStatus: SubscriptionStatuses.NONE,
       subscribersCount: 0,
     });
 

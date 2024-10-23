@@ -2,7 +2,7 @@ import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { EntityManager, Repository } from 'typeorm';
 import { PaymentBlogMembership } from '../domain/payment-blog-membership.entity';
-import { PaymentsStatuses, PaymentsSystems } from '../../../../common/utils';
+import { PaymentStatuses, PaymentSystems } from '../../../../common/utils';
 import { BlogMembershipPlan } from '../../../memberships/domain/blog-membership-plan.entity';
 
 @Injectable()
@@ -12,8 +12,8 @@ export class PaymentsBlogsMembershipsRepository {
     private readonly paymentsBlogsMembershipsRepository: Repository<PaymentBlogMembership>,
   ) {}
   async createPayment(
-    paymentSystem: PaymentsSystems,
-    status: PaymentsStatuses,
+    paymentSystem: PaymentSystems,
+    status: PaymentStatuses,
     price: number,
     blogMembershipPlan: BlogMembershipPlan,
     manager?: EntityManager,
@@ -46,7 +46,7 @@ export class PaymentsBlogsMembershipsRepository {
   }
   async confirmPaymentBlogMembership(
     payment: PaymentBlogMembership,
-    status: PaymentsStatuses,
+    status: PaymentStatuses,
     anyConfirmPaymentSystemData: any,
     manager?: EntityManager,
   ): Promise<PaymentBlogMembership> {
@@ -59,7 +59,7 @@ export class PaymentsBlogsMembershipsRepository {
 
     return paymentsBlogsMembershipsRepository.save(payment);
   }
-  async deletePaymentBlogMemebershipById(
+  async deletePaymentBlogMembershipById(
     paymentId: string,
     manager?: EntityManager,
   ): Promise<boolean> {
@@ -71,5 +71,26 @@ export class PaymentsBlogsMembershipsRepository {
       await paymentsBlogsMembershipsRepository.delete(paymentId);
 
     return resultDeletePaymentBlogMembership.affected === 1;
+  }
+  async updateStatusToPaymentBlogMembership(
+    paymentId: string,
+    status: PaymentStatuses,
+    manager?: EntityManager,
+  ): Promise<boolean> {
+    const paymentsBlogsMembershipsRepository = manager
+      ? manager.getRepository(PaymentBlogMembership)
+      : this.paymentsBlogsMembershipsRepository;
+
+    const resultUpdatePaymentBlogMembership =
+      await paymentsBlogsMembershipsRepository
+        .createQueryBuilder()
+        .update(PaymentBlogMembership)
+        .set({
+          status: status,
+        })
+        .where('id = :paymentId', { paymentId: paymentId })
+        .execute();
+
+    return resultUpdatePaymentBlogMembership.affected === 1;
   }
 }

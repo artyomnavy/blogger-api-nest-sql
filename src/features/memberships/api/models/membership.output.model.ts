@@ -1,4 +1,4 @@
-import { Currency, MembershipsPlans } from '../../../../common/utils';
+import { Currency, MembershipPlans } from '../../../../common/utils';
 
 export class MembershipPlanOutputModel {
   id: string;
@@ -10,7 +10,7 @@ export class MembershipPlanOutputModel {
 export class MembershipPlanForBlog {
   constructor(
     public id: string,
-    public planName: MembershipsPlans,
+    public planName: MembershipPlans,
     public monthsCount: number,
     public price: number,
     public currency: Currency,

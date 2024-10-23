@@ -13,7 +13,7 @@ import { Blog } from '../domain/blog.entity';
 import { BlogImagesOutputModel } from '../../files/images/api/models/blog-image.output.model';
 import { BlogMainImage } from '../../files/images/domain/main-image-blog.entity';
 import { BlogWallpaper } from '../../files/images/domain/wallpaper-blog.entity';
-import { SubscriptionStatus } from '../../../common/utils';
+import { SubscriptionStatuses } from '../../../common/utils';
 import { BlogSubscription } from '../../subscriptions/domain/blog-subscription.entity';
 
 @Injectable()
@@ -55,7 +55,7 @@ export class BlogsQueryRepository {
           .from(BlogSubscription, 'bs')
           .where('bs.blog_id = b.id')
           .andWhere('(bs.status = :status)', {
-            status: SubscriptionStatus.SUBSCRIBED,
+            status: SubscriptionStatuses.SUBSCRIBED,
           });
       }, 'subscribersCount')
       // Подзапрос статуса подписки пользователя на блог
@@ -124,7 +124,7 @@ export class BlogsQueryRepository {
           .from(BlogSubscription, 'bs')
           .where('bs.blog_id = b.id')
           .andWhere('(bs.status = :status)', {
-            status: SubscriptionStatus.SUBSCRIBED,
+            status: SubscriptionStatuses.SUBSCRIBED,
           });
       }, 'subscribersCount')
       // Подзапрос статуса подписки пользователя на блог
@@ -335,7 +335,7 @@ export class BlogsQueryRepository {
       },
       currentUserSubscriptionStatus: blog.currentUserSubscriptionStatus
         ? blog.currentUserSubscriptionStatus
-        : SubscriptionStatus.NONE,
+        : SubscriptionStatuses.NONE,
       subscribersCount: blog.subscribersCount,
     };
   }

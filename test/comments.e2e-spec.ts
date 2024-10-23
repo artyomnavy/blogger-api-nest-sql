@@ -3,7 +3,7 @@ import request from 'supertest';
 import {
   HTTP_STATUSES,
   LikeStatuses,
-  SubscriptionStatus,
+  SubscriptionStatuses,
 } from '../src/common/utils';
 import { BlogOutputModel } from '../src/features/blogs/api/models/blog.output.model';
 import { PostOutputModel } from '../src/features/posts/api/models/post.output.model';
@@ -179,7 +179,7 @@ describe('Comments testing (e2e)', () => {
         wallpaper: null,
         main: [],
       },
-      currentUserSubscriptionStatus: SubscriptionStatus.NONE,
+      currentUserSubscriptionStatus: SubscriptionStatuses.NONE,
       subscribersCount: 0,
     });
 

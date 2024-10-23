@@ -8,8 +8,8 @@ import {
 import { Transform } from 'class-transformer';
 import {
   Currency,
-  MembershipsPlans,
-  PaymentsSystems,
+  MembershipPlans,
+  PaymentSystems,
 } from '../../../../common/utils';
 
 export class BuyMembershipPlanModel {
@@ -20,16 +20,16 @@ export class BuyMembershipPlanModel {
 
   @Transform(({ value }) => value?.trim())
   @IsOptional()
-  @IsEnum(PaymentsSystems)
+  @IsEnum(PaymentSystems)
   @IsNotEmpty()
-  paymentSystem: PaymentsSystems = PaymentsSystems.STRIPE;
+  paymentSystem: PaymentSystems = PaymentSystems.STRIPE;
 }
 
 export class CreateBlogMembershipPlanModel {
   @Transform(({ value }) => value?.trim())
-  @IsEnum(MembershipsPlans)
+  @IsEnum(MembershipPlans)
   @IsNotEmpty()
-  planName: MembershipsPlans;
+  planName: MembershipPlans;
 
   @IsNumber()
   @IsNotEmpty()

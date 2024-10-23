@@ -6,7 +6,7 @@ import { EntityManager, Repository } from 'typeorm';
 import { Blog } from '../domain/blog.entity';
 import { User } from '../../users/domain/user.entity';
 import { BlogBanByAdmin } from '../../bans/domain/blog-ban-by-admin.entity';
-import { SubscriptionStatus } from '../../../common/utils';
+import { SubscriptionStatuses } from '../../../common/utils';
 
 @Injectable()
 export class BlogsRepository {
@@ -48,7 +48,7 @@ export class BlogsRepository {
         wallpaper: null,
         main: [],
       },
-      currentUserSubscriptionStatus: SubscriptionStatus.NONE,
+      currentUserSubscriptionStatus: SubscriptionStatuses.NONE,
       subscribersCount: 0,
     };
   }

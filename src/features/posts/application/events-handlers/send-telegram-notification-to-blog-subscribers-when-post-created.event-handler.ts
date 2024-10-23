@@ -1,7 +1,7 @@
 import { PostCreatedEvent } from '../../domain/events/post-created.event';
 import { EventsHandler, IEventHandler } from '@nestjs/cqrs';
 import { TelegramAdapter } from '../../../integrations/telegram/adapters/telegram.adapter';
-import { SubscriptionStatus } from '../../../../common/utils';
+import { SubscriptionStatuses } from '../../../../common/utils';
 import { BlogsSubscriptionsQueryRepository } from '../../../subscriptions/infrastructure/blogs-subscriptions-query-repository';
 
 @EventsHandler(PostCreatedEvent)
@@ -19,11 +19,11 @@ export class SendTelegramNotificationToBlogSubscribersWhenPostCreatedEventHandle
     const telegramIds =
       await this.blogsSubscriptionsQueryRepository.getTelegramIdsSubscribersForBlog(
         blogId,
-        SubscriptionStatus.SUBSCRIBED,
+        SubscriptionStatuses.SUBSCRIBED,
         new Date(),
       );
 
-    if (telegramIds.length === 0) {
+    if (!Array.isArray(telegramIds) || telegramIds.length === 0) {
       return;
     }
 

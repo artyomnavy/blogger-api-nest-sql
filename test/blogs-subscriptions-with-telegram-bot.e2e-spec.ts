@@ -5,7 +5,7 @@ import { BlogOutputModel } from '../src/features/blogs/api/models/blog.output.mo
 import {
   HTTP_STATUSES,
   LikeStatuses,
-  SubscriptionStatus,
+  SubscriptionStatuses,
 } from '../src/common/utils';
 import { Paths } from './utils/test-constants';
 import { CreateEntitiesTestManager } from './utils/test-manager';
@@ -175,7 +175,7 @@ describe('Blogs subscriptions with telegram bot testing (e2e)', () => {
         wallpaper: null,
         main: [],
       },
-      currentUserSubscriptionStatus: SubscriptionStatus.NONE,
+      currentUserSubscriptionStatus: SubscriptionStatuses.NONE,
       subscribersCount: 0,
     });
 
@@ -304,7 +304,7 @@ describe('Blogs subscriptions with telegram bot testing (e2e)', () => {
       .expect(HTTP_STATUSES.OK_200);
 
     newBlog!.subscribersCount = 0;
-    newBlog!.currentUserSubscriptionStatus = SubscriptionStatus.UNSUBSCRIBED;
+    newBlog!.currentUserSubscriptionStatus = SubscriptionStatuses.UNSUBSCRIBED;
 
     expect(foundBlogs.body).toStrictEqual({
       pagesCount: 1,

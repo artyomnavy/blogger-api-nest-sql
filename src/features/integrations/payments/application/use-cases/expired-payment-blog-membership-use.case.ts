@@ -3,9 +3,9 @@ import { TransactionManagerUseCase } from '../../../../../common/use-cases/trans
 import { ResultType } from '../../../../../common/types/result';
 import { DataSource, EntityManager } from 'typeorm';
 import {
-  PaymentsStatuses,
+  PaymentStatuses,
   ResultCode,
-  SubscriptionStatus,
+  SubscriptionStatuses,
 } from '../../../../../common/utils';
 import { PaymentsBlogsMembershipsQueryRepository } from '../../infrastructure/payments-blogs-memberships-query-repository';
 import { PaymentsBlogsMembershipsRepository } from '../../infrastructure/payments-blogs-memberships-repository';
@@ -54,7 +54,7 @@ export class ExpiredPaymentBlogMembershipUseCase
       };
     }
 
-    if (payment.status === PaymentsStatuses.CONFIRMED) {
+    if (payment.status === PaymentStatuses.CONFIRMED) {
       return {
         data: false,
         code: ResultCode.BAD_REQUEST,
@@ -80,16 +80,17 @@ export class ExpiredPaymentBlogMembershipUseCase
     }
 
     // Если статус подписки на блог равен None - удаляем подписку, так как не подтверждена оплата (истекла)
-    if (subscription.status === SubscriptionStatus.NONE) {
+    if (subscription.status === SubscriptionStatuses.NONE) {
       await this.blogsSubscriptionsRepository.deleteBlogSubscriptionById(
         subscription.id,
         manager,
       );
     }
 
-    // Удаляем неподтвержденную истекшую оплату
-    await this.paymentsBlogsMembershipsRepository.deletePaymentBlogMemebershipById(
+    // Меняем статус оплаты на expired
+    await this.paymentsBlogsMembershipsRepository.updateStatusToPaymentBlogMembership(
       paymentId,
+      PaymentStatuses.EXPIRED,
       manager,
     );
 

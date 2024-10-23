@@ -2,7 +2,7 @@ import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { EntityManager, Repository } from 'typeorm';
 import { BlogSubscription } from '../domain/blog-subscription.entity';
-import { SubscriptionStatus } from '../../../common/utils';
+import { SubscriptionStatuses } from '../../../common/utils';
 import { User } from '../../users/domain/user.entity';
 import { Blog } from '../../blogs/domain/blog.entity';
 import { BlogMembershipPlan } from '../../memberships/domain/blog-membership-plan.entity';
@@ -17,7 +17,7 @@ export class BlogsSubscriptionsRepository {
   async subscribeUserToBlog(
     user: User,
     blog: Blog,
-    status: SubscriptionStatus,
+    status: SubscriptionStatuses,
     manager?: EntityManager,
   ): Promise<BlogSubscription> {
     const blogsSubscriptionsRepository = manager
@@ -31,7 +31,7 @@ export class BlogsSubscriptionsRepository {
   async unsubscribeUserToBlog(
     updateData: {
       blogSubscriptionId: string;
-      status: SubscriptionStatus;
+      status: SubscriptionStatuses;
     },
     manager?: EntityManager,
   ): Promise<boolean> {
@@ -92,7 +92,7 @@ export class BlogsSubscriptionsRepository {
   }
   async unsubscribeAllUsersToBlog(
     blogId: string,
-    status: SubscriptionStatus,
+    status: SubscriptionStatuses,
     manager?: EntityManager,
   ): Promise<boolean> {
     const blogsSubscriptionsRepository = manager
@@ -136,7 +136,7 @@ export class BlogsSubscriptionsRepository {
   }
   async subscribeOrRenewSubscribeToBlog(
     subscriptionId: string,
-    status: SubscriptionStatus,
+    status: SubscriptionStatuses,
     expirationAt: Date,
     manager?: EntityManager,
   ): Promise<boolean> {

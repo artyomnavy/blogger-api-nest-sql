@@ -3,7 +3,7 @@ import { UsersQueryRepository } from '../../../../../users/infrastructure/users.
 import { Notice } from '../../../../../../common/notification/notice';
 import {
   HTTP_STATUSES,
-  PostMainImageSize,
+  PostMainImageSizes,
 } from '../../../../../../common/utils';
 import { DataSource, EntityManager } from 'typeorm';
 import { TransactionManagerUseCase } from '../../../../../../common/use-cases/transaction.use-case';
@@ -147,7 +147,7 @@ export class UploadPostMainImageToFsUseCase
       originalMetadata.width ?? 0,
       originalMetadata.height ?? 0,
       originalMetadata.size ?? 0,
-      PostMainImageSize.ORIGINAL,
+      PostMainImageSizes.ORIGINAL,
     );
 
     const middleMainImage = new PostMainImage(
@@ -156,7 +156,7 @@ export class UploadPostMainImageToFsUseCase
       middleMetadata.width ?? 0,
       middleMetadata.height ?? 0,
       middleMetadata.size ?? 0,
-      PostMainImageSize.MIDDLE,
+      PostMainImageSizes.MIDDLE,
     );
 
     const smallMainImage = new PostMainImage(
@@ -165,7 +165,7 @@ export class UploadPostMainImageToFsUseCase
       smallMetadata.width ?? 0,
       smallMetadata.height ?? 0,
       smallMetadata.size ?? 0,
-      PostMainImageSize.SMALL,
+      PostMainImageSizes.SMALL,
     );
 
     const originalPostMainImage =

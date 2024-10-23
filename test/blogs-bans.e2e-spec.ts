@@ -3,7 +3,7 @@ import request from 'supertest';
 import {
   HTTP_STATUSES,
   LikeStatuses,
-  SubscriptionStatus,
+  SubscriptionStatuses,
 } from '../src/common/utils';
 import { UserOutputModel } from '../src/features/users/api/models/user.output.model';
 import { Paths } from './utils/test-constants';
@@ -118,7 +118,7 @@ describe('Blogs bans testing (e2e)', () => {
         wallpaper: null,
         main: [],
       },
-      currentUserSubscriptionStatus: SubscriptionStatus.NONE,
+      currentUserSubscriptionStatus: SubscriptionStatuses.NONE,
       subscribersCount: 0,
     });
 

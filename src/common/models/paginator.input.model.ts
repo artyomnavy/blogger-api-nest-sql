@@ -1,7 +1,7 @@
-import { BanStatus, PublishedStatuses } from '../utils';
+import { BanStatuses, PublishedStatuses } from '../utils';
 
 export class PaginatorModel {
-  banStatus?: BanStatus;
+  banStatus?: BanStatuses;
 
   bodySearchTerm?: string;
 

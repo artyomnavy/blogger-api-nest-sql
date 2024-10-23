@@ -38,13 +38,13 @@ export enum PublishedStatuses {
   NOT_PUBLISHED = 'notPublished',
 }
 
-export enum BanStatus {
+export enum BanStatuses {
   ALL = 'all',
   BANNED = 'banned',
   NOT_BANNED = 'notBanned',
 }
 
-export enum PostMainImageSize {
+export enum PostMainImageSizes {
   ORIGINAL = 'original',
   MIDDLE = 'middle',
   SMALL = 'small',
@@ -58,21 +58,23 @@ export enum ResultCode {
   IM_A_TEAPOT,
 }
 
-export enum SubscriptionStatus {
+export enum SubscriptionStatuses {
   SUBSCRIBED = 'Subscribed',
   UNSUBSCRIBED = 'Unsubscribed',
   NONE = 'None',
 }
 
-export enum PaymentsSystems {
+export enum PaymentSystems {
   PAYPAL = 'paypal',
   STRIPE = 'stripe',
   TINKOFF = 'tinkoff',
 }
 
-export enum PaymentsStatuses {
+export enum PaymentStatuses {
   PENDING = 'Pending',
   CONFIRMED = 'Confirmed',
+  FILED = 'Filed',
+  EXPIRED = 'Expired',
 }
 
 export enum Currency {
@@ -84,7 +86,7 @@ export enum Currency {
   BYN = 'BYN',
 }
 
-export enum MembershipsPlans {
+export enum MembershipPlans {
   MONTHLY = 'Monthly',
   QUARTERLY = 'Quarterly',
   SEMI_ANNUAL = 'Semi-Annual',

@@ -5,7 +5,7 @@ import { BlogOutputModel } from '../src/features/blogs/api/models/blog.output.mo
 import {
   HTTP_STATUSES,
   LikeStatuses,
-  SubscriptionStatus,
+  SubscriptionStatuses,
 } from '../src/common/utils';
 import { badId, Paths, responseNullData } from './utils/test-constants';
 import { CreateEntitiesTestManager } from './utils/test-manager';
@@ -127,7 +127,7 @@ describe('Posts testing (e2e)', () => {
         wallpaper: null,
         main: [],
       },
-      currentUserSubscriptionStatus: SubscriptionStatus.NONE,
+      currentUserSubscriptionStatus: SubscriptionStatuses.NONE,
       subscribersCount: 0,
     });
 

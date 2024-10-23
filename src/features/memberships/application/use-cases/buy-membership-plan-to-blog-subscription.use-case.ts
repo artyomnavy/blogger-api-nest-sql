@@ -2,10 +2,10 @@ import { CommandHandler, ICommandHandler } from '@nestjs/cqrs';
 import { UsersQueryRepository } from '../../../users/infrastructure/users.query-repository';
 import { BlogsQueryRepository } from '../../../blogs/infrastructure/blogs.query-repository';
 import {
-  PaymentsStatuses,
-  PaymentsSystems,
+  PaymentStatuses,
+  PaymentSystems,
   ResultCode,
-  SubscriptionStatus,
+  SubscriptionStatuses,
 } from '../../../../common/utils';
 import { ResultType } from '../../../../common/types/result';
 import { TransactionManagerUseCase } from '../../../../common/use-cases/transaction.use-case';
@@ -22,7 +22,7 @@ export class BuyMembershipPlanToBlogSubscriptionCommand {
     public readonly userId: string,
     public readonly blogId: string,
     public readonly membershipPlanId: string,
-    public readonly paymentSystem: PaymentsSystems,
+    public readonly paymentSystem: PaymentSystems,
     public readonly req: Request,
   ) {}
 }
@@ -116,14 +116,14 @@ export class BuyMembershipPlanToBlogSubscriptionUseCase
     // Создаем оплату подписки на блог
     const payment = await this.paymentsBlogsMembershipsRepository.createPayment(
       paymentSystem,
-      PaymentsStatuses.PENDING,
+      PaymentStatuses.PENDING,
       blogMembershipPlan.price,
       blogMembershipPlan,
       manager,
     );
 
     let subscription =
-      await this.blogsSubscriptionsQueryRepository.getSubscriptionToBlog(
+      await this.blogsSubscriptionsQueryRepository.getSubscriptionWithPaymentsToBlog(
         blogId,
         userId,
         manager,
@@ -133,14 +133,14 @@ export class BuyMembershipPlanToBlogSubscriptionUseCase
     // то меняем статус на отписан до подтверждения оплаты
     if (
       subscription &&
-      subscription.status === SubscriptionStatus.SUBSCRIBED &&
+      subscription.status === SubscriptionStatuses.SUBSCRIBED &&
       subscription.expirationAt !== null &&
       subscription.expirationAt > new Date()
     ) {
       await this.blogsSubscriptionsRepository.unsubscribeUserToBlog(
         {
           blogSubscriptionId: subscription.id,
-          status: SubscriptionStatus.UNSUBSCRIBED,
+          status: SubscriptionStatuses.UNSUBSCRIBED,
         },
         manager,
       );
@@ -152,7 +152,7 @@ export class BuyMembershipPlanToBlogSubscriptionUseCase
         await this.blogsSubscriptionsRepository.subscribeUserToBlog(
           user,
           blog,
-          SubscriptionStatus.NONE,
+          SubscriptionStatuses.NONE,
           manager,
         );
     }

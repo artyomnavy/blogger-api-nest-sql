@@ -2,7 +2,7 @@ import { CommandHandler, ICommandHandler } from '@nestjs/cqrs';
 import { v4 as uuidv4 } from 'uuid';
 import { UsersQueryRepository } from '../../../users/infrastructure/users.query-repository';
 import { Notice } from '../../../../common/notification/notice';
-import { HTTP_STATUSES, MembershipsPlans } from '../../../../common/utils';
+import { HTTP_STATUSES, MembershipPlans } from '../../../../common/utils';
 import { DataSource, EntityManager } from 'typeorm';
 import { TransactionManagerUseCase } from '../../../../common/use-cases/transaction.use-case';
 import { BlogsQueryRepository } from '../../../blogs/infrastructure/blogs.query-repository';
@@ -87,13 +87,13 @@ export class CreateMembershipPlanForBlogUseCase
     let monthsCount: number;
 
     switch (createData.planName) {
-      case MembershipsPlans.ANNUAL:
+      case MembershipPlans.ANNUAL:
         monthsCount = 12;
         break;
-      case MembershipsPlans.SEMI_ANNUAL:
+      case MembershipPlans.SEMI_ANNUAL:
         monthsCount = 6;
         break;
-      case MembershipsPlans.QUARTERLY:
+      case MembershipPlans.QUARTERLY:
         monthsCount = 3;
         break;
       default:

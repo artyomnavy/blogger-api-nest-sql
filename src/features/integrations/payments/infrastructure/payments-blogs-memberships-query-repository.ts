@@ -5,6 +5,7 @@ import { PaymentBlogMembership } from '../domain/payment-blog-membership.entity'
 import { PaginatorModel } from '../../../../common/models/paginator.input.model';
 import { PaginatorOutputModel } from '../../../../common/models/paginator.output.model';
 import { PaymentBlogMembershipOutputModel } from '../api/models/payment-blog-membership.output.model';
+import { PaymentStatuses } from '../../../../common/utils';
 
 @Injectable()
 export class PaymentsBlogsMembershipsQueryRepository {
@@ -52,7 +53,8 @@ export class PaymentsBlogsMembershipsQueryRepository {
       .leftJoinAndSelect('bs.user', 'u')
       .leftJoinAndSelect('bs.blog', 'b')
       .leftJoinAndSelect('pbm.blogMembershipPlan', 'bmp')
-      .where('b.id = :blogId', { blogId: blogId })
+      .where('pbm.status = :status', { status: PaymentStatuses.CONFIRMED })
+      .andWhere('b.id = :blogId', { blogId })
       .orderBy(`pbm.${sortBy}`, sortDirection)
       .skip((pageNumber - 1) * pageSize)
       .take(pageSize)
@@ -65,7 +67,8 @@ export class PaymentsBlogsMembershipsQueryRepository {
         .leftJoinAndSelect('bs.user', 'u')
         .leftJoinAndSelect('bs.blog', 'b')
         .leftJoinAndSelect('pbm.blogMembershipPlan', 'bmp')
-        .where('b.id = :blogId', { blogId: blogId })
+        .where('pbm.status = :status', { status: PaymentStatuses.CONFIRMED })
+        .andWhere('b.id = :blogId', { blogId })
         .getCount();
 
     const pagesCount = Math.ceil(totalCount / pageSize);

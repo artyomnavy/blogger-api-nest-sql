@@ -1,9 +1,9 @@
 import { INestApplication } from '@nestjs/common';
 import request from 'supertest';
 import {
-  BanStatus,
+  BanStatuses,
   HTTP_STATUSES,
-  SubscriptionStatus,
+  SubscriptionStatuses,
 } from '../src/common/utils';
 import { UserOutputModel } from '../src/features/users/api/models/user.output.model';
 import { Paths, responseNullData } from './utils/test-constants';
@@ -37,7 +37,7 @@ describe('Users bans testing (e2e)', () => {
   // CHECK BAN USER BY ADMIN
   it('+ GET all users database by admin', async () => {
     const queryData = {
-      banStatus: BanStatus.ALL,
+      banStatus: BanStatuses.ALL,
       sortBy: '',
       sortDirection: '',
       pageNumber: '',
@@ -218,7 +218,7 @@ describe('Users bans testing (e2e)', () => {
         wallpaper: null,
         main: [],
       },
-      currentUserSubscriptionStatus: SubscriptionStatus.NONE,
+      currentUserSubscriptionStatus: SubscriptionStatuses.NONE,
       subscribersCount: 0,
     });
 

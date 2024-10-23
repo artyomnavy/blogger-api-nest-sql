@@ -3,7 +3,7 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { EntityManager, Repository } from 'typeorm';
 import { BlogMembershipPlan } from '../domain/blog-membership-plan.entity';
 import { MembershipPlanOutputModel } from '../api/models/membership.output.model';
-import { MembershipsPlans } from '../../../common/utils';
+import { MembershipPlans } from '../../../common/utils';
 
 @Injectable()
 export class BlogsMembershipsPlansQueryRepository {
@@ -79,7 +79,7 @@ export class BlogsMembershipsPlansQueryRepository {
   }
   async getMembershipPlanByNameForBlog(
     blogId: string,
-    planName: MembershipsPlans,
+    planName: MembershipPlans,
     manager?: EntityManager,
   ): Promise<BlogMembershipPlan | null> {
     const blogsMembershipsPlansQueryRepository = manager

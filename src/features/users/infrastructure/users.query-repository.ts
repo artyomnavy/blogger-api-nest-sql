@@ -7,7 +7,7 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { EntityManager, Repository } from 'typeorm';
 import { AuthMeOutputModel } from '../../auth/api/models/auth.output.model';
 import { User } from '../domain/user.entity';
-import { BanStatus } from '../../../common/utils';
+import { BanStatuses } from '../../../common/utils';
 
 @Injectable()
 export class UsersQueryRepository {
@@ -18,7 +18,9 @@ export class UsersQueryRepository {
   async getAllUsers(
     queryData: PaginatorModel,
   ): Promise<PaginatorOutputModel<UserOutputModel>> {
-    const banStatus = queryData.banStatus ? queryData.banStatus : BanStatus.ALL;
+    const banStatus = queryData.banStatus
+      ? queryData.banStatus
+      : BanStatuses.ALL;
     const sortBy = queryData.sortBy ? queryData.sortBy : 'createdAt';
     const sortDirection = queryData.sortDirection
       ? (queryData.sortDirection.toUpperCase() as 'ASC' | 'DESC')
@@ -45,8 +47,8 @@ export class UsersQueryRepository {
         'u.isConfirmed',
       ])
       .leftJoinAndSelect('u.userBanByAdmin', 'uba')
-      .where(banStatus === BanStatus.ALL ? '1=1' : 'uba.isBanned = :ban', {
-        ban: banStatus === BanStatus.BANNED,
+      .where(banStatus === BanStatuses.ALL ? '1=1' : 'uba.isBanned = :ban', {
+        ban: banStatus === BanStatuses.BANNED,
       })
       .andWhere('(u.login ILIKE :login OR u.email ILIKE :email)', {
         login: `%${searchLoginTerm}%`,
@@ -61,8 +63,8 @@ export class UsersQueryRepository {
       .createQueryBuilder('u')
       .leftJoin('u.userBanByAdmin', 'uba')
       .select('COUNT(u.id)')
-      .where(banStatus === BanStatus.ALL ? '1=1' : 'uba.isBanned = :ban', {
-        ban: banStatus === BanStatus.BANNED,
+      .where(banStatus === BanStatuses.ALL ? '1=1' : 'uba.isBanned = :ban', {
+        ban: banStatus === BanStatuses.BANNED,
       })
       .andWhere('(u.login ILIKE :login OR u.email ILIKE :email)', {
         login: `%${searchLoginTerm}%`,
@@ -325,7 +327,10 @@ export class UsersQueryRepository {
       ? manager.getRepository(User)
       : this.usersQueryRepository;
 
-    const user = await usersQueryRepository.findOneBy({ id: userId });
+    const user = await usersQueryRepository
+      .createQueryBuilder('u')
+      .where('id = :userId', { userId: userId })
+      .getOne();
 
     if (!user) {
       return null;
@@ -341,10 +346,12 @@ export class UsersQueryRepository {
       ? manager.getRepository(User)
       : this.usersQueryRepository;
 
-    const user = await usersQueryRepository.findOne({
-      where: { id: userId },
-      relations: ['userBanByAdmin', 'userBanByBloggers'],
-    });
+    const user = await usersQueryRepository
+      .createQueryBuilder('u')
+      .leftJoinAndSelect('u.userBanByAdmin', 'uba')
+      .leftJoinAndSelect('u.userBanByBloggers', 'ubb')
+      .where('id = :userId', { userId: userId })
+      .getOne();
 
     if (!user) {
       return null;

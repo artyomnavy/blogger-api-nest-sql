@@ -1,5 +1,5 @@
 import { Injectable } from '@nestjs/common';
-import { PaymentsSystems } from '../../../../common/utils';
+import { PaymentSystems } from '../../../../common/utils';
 import { Request } from 'express';
 import { StripeAdapter } from '../adapters/stripe-adapter';
 import { PaymentBlogMembership } from '../domain/payment-blog-membership.entity';
@@ -13,13 +13,13 @@ export interface IPaymentAdapter {
 
 @Injectable()
 export class PaymentsManager {
-  adapters: Partial<Record<PaymentsSystems, IPaymentAdapter>> = {};
+  adapters: Partial<Record<PaymentSystems, IPaymentAdapter>> = {};
   constructor(
     stripeAdapter: StripeAdapter,
     // paypalAdapter: PaypalAdapter,
     // tinkoffAdapter: TinkoffAdapter,
   ) {
-    this.adapters[PaymentsSystems.STRIPE] = stripeAdapter;
+    this.adapters[PaymentSystems.STRIPE] = stripeAdapter;
     // this.adapters[PaymentsSystems.PAYPAL] = paypalAdapter;
     // this.adapters[PaymentsSystems.TINKOFF] = tinkoffAdapter;
   }

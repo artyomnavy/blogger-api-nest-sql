@@ -1,7 +1,7 @@
 import { CommandHandler, ICommandHandler } from '@nestjs/cqrs';
 import { UsersQueryRepository } from '../../../users/infrastructure/users.query-repository';
 import { BlogsQueryRepository } from '../../../blogs/infrastructure/blogs.query-repository';
-import { ResultCode, SubscriptionStatus } from '../../../../common/utils';
+import { ResultCode, SubscriptionStatuses } from '../../../../common/utils';
 import { ResultType } from '../../../../common/types/result';
 import { TransactionManagerUseCase } from '../../../../common/use-cases/transaction.use-case';
 import { DataSource, EntityManager } from 'typeorm';
@@ -85,7 +85,7 @@ export class UnsubscribeUserToBlogUseCase
       await this.blogsSubscriptionsQueryRepository.getSubscriberToBlog(
         blogId,
         userId,
-        SubscriptionStatus.SUBSCRIBED,
+        SubscriptionStatuses.SUBSCRIBED,
         manager,
       );
 
@@ -102,7 +102,7 @@ export class UnsubscribeUserToBlogUseCase
     await this.blogsSubscriptionsRepository.unsubscribeUserToBlog(
       {
         blogSubscriptionId: subscription.id,
-        status: SubscriptionStatus.UNSUBSCRIBED,
+        status: SubscriptionStatuses.UNSUBSCRIBED,
       },
       manager,
     );
