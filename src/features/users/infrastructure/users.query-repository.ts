@@ -350,7 +350,7 @@ export class UsersQueryRepository {
       .createQueryBuilder('u')
       .leftJoinAndSelect('u.userBanByAdmin', 'uba')
       .leftJoinAndSelect('u.userBanByBloggers', 'ubb')
-      .where('id = :userId', { userId: userId })
+      .where('u.id = :userId', { userId: userId })
       .getOne();
 
     if (!user) {
