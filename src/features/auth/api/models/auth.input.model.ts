@@ -26,6 +26,19 @@ export class PasswordRecoveryModel {
   @IsString()
   @IsNotEmpty()
   email: string;
+
+  @Transform(({ value }) => value?.trim())
+  @IsString()
+  @IsNotEmpty()
+  recaptchaResponseToken: string;
+}
+
+export class RecaptchaResponse {
+  success: boolean;
+  challenge_ts: string;
+  hostname: string;
+  'error-codes'?: string[];
+  score: number;
 }
 
 export class NewPasswordRecoveryModel {

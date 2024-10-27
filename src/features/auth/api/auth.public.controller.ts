@@ -38,11 +38,13 @@ import { UpdatePasswordForRecoveryCommand } from '../application/use-cases/updat
 import { SendEmailForPasswordRecoveryCommand } from '../application/use-cases/send-email-for-password-recovery-user.use-case';
 import { ThrottlerGuard } from '@nestjs/throttler';
 import { resultCodeToHttpException } from '../../../common/exceptions/result-code-to-http-exception';
+import { RecaptchaAdapter } from '../adapters/recaptcha-adapter';
 
 @Controller('auth')
 export class AuthController {
   constructor(
     protected usersQueryRepository: UsersQueryRepository,
+    protected recaptchaAdapter: RecaptchaAdapter,
     private readonly commandBus: CommandBus,
   ) {}
 
@@ -78,8 +80,13 @@ export class AuthController {
   async sendEmailForRecoveryPassword(
     @Body() recoveryModel: PasswordRecoveryModel,
   ) {
+    const { email, recaptchaResponseToken } = recoveryModel;
+
+    // Проверяем reCAPTCHA
+    await this.recaptchaAdapter.verifyRecaptcha(recaptchaResponseToken);
+
     const isSend = await this.commandBus.execute(
-      new SendEmailForPasswordRecoveryCommand(recoveryModel.email),
+      new SendEmailForPasswordRecoveryCommand(email),
     );
 
     if (!isSend) {

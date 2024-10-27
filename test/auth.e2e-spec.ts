@@ -17,6 +17,9 @@ import { Repository } from 'typeorm';
 import { User } from '../src/features/users/domain/user.entity';
 import { getRepositoryToken } from '@nestjs/typeorm';
 import { initSettings } from './utils/init-settings';
+import { RecaptchaAdapterMock } from './mock/recaptcha-adapter.mock';
+import { RecaptchaAdapter } from '../src/features/auth/adapters/recaptcha-adapter';
+import { v4 as uuidv4 } from 'uuid';
 
 describe('Auth testing (e2e)', () => {
   let app: INestApplication;
@@ -36,7 +39,9 @@ describe('Auth testing (e2e)', () => {
       (moduleBuilder: TestingModuleBuilder) => {
         moduleBuilder
           .overrideProvider(EmailsAdapter)
-          .useClass(EmailsAdapterMock);
+          .useClass(EmailsAdapterMock)
+          .overrideProvider(RecaptchaAdapter)
+          .useClass(RecaptchaAdapterMock);
       },
     );
 
@@ -450,6 +455,7 @@ describe('Auth testing (e2e)', () => {
       .post(`${Paths.auth}/password-recovery`)
       .send({
         email: 'wrong@test.com',
+        recaptchaResponseToken: 'testRecaptchaToken',
       })
       .expect(HTTP_STATUSES.NO_CONTENT_204);
   });
@@ -459,6 +465,7 @@ describe('Auth testing (e2e)', () => {
       .post(`${Paths.auth}/password-recovery`)
       .send({
         email: newUserByAdmin!.email,
+        recaptchaResponseToken: uuidv4(),
       })
       .expect(HTTP_STATUSES.NO_CONTENT_204);
 

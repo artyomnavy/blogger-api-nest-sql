@@ -148,6 +148,7 @@ import { PaymentsBlogsMembershipsQueryRepository } from './features/integrations
 import { CreateMembershipPlanForBlogUseCase } from './features/memberships/application/use-cases/create-membership-plan-for-blog.use-case';
 import { BlogsMembershipsPlansRepository } from './features/memberships/infrastructure/blogs-memberships-plans-repository';
 import { DeleteMembershipPlanForBlogUseCase } from './features/memberships/application/use-cases/delete-membership-plan-for-blog.use-case';
+import { RecaptchaAdapter } from './features/auth/adapters/recaptcha-adapter';
 
 config();
 
@@ -278,6 +279,8 @@ const telegramUseCases = [
 
 const telegramProviders = [TelegramAdapter];
 
+const recaptchaProviders = [RecaptchaAdapter];
+
 const paymentsProviders = [PaymentsManager, StripeAdapter];
 
 const imagesProviders = [FilesStorageAdapter, S3StorageAdapter];
@@ -386,6 +389,7 @@ const options: TypeOrmModuleOptions = {
     ...telegramProviders,
     ...eventsHandlers,
     ...paymentsProviders,
+    ...recaptchaProviders,
   ],
 })
 export class AppModule implements NestModule {
