@@ -3,7 +3,7 @@ import {
   PostMapperModel,
   PostOutputModel,
 } from '../api/models/post.output.model';
-import { PaginatorModel } from '../../../common/models/paginator.input.model';
+import { PaginatorBaseModel } from '../../../common/models/paginator.input.model';
 import { PaginatorOutputModel } from '../../../common/models/paginator.output.model';
 import { LikeStatuses } from '../../../common/utils';
 import { InjectRepository } from '@nestjs/typeorm';
@@ -19,7 +19,7 @@ export class PostsQueryRepository {
     private readonly postsQueryRepository: Repository<Post>,
   ) {}
   async getAllPostsForPublic(queryData: {
-    query: PaginatorModel;
+    query: PaginatorBaseModel;
     userId?: string;
   }): Promise<PaginatorOutputModel<PostOutputModel>> {
     const pageNumber = queryData.query.pageNumber
@@ -276,7 +276,7 @@ export class PostsQueryRepository {
     }
   }
   async getPostsForBlog(queryData: {
-    query: PaginatorModel;
+    query: PaginatorBaseModel;
     blogId: string;
     userId?: string;
   }): Promise<PaginatorOutputModel<PostOutputModel>> {
@@ -536,7 +536,7 @@ export class PostsQueryRepository {
     }
   }
   async getPostsBlogForPublic(queryData: {
-    query: PaginatorModel;
+    query: PaginatorBaseModel;
     blogId: string;
     userId?: string;
   }): Promise<PaginatorOutputModel<PostOutputModel>> {

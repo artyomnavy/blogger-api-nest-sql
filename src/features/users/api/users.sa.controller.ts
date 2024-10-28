@@ -14,7 +14,7 @@ import {
 } from '@nestjs/common';
 import { UsersQueryRepository } from '../infrastructure/users.query-repository';
 import { CreateUserModel } from './models/user.input.model';
-import { PaginatorModel } from '../../../common/models/paginator.input.model';
+import { PaginatorUserModel } from '../../../common/models/paginator.input.model';
 import { PaginatorOutputModel } from '../../../common/models/paginator.output.model';
 import { UserOutputModel } from './models/user.output.model';
 import { HTTP_STATUSES, ResultCode } from '../../../common/utils';
@@ -36,7 +36,7 @@ export class UsersSAController {
   @Get()
   @UseGuards(BasicAuthGuard)
   async getAllUsers(
-    @Query() query: PaginatorModel,
+    @Query() query: PaginatorUserModel,
   ): Promise<PaginatorOutputModel<UserOutputModel>> {
     const users = await this.usersQueryRepository.getAllUsers(query);
 

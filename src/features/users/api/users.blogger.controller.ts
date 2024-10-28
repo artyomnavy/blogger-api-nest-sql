@@ -12,7 +12,10 @@ import {
   UseGuards,
 } from '@nestjs/common';
 import { UsersQueryRepository } from '../infrastructure/users.query-repository';
-import { PaginatorModel } from '../../../common/models/paginator.input.model';
+import {
+  PaginatorBannedUserModel,
+  PaginatorBaseModel,
+} from '../../../common/models/paginator.input.model';
 import { PaginatorOutputModel } from '../../../common/models/paginator.output.model';
 import { UserOutputModel } from './models/user.output.model';
 import { HTTP_STATUSES, ResultCode } from '../../../common/utils';
@@ -39,7 +42,7 @@ export class UsersBloggerController {
   async getAllBannedUsersForBlog(
     @CurrentUserId() blogOwnerId: string,
     @Param('blogId', new ParseUUIDPipe({ version: '4' })) blogId: string,
-    @Query() query: PaginatorModel,
+    @Query() query: PaginatorBannedUserModel,
   ): Promise<
     PaginatorOutputModel<Omit<UserOutputModel, 'email' | 'createdAt'>>
   > {
@@ -88,7 +91,7 @@ export class UsersBloggerController {
   async getAllPaymentsMembershipsForBlog(
     @CurrentUserId() userId: string,
     @Param('blogId', new ParseUUIDPipe({ version: '4' })) blogId: string,
-    @Query() query: PaginatorModel,
+    @Query() query: PaginatorBaseModel,
   ): Promise<PaginatorOutputModel<PaymentBlogMembershipOutputModel>> {
     const blog = await this.blogsQueryRepository.getBlogById(blogId);
 

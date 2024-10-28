@@ -25,7 +25,10 @@ import {
 } from './models/blog.input.model';
 import { CreateAndUpdatePostModel } from '../../posts/api/models/post.input.model';
 import { PostOutputModel } from '../../posts/api/models/post.output.model';
-import { PaginatorModel } from '../../../common/models/paginator.input.model';
+import {
+  PaginatorBaseModel,
+  PaginatorBlogModel,
+} from '../../../common/models/paginator.input.model';
 import { PaginatorOutputModel } from '../../../common/models/paginator.output.model';
 import { HTTP_STATUSES } from '../../../common/utils';
 import { CreateBlogCommand } from '../application/use-cases/create-blog.use-case';
@@ -72,7 +75,7 @@ export class BlogsBloggerController {
   async getAllBlogs(
     // @Req() req,
     @CurrentUserId() userId: string,
-    @Query() query: PaginatorModel,
+    @Query() query: PaginatorBlogModel,
   ): Promise<PaginatorOutputModel<BlogOutputModel>> {
     const blogs = await this.blogsQueryRepository.getAllBlogs(query, userId);
 
@@ -176,7 +179,7 @@ export class BlogsBloggerController {
   async getPostsForBlog(
     // @Req() req,
     @Param('blogId', UuidPipe) blogId: string,
-    @Query() query: PaginatorModel,
+    @Query() query: PaginatorBaseModel,
   ): Promise<PaginatorOutputModel<PostOutputModel>> {
     const blog = await this.blogsQueryRepository.getBlogById(blogId);
 
@@ -306,7 +309,7 @@ export class BlogsBloggerController {
   @UseGuards(JwtBearerAuthGuard)
   async getAllCommentsForPosts(
     @CurrentUserId() userId: string,
-    @Query() query: PaginatorModel,
+    @Query() query: PaginatorBaseModel,
   ): Promise<PaginatorOutputModel<CommentOutputForBloggerModel>> {
     const comments =
       await this.commentsQueryRepository.getAllCommentsPostsForBlogger(

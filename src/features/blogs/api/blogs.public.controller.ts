@@ -15,7 +15,10 @@ import { BlogsQueryRepository } from '../infrastructure/blogs.query-repository';
 import { PostsQueryRepository } from '../../posts/infrastructure/posts.query-repository';
 import { BlogOutputModel } from './models/blog.output.model';
 import { PostOutputModel } from '../../posts/api/models/post.output.model';
-import { PaginatorModel } from '../../../common/models/paginator.input.model';
+import {
+  PaginatorBaseModel,
+  PaginatorBlogModel,
+} from '../../../common/models/paginator.input.model';
 import { PaginatorOutputModel } from '../../../common/models/paginator.output.model';
 import { UuidPipe } from '../../../common/pipes/uuid.pipe';
 import { updateBlogImagesS3UrlsForOutput } from '../../files/images/api/models/blog-image.output.model';
@@ -45,7 +48,7 @@ export class BlogsPublicController {
   @Get()
   async getAllBlogs(
     @Req() req,
-    @Query() query: PaginatorModel,
+    @Query() query: PaginatorBlogModel,
   ): Promise<PaginatorOutputModel<BlogOutputModel>> {
     const userId = req.userId;
 
@@ -101,7 +104,7 @@ export class BlogsPublicController {
   @Get(':blogId/posts')
   async getPostsForBlog(
     @Param('blogId', UuidPipe) blogId: string,
-    @Query() query: PaginatorModel,
+    @Query() query: PaginatorBaseModel,
     @Req() req,
   ): Promise<PaginatorOutputModel<PostOutputModel>> {
     const userId = req.userId;

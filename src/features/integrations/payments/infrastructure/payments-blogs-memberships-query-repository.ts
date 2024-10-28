@@ -2,7 +2,7 @@ import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { EntityManager, Repository } from 'typeorm';
 import { PaymentBlogMembership } from '../domain/payment-blog-membership.entity';
-import { PaginatorModel } from '../../../../common/models/paginator.input.model';
+import { PaginatorBaseModel } from '../../../../common/models/paginator.input.model';
 import { PaginatorOutputModel } from '../../../../common/models/paginator.output.model';
 import { PaymentBlogMembershipOutputModel } from '../api/models/payment-blog-membership.output.model';
 import { PaymentStatuses } from '../../../../common/utils';
@@ -38,7 +38,7 @@ export class PaymentsBlogsMembershipsQueryRepository {
   }
   async getAllPaymentsMembershipsForBlog(
     blogId: string,
-    queryData: PaginatorModel,
+    queryData: PaginatorBaseModel,
   ): Promise<PaginatorOutputModel<PaymentBlogMembershipOutputModel>> {
     const sortBy = queryData.sortBy ? queryData.sortBy : 'createdAt';
     const sortDirection = queryData.sortDirection

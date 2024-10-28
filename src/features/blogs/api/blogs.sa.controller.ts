@@ -11,7 +11,7 @@ import {
 } from '@nestjs/common';
 import { BlogsQueryRepository } from '../infrastructure/blogs.query-repository';
 import { BlogWithOwnerAndBanInfoOutputModel } from './models/blog.output.model';
-import { PaginatorModel } from '../../../common/models/paginator.input.model';
+import { PaginatorBlogModel } from '../../../common/models/paginator.input.model';
 import { PaginatorOutputModel } from '../../../common/models/paginator.output.model';
 import { BasicAuthGuard } from '../../../common/guards/basic-auth.guard';
 import { CommandBus } from '@nestjs/cqrs';
@@ -32,7 +32,7 @@ export class BlogsSAController {
   @Get()
   @UseGuards(BasicAuthGuard)
   async getAllBlogsForAdmin(
-    @Query() query: PaginatorModel,
+    @Query() query: PaginatorBlogModel,
   ): Promise<PaginatorOutputModel<BlogWithOwnerAndBanInfoOutputModel>> {
     const blogs =
       await this.blogsQueryRepository.getAllBlogsWithOwnerAndBanInfoForAdmin(

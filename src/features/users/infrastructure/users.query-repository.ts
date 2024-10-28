@@ -1,6 +1,9 @@
 import { Injectable } from '@nestjs/common';
 import { UserOutputModel } from '../api/models/user.output.model';
-import { PaginatorModel } from '../../../common/models/paginator.input.model';
+import {
+  PaginatorBannedUserModel,
+  PaginatorUserModel,
+} from '../../../common/models/paginator.input.model';
 import { PaginatorOutputModel } from '../../../common/models/paginator.output.model';
 import bcrypt from 'bcrypt';
 import { InjectRepository } from '@nestjs/typeorm';
@@ -16,7 +19,7 @@ export class UsersQueryRepository {
     private readonly usersQueryRepository: Repository<User>,
   ) {}
   async getAllUsers(
-    queryData: PaginatorModel,
+    queryData: PaginatorUserModel,
   ): Promise<PaginatorOutputModel<UserOutputModel>> {
     const banStatus = queryData.banStatus
       ? queryData.banStatus
@@ -86,7 +89,7 @@ export class UsersQueryRepository {
   }
   async getAllBannedUsersForBlog(
     blogId: string,
-    queryData: PaginatorModel,
+    queryData: PaginatorBannedUserModel,
   ): Promise<
     PaginatorOutputModel<Omit<UserOutputModel, 'email' | 'createdAt'>>
   > {

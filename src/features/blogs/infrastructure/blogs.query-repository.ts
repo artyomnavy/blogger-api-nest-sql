@@ -5,7 +5,7 @@ import {
   BlogWithOwnerAndBanInfoModel,
   BlogWithOwnerAndBanInfoOutputModel,
 } from '../api/models/blog.output.model';
-import { PaginatorModel } from '../../../common/models/paginator.input.model';
+import { PaginatorBlogModel } from '../../../common/models/paginator.input.model';
 import { PaginatorOutputModel } from '../../../common/models/paginator.output.model';
 import { InjectRepository } from '@nestjs/typeorm';
 import { EntityManager, Repository } from 'typeorm';
@@ -23,7 +23,7 @@ export class BlogsQueryRepository {
     private readonly blogsQueryRepository: Repository<Blog>,
   ) {}
   async getAllBlogs(
-    queryData: PaginatorModel,
+    queryData: PaginatorBlogModel,
     userId?: string,
   ): Promise<PaginatorOutputModel<BlogOutputModel>> {
     const searchNameTerm = queryData.searchNameTerm
@@ -170,7 +170,7 @@ export class BlogsQueryRepository {
     return blog != null;
   }
   async getAllBlogsWithOwnerAndBanInfoForAdmin(
-    queryData: PaginatorModel,
+    queryData: PaginatorBlogModel,
   ): Promise<PaginatorOutputModel<BlogWithOwnerAndBanInfoOutputModel>> {
     const searchNameTerm = queryData.searchNameTerm
       ? queryData.searchNameTerm

@@ -5,7 +5,7 @@ import {
   CommentOutputForBloggerModel,
   CommentOutputModel,
 } from '../api/models/comment.output.model';
-import { PaginatorModel } from '../../../common/models/paginator.input.model';
+import { PaginatorBaseModel } from '../../../common/models/paginator.input.model';
 import { PaginatorOutputModel } from '../../../common/models/paginator.output.model';
 import { LikeStatuses } from '../../../common/utils';
 import { InjectRepository } from '@nestjs/typeorm';
@@ -92,7 +92,7 @@ export class CommentsQueryRepository {
     }
   }
   async getCommentsByPostId(
-    queryData: { query: PaginatorModel } & { postId: string } & {
+    queryData: { query: PaginatorBaseModel } & { postId: string } & {
       userId?: string;
     },
   ): Promise<PaginatorOutputModel<CommentOutputModel>> {
@@ -199,7 +199,7 @@ export class CommentsQueryRepository {
     };
   }
   async getAllCommentsPostsForBlogger(
-    queryData: PaginatorModel,
+    queryData: PaginatorBaseModel,
     userId: string,
   ): Promise<PaginatorOutputModel<CommentOutputForBloggerModel>> {
     const pageNumber = queryData.pageNumber ? +queryData.pageNumber : 1;

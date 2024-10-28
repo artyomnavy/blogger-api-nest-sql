@@ -1,7 +1,7 @@
 import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
-import { PaginatorModel } from '../../../common/models/paginator.input.model';
+import { PaginatorQuestionModel } from '../../../common/models/paginator.input.model';
 import {
   QuestionModel,
   QuestionOutputModel,
@@ -15,7 +15,7 @@ export class QuestionsQueryRepository {
     @InjectRepository(Question)
     private readonly questionsQueryRepository: Repository<Question>,
   ) {}
-  async getAllQuestions(queryData: PaginatorModel) {
+  async getAllQuestions(queryData: PaginatorQuestionModel) {
     const bodySearchTerm = queryData.bodySearchTerm
       ? queryData.bodySearchTerm
       : '';

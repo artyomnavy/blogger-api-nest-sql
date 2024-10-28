@@ -1,25 +1,41 @@
 import { BanStatuses, PublishedStatuses } from '../utils';
 
-export class PaginatorModel {
-  banStatus?: BanStatuses;
+export class PaginatorBaseModel {
+  pageNumber: number;
 
-  bodySearchTerm?: string;
+  pageSize: number;
 
-  publishedStatus?: PublishedStatuses;
+  sortBy: string;
 
-  searchNameTerm?: string;
+  sortDirection: 'ASC' | 'DESC';
+}
 
-  searchLoginTerm?: string;
+export class PaginatorBlogModel extends PaginatorBaseModel {
+  searchNameTerm: string;
+}
 
-  searchEmailTerm?: string;
+export class PaginatorUserModel extends PaginatorBaseModel {
+  banStatus: BanStatuses;
 
-  pageNumber?: number;
+  searchLoginTerm: string;
 
-  pageSize?: number;
+  searchEmailTerm: string;
+}
 
-  sortBy?: string;
+export class PaginatorBannedUserModel extends PaginatorBaseModel {
+  searchLoginTerm: string;
+}
 
-  sort?: string | string[];
+export class PaginatorQuestionModel extends PaginatorBaseModel {
+  bodySearchTerm: string;
 
-  sortDirection?: 'ASC' | 'DESC';
+  publishedStatus: PublishedStatuses;
+}
+
+export class PaginatorTopQuizModel {
+  sort: string | string[];
+
+  pageNumber: number;
+
+  pageSize: number;
 }

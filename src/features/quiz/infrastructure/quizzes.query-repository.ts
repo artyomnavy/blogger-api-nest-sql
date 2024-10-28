@@ -8,7 +8,10 @@ import {
   QuizMapperModel,
   StatisticOutputModel,
 } from '../api/models/quiz.output.model';
-import { PaginatorModel } from '../../../common/models/paginator.input.model';
+import {
+  PaginatorBaseModel,
+  PaginatorTopQuizModel,
+} from '../../../common/models/paginator.input.model';
 import { PaginatorOutputModel } from '../../../common/models/paginator.output.model';
 import { PlayerSession } from '../domain/player-session.entity';
 import { QuizQuestion } from '../domain/quiz-question.entity';
@@ -24,16 +27,7 @@ export class QuizzesQueryRepository {
     private readonly playersSessionQueryRepository: Repository<PlayerSession>,
   ) {}
   async getTopPlayers(
-    queryData: Omit<
-      PaginatorModel,
-      | 'bodySearchTerm'
-      | 'publishedStatus'
-      | 'searchNameTerm'
-      | 'searchLoginTerm'
-      | 'searchEmailTerm'
-      | 'sortBy'
-      | 'sortDirection'
-    >,
+    queryData: PaginatorTopQuizModel,
   ): Promise<
     PaginatorOutputModel<
       StatisticOutputModel & { player: PlayerOutputQuizModel }
@@ -240,15 +234,7 @@ export class QuizzesQueryRepository {
   }
   async getAllQuizzes(
     playerId: string,
-    queryData: Omit<
-      PaginatorModel,
-      | 'bodySearchTerm'
-      | 'publishedStatus'
-      | 'searchNameTerm'
-      | 'searchLoginTerm'
-      | 'searchEmailTerm'
-      | 'sort'
-    >,
+    queryData: PaginatorBaseModel,
   ): Promise<PaginatorOutputModel<QuizOutputModel>> {
     const pageNumber = queryData.pageNumber ? +queryData.pageNumber : 1;
     const pageSize = queryData.pageSize ? +queryData.pageSize : 10;

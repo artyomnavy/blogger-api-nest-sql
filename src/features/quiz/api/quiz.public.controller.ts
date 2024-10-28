@@ -24,7 +24,10 @@ import {
 import { CreateAnswerCommand } from '../application/create-answer.use-case';
 import { HTTP_STATUSES, ResultCode } from '../../../common/utils';
 import { AnswerOutputModel } from './models/answer.output.model';
-import { PaginatorModel } from '../../../common/models/paginator.input.model';
+import {
+  PaginatorBaseModel,
+  PaginatorTopQuizModel,
+} from '../../../common/models/paginator.input.model';
 import { PaginatorOutputModel } from '../../../common/models/paginator.output.model';
 import { PlayerOutputQuizModel } from './models/player-session.output.model';
 import { resultCodeToHttpException } from '../../../common/exceptions/result-code-to-http-exception';
@@ -39,15 +42,7 @@ export class QuizPublicController {
   @UseGuards(JwtBearerAuthGuard)
   async getAllQuizzes(
     @Query()
-    query: Omit<
-      PaginatorModel,
-      | 'bodySearchTerm'
-      | 'publishedStatus'
-      | 'searchNameTerm'
-      | 'searchLoginTerm'
-      | 'searchEmailTerm'
-      | 'sort'
-    >,
+    query: PaginatorBaseModel,
     @CurrentUserId() playerId: string,
   ): Promise<PaginatorOutputModel<QuizOutputModel>> {
     const quizzes = await this.quizzesQueryRepository.getAllQuizzes(
@@ -72,16 +67,7 @@ export class QuizPublicController {
   @Get('users/top')
   async getTopPlayers(
     @Query()
-    query: Omit<
-      PaginatorModel,
-      | 'bodySearchTerm'
-      | 'publishedStatus'
-      | 'searchNameTerm'
-      | 'searchLoginTerm'
-      | 'searchEmailTerm'
-      | 'sortBy'
-      | 'sortDirection'
-    >,
+    query: PaginatorTopQuizModel,
   ): Promise<
     PaginatorOutputModel<
       StatisticOutputModel & { player: PlayerOutputQuizModel }

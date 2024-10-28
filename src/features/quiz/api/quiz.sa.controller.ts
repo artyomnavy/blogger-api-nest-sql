@@ -11,7 +11,7 @@ import {
   UseGuards,
 } from '@nestjs/common';
 import { BasicAuthGuard } from '../../../common/guards/basic-auth.guard';
-import { PaginatorModel } from '../../../common/models/paginator.input.model';
+import { PaginatorQuestionModel } from '../../../common/models/paginator.input.model';
 import { PaginatorOutputModel } from '../../../common/models/paginator.output.model';
 import { QuestionOutputModel } from './models/question.output.model';
 import { HTTP_STATUSES, ResultCode } from '../../../common/utils';
@@ -38,7 +38,7 @@ export class QuizSAController {
   @Get()
   @UseGuards(BasicAuthGuard)
   async getAllQuestions(
-    @Query() query: PaginatorModel,
+    @Query() query: PaginatorQuestionModel,
   ): Promise<PaginatorOutputModel<QuestionOutputModel>> {
     const questions: PaginatorOutputModel<QuestionOutputModel> =
       await this.questionsQueryRepository.getAllQuestions(query);

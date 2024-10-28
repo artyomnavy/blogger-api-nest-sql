@@ -14,7 +14,7 @@ import {
 import { PostsQueryRepository } from '../infrastructure/posts.query-repository';
 import { CommentsQueryRepository } from '../../comments/infrastructure/comments.query-repository';
 import { PostOutputModel } from './models/post.output.model';
-import { PaginatorModel } from '../../../common/models/paginator.input.model';
+import { PaginatorBaseModel } from '../../../common/models/paginator.input.model';
 import { PaginatorOutputModel } from '../../../common/models/paginator.output.model';
 import { CommentOutputModel } from '../../comments/api/models/comment.output.model';
 import { HTTP_STATUSES, ResultCode } from '../../../common/utils';
@@ -40,7 +40,7 @@ export class PostsController {
   ) {}
   @Get()
   async getAllPosts(
-    @Query() query: PaginatorModel,
+    @Query() query: PaginatorBaseModel,
     @Req() req,
   ): Promise<PaginatorOutputModel<PostOutputModel>> {
     const userId = req.userId;
@@ -110,7 +110,7 @@ export class PostsController {
   @Get(':postId/comments')
   async getCommentsForPost(
     @Param('postId', UuidPipe) postId: string,
-    @Query() query: PaginatorModel,
+    @Query() query: PaginatorBaseModel,
     @Req() req,
   ): Promise<PaginatorOutputModel<CommentOutputModel>> {
     const userId = req.userId;
